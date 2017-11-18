@@ -1,80 +1,115 @@
-=== Backup Guard ===
-Plugin Name: Backup Guard
-Contributors: BackupGuard
-Donate link: https://backup-guard.com/
-Tags: backup, back up, backup database, database, file, backup files, backup mysql, backup plugin, backup posts, cloud backup, db backup, dropbox backup, dump, ftp backup, web backup, full backup, site backup, google drive backup, page backup, restoration, restore, rollback, scheduled backup, wordpress backup, complete backup, wp backup, db backup, multisite, backups
+=== WordPress Backup and Migrate Plugin - BackupGuard ===
+Plugin Name: WordPress Backup and Migrate Plugin - BackupGuard
+Contributors: Backup Guard, Backup Guard Support
+Author: Backup Guard
+Donate link: https://backup-guard.com/products/backup-wordpress
+Tags: backup, backup plugin, site backup, database backup, migrate
 Requires at least: 3.8
-Tested up to: 4.4
+Tested up to: 4.8
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Backup Guard for WordPress is the best backup choice for WordPress based websites or blogs.
+Backup site, restore or migrate it wherever you need it. Backup to Dropbox, Google Drive, Amazon, OneDrive, FTP / SFTP to restore or migrate WordPress.
 
 == Description ==
 
-Backup Guard is the most complete back up choice for WordPress. We offer the easiest way to <strong>backup</strong> and <strong>restore</strong> your WordPress based website or blog. You can backup your files, database or both.
+BackupGuard is the most complete site backup and restore plugin. We offer the easiest way to <strong>Backup</strong>, <strong>Restore</strong> and <strong>Migrate</strong> your website. You can backup and restore your files, database or both.
 
-<h4>Features</h4>
+https://www.youtube.com/watch?v=HCz4mkMMXos
+
+<p>Download <strong>BackupGuard Pro</strong> here: <a  href="https://backup-guard.com/products/backup-wordpress">https://backup-guard.com/products/backup-wordpress</a></p>
+
+<h4>Free backup features</h4>
 <ul>
-<li><b>Unlimited backup</b> - create as many backups as you want, there is no limit</li>
-<li><b>Backup of files, database or both</b> - you can create backups of your database or your files, or both</li>
-<li><b>Unlimited restore</b> - restore any backup file whenever needed</li>
-<li><b>Download backup</b> - download your backup files for migration</li>
-<li><b>Import backup</b> - upload your backup file to restore it right away</li>
-<li><b>Backup cancellation</b> - cancel the backup process while it is not finished yet</li>
-<li><b>Manage backup</b> - delete backups, view backup or restore  log</li>
-<li><b>Backup customization</b> - you choose which folders you want to backup</li>
-<li><b>Live backup or restore progress</b> - precise progress of the current backup and restore process</li>
-<li><b>WordPress multisite/network support</b></li>
+<li>Backup site - backup site as many times as you want</li>
+<li>Backup files, database or both</li>
+<li>Choose which folders to backup</li>
+<li>Choose which database tables to backup</li>
+<li>Restore site - restore backups whenever needed</li>
+<li>Selective files or database restoration</li>
+<li>Download backups - download your backups on your computer</li>
+<li>Import backups - upload your backups to restore (no FTP required)</li>
+<li>Multisite WordPress Network is supported</li>
+<li>Backup cancellation - cancel the backup process</li>
+<li>Explore backup or restore log files</li>
+<li>Ability to specify custom exclude paths</li>
+<li>Ability to exclude database tables</li>
+<li>Live progress - precise progress of the current backup or restore</li>
 </ul>
 
-<h4>PRO features</h4>
+See <strong>BackupGuard Free</strong> in action here: <a href="https://www.youtube.com/watch?v=nt6XoP69c0M">https://www.youtube.com/watch?v=nt6XoP69c0M</a>
+
+<h4>Pro backup features</h4>
 <ul>
-<li><b>Upload backup to FTP</b> - upload your backup file directly to FTP</li>
-<li><b>Upload backup to Dropbox</b> - upload your backup file directly to Dropbox</li>
-<li><b>Upload backup to Google Drive</b> - upload your backup file directly to Google Drive</li>
-<li><b>Scheduled backup</b> - set the frequency and time to perform automatic backup</li>
-<li><b>Background mode</b> - perform backup in low priority mode</li>
-<li><b>Mail notifications</b> - get notified when a backup or restore gets finished</li>
-<li><b>Emergency support</b> - up to 24 hours</li>
-</ul>
-<p>More info at <a href="https://backup-guard.com/products/backup-wordpress">https://backup-guard.com/products/backup-wordpress</a></p>
-<h4>This is how we operate</h4>
-<ul>
-<li><b>No extra libraries required</b></li>
-<li><b>Support of very large sites</b></li>
-<li><b>New archive format: faster and smaller than Zip or Tar</b></li>
-<li><b>Lower CPU and RAM usage</b></li>
-<li><b>Precise progress tracking</b></li>
-<li><b>Ability to cancel the backup process if desired</b></li>
+<li><strong>Migrate site</strong> - migrate site from one domain to another</li>
+<li>Fully automatic migration - no any <strong>find & replace</strong> rules are required for migration</li>
+<li>Scheduled site backups - setup automatic site backups</li>
+<li>Multiple scheduled backups - schedule your database and files to backup with different frequencies</li>
+<li>Upload to Dropbox, G Drive, Amazon S3, OneDrive & SFTP/FTP</li>
+<li>Import from Dropbox, G Drive, Amazon S3, OneDrive & SFTP/FTP</li>
+<li>Mail notifications - get email when backup or restore gets finished</li>
+<li>Alert before updating - get an alert to backup the website before updating</li>
+<li>Customize backup naming - specify your custom backup prefix</li>
+<li>Backups retention - specify the number of backups you want to keep on your server</li>
+<li>Backups cloud path - specify a custom cloud path where your site backups should be uploaded</li>
+<li>Background backup mode - backup site in low priority mode</li>
+<li>Emergency support - up to 24 hours</li>
 </ul>
 
-<h4>Min. requirements for Backup Guard</h4>
-<p>PHP 5.3, zlib, WordPress 3.8</p>
+See <strong>BackupGuard Pro</strong> in action here: <a href="https://www.youtube.com/watch?v=TSPgmrSu-ls">https://www.youtube.com/watch?v=TSPgmrSu-ls</a>
+
+<h4>A special note on WordPress migration</h4>
+
+A WordPress site migration is an easy task if performed properly. There are three different migration scenarios:
+<ul>
+<li>Migrate site from a subdirectory of a domain to the root directory</li>
+<li>Migrate site from a local installation to a remote installation</li>
+<li>Migrate site between domains or hosts</li>
+</ul>
+
+Backup Guard Pro helps you to migrate in all of these cases in the smoothest possible way. You just have to Backup your site and Restore it in the new location. No additional work will be required, since we handle all changes for you.
+
+The issues that users always deal with are: wrong site url, images don't load, dashboard not accessible, permalinks don't work and more.
+
+Backup Guard Pro will help you to skip all these problems, because of its advanced refactoring and migrating engine.
+
+<h4>Documentation</h4>
+The documentation can be found here: <a  href="https://backup-guard.com/products/backup-wordpress/doc">https://backup-guard.com/products/backup-wordpress/doc</a>
+
+<h4>This is how backup operates</h4>
+<ul>
+<li>No extra libraries required</li>
+<li>Support of large websites</li>
+<li>New archive format: faster and smaller than Zip or Tar</li>
+<li>Works in low memory & shared hosting environments</li>
+<li>Serialized data refactoring for proper migration</li>
+</ul>
+
+<h4>Backup Guard min. requirements</h4>
+<ul>
+<li><strong>Free</strong> requires - PHP 5.3.3, zlib, WordPress 3.8</li>
+<li><strong>Pro</strong> requires - PHP 5.3.3, zlib, curl, WordPress 3.8</li>
+<li><strong>Note:</strong> Dropbox SDK requires 64-bit system. Backup Guard will also require 64-bit system if the website is larger than 2GB.</li>
+</ul>
+
+<p>More info at: <a href="https://backup-guard.com/products/backup-wordpress">https://backup-guard.com/products/backup-wordpress</a></p>
 
 <h4>Support</h4>
-<p><a href="https://backup-guard.com/support">https://backup-guard.com/support</a></p>
-
-== Installation ==
-
-Installation of BackupGuard
-
-1. Upload `BackupGuard` to the `/wp-content/plugins/` directory
-1. Activate the plugin through the 'Plugins' menu in WordPress
-1. Enjoy!
+<p><a href="https://backup-guard.com/products/backup-wordpress/support">https://backup-guard.com/products/backup-wordpress/support</a></p>
 
 == Frequently Asked Questions ==
 
-= Why is important to backup my website? =
+= How to install? =
 
-The majority of people value their digital content, but are still not backing it up regularly. More than 50% of adults, personally have and/or know someone who has lost files.
+<ul>
+<li>Install <strong>Free</strong> version: <a href="https://backup-guard.com/products/backup-wordpress/doc/install-backupguard-free">here</a></li>
+<li>Install <strong>Pro</strong> version: <a  href="https://backup-guard.com/products/backup-wordpress/doc/install-backupguard-pro">here</a></li>
+</ul>
 
-The fact is that, even though today's technology is extraordinarily advanced and dependable, it can still fall subject to failure. So unless you have a routine backup solution, you're at risk of losing all of your data at a moment's notice.
+= Can I use BackupGuard to migrate a website? =
 
-= How often should a backup be created? =
-
-It depends on how often data gets updated on your website. Maybe daily backups are not necessary and maybe monthly backups are not good enough, so the best way is measuring the amount of data that gets changed in your particular case.
+The answer is Yes, you can! Backup Guard Pro supports advanced migration functionality which will help you easily migrate your website from one domain to another. All urls, images and other domain-dependent data will be properly refactored and deployed for the new domain.
 
 = What is included in the basic (free) plan? =
 
@@ -88,142 +123,278 @@ That's not all, if you are a paid user, you will receive priority/emergency supp
 
 <a href="https://backup-guard.com/products/backup-wordpress">Backup Guard PRO</a>
 
-= What other platforms has Backup Guard planned to support? =
+= How to fix “MySQL server has gone away” error? =
 
-We currently support WordPress and Magento platforms, but with the help of our flexible and universal backup technology, multi-platform coverage is just around the corner. Prestashop and Joomla are next.
+While restoring your database you may encounter “MySQL server has gone away” warning. There are generally two main causes for this error: 1) the server timed out and closed the connection and 2) server dropped an incorrect or too large packet.
+To fix the issue you will have to contact your hosting provider and ask them increase the size of these two values: max_allowed_packet & wait_timeout
 
-= What are the minimum requirements for installing Backup Guard? =
+= How do I Restore my Backup? =
 
-Your hosting/server must have installed PHP 5.3 or higher with zlib library enabled.
+This documentation describes the basic steps you should follow for proper restoration: <a href="https://backup-guard.com/products/backup-wordpress/doc/restore-website">https://backup-guard.com/products/backup-wordpress/doc/restore-website</a>
 
-Note: depending on the product you are using, there more be more requirements, that's why we recommend you to check our products section for more details.
+= How do I download my Backup archive? =
 
-= What are the limitations of the backup created by Backup Guard? =
+This documentation describes the basic steps you should follow for downloading your backup archives: <a href="https://backup-guard.com/products/backup-wordpress/doc/download-backup">https://backup-guard.com/products/backup-wordpress/doc/download-backup</a>
 
-Of course there is a limit regarding the size of the archive, but practically it is unreachable. We use our own SGBP archive format which compared to Zip doesn't limit you to 4GB archive/file size or 65k of number of files.
+= How do I extract my Backup archive? =
 
-It doesn't matter if you are running 32-bit or 64-bit OS, if it's Linux, Windows or Mac, everything is the same.
+This documentation describes the basic steps you should follow for extracting your backup archives: <a href="https://backup-guard.com/products/backup-wordpress/doc/extract-sgbp">https://backup-guard.com/products/backup-wordpress/doc/extract-sgbp</a>
 
 = Something is not working, what should I do? =
 
 No software is perfect and we are not the exception. There are tons of different servers and configurations and something may go wrong in one of them.
 
-When you are facing an issue of any kind with any of our products, the first thing to do is <a href="https://backup-guard.com/support">contacting us</a>. We are here to help you, give you tips, advices and even create fixes/patches or features whenever needed.
-
-= How can I extract an SGBP file? =
-
-SGBP is our own archive format, therefore currently there is no software that can extract it.
-
-= Is it possible to migrate website using Backup Guard? =
-
-Although we don't offer server migration feature, Backup Guard creates an exact snapshot of the current state of your website and whenever you restore it, the exact same state gets restored. So practically, you can migrate your website with just downloading and importing your backup.
+When you are facing an issue of any kind with any of our products, the first thing to do is <a href="https://backup-guard.com/products/backup-wordpress/support">contacting us</a>. We are here to help you, give you tips, advices and even create fixes/patches or features whenever needed.
 
 == Screenshots ==
 
-1.  Main screen / list of backups
-2.  Perform manual backup popup
-3.  Import backup popup
-4.  Cloud settings screen
-5.  Scheduled backup settings screen
-6.  General settings screen
+1.  Backup WordPress
+2.  Website backup and migration
+3.  Schedule a site backup
+4.  Backup cloud integrations
+5.  Backup status mail notifications
+6.  Site backup customization
 
 == Changelog ==
 
+= 1.1.53 =
+* WordPress dashboard widget added
+* BackupGuard GUI improvements
+* Other security & core improvements
+
+= 1.1.52 =
+* Selective restoration is supported for files or database
+* Selective database tables backup is supported now
+* External restoration improved
+* Other UI improvements and fixes
+
+= 1.1.51 =
+* New option added in the settings to specify number of rows dumped at once
+
+= 1.1.50 =
+* Database Restore with reloads
+* New option for excluding database tables
+* Backup log was improved
+* Other bug fixes & improvements
+
+= 1.1.49 =
+* External restoration related bugs resolved
+* “wp-content” directory detection related bug resolved
+
+= 1.1.48 =
+* cURL & Sockets are supported for reloads
+* Chunk by chunk import is supported
+* New migration service is available now
+* Alert about php migration
+
+= 1.1.47 =
+* XSS security issues were resolved
+* Protocol detection related issues were resolved
+* UI improvements
+
+= 1.1.46 =
+* Disk free space related issue resolved
+* Archive size is being written in the backup/restore log files
+* Tracking reloads and writing a respective log in case method is being changed
+* Other minor improvements
+
+= 1.1.45 =
+* Disk free space detection detection related bug was resolved
+
+= 1.1.44 =
+* UI related bug fixes and improvements
+
+= 1.1.43 =
+* Bug fixes and improvements
+
+= 1.1.42 =
+* Restoration was improved to override the files which were successfully extracted
+* The issue related to the root directory was resolved
+
+= 1.1.41 =
+* Custom exclude paths are supported
+* The bug related to warning indicator was resolved
+* Other improvements & fixes
+
+= 1.1.40 =
+* The blank page issue was resolved
+* Other optimizations and improvements
+
+= 1.1.39 =
+* Uninstall related bug was resolved
+* Upload path related bug was resolved
+* Authentication related issues were resolved
+* New exclude paths were added
+
+= 1.1.38 =
+* Security bug fixes
+* Proper PHP version validation
+* Fixed bug that reseted db after every update
+* Removed restore method from backup log
+
+= 1.1.37 =
+* Database related bug was resolved for full backups
+* New backup exclude paths were added
+
+= 1.1.36 =
+* Minor bug fixes and improvements
+
+= 1.1.35 =
+* Memory usage improved & optimized for restoration
+
+= 1.1.34 =
+* Memory usage improved & optimized for backup
+* Database restoration improved
+
+= 1.1.33 =
+* Restore bug was resolved
+* Other security fixes and optimizations
+
+= 1.1.32 =
+* External restore bug was resolved
+* Infinite redirect bug was resolved
+* The bug related to database backup with reloads was resolved
+
+= 1.1.30 =
+* Secure and reliable backup restoration
+* Charset and collate migration
+* LightSpeed web server support
+* Active user won’t be dropped after restoration
+* Plugin update logic was improved
+* Other security fixes and optimizations
+
+= 1.1.29 =
+* Minor bug fixes
+* UX improvements
+
+= 1.1.28 =
+* Database backup with reloads is supported
+* Core improvements
+
+= 1.1.27 =
+* Backup restoration with reloads is supported
+* Core improvements
+
+= 1.1.26 =
+* Backup reload logic has been updated
+
+= 1.1.25 =
+* Restore log was improved
+
+= 1.1.24 =
+* The bug related to restoration was resolved
+
+= 1.1.23 =
+* Bug fixes and improvements
+
+= 1.1.22 =
+* Backup migration logic was updated
+
+= 1.1.21 =
+* Archive related bugs were resolved
+
+= 1.1.20 =
+* New backup archive & backward capability support were implemented
+
+= 1.1.19 =
+* Security issues and some minor bugs were resolved
+
+= 1.1.18 =
+* Advanced migration as a Premium feature was implemented
+* UI & UX improvements
+
+= 1.1.17 =
+* Execution timeout message was updated
+
+= 1.1.16 =
+* Migration logic improved & optimized
+* Core/code improvements and cleanups
+
+= 1.1.15 =
+* Discount notice was added
+
+= 1.1.14 =
+* Code/core cleanup
+* Other fixes & improvements
+
+= 1.1.13 =
+* Check added if backup reloads are possible
+* Code/core cleanup
+* Other fixes & improvements
+
+= 1.1.12 =
+* Setting/Option was add to control backup reloads
+
+= 1.1.11 =
+* Update related bugs were resolved
+
+= 1.1.10 =
+* Backup reloading logic was improved
+
+= 1.1.9 =
+* Backup reloading mechanism was implemented
+
+= 1.1.8 =
+* Conflicts with BBpress were resolved
+
+= 1.1.7 =
+* File read and write checks added
+
+= 1.1.6 =
+* Backup update related bug was resolved
+
+= 1.1.5 =
+* Code cleanup
+* Backup and migration logic improvements
+
+= 1.1.4 =
+* Anonymous backup usage reporting was removed
+
+= 1.1.3 =
+* Backup core logic improvements
+
+= 1.1.2 =
+* The bug related to table names in the log file was resolved
+* Database backup related bugs were resolved
+
+= 1.1.0 =
+* Migration related bug fixes
+
+= 1.0.9 =
+* Migration feature was implemented
+* Backup download issue was resolved for IE
+
+= 1.0.8 =
+* The bug related calculating backup entires was resolved
+* Backup status related bug was fixed
+* UI related improvements
+
+= 1.0.7 =
+* Customized backups were improved
+* Security bug resolved
+
+= 1.0.6 =
+* Bug fixes & other improvements
+
+= 1.0.5 =
+* Security issues were resolved
+* Schema related bug was resolved
+
+= 1.0.4 =
+* Auto reloading mechanism was removed
+* Backup logic was optimized
+
+= 1.0.3 =
+* Anonymous backup stats reporting
+* Other fixes & improvements
+
 = 1.0.2 =
-* Minor bug fixed with symlinks.
+* Symlinks related bug was resolved
+* Other improvements
 
 = 1.0.1 =
-* Minor bug fixed.
+* UI improvements
+* Minor backup related bug fixes
 
 = 1.0 =
-* Initial commit.
-
-== Upgrade Notice ==
-Backup Guard v.1.0.0
-
-== Features ==
-<h4>One Click Backup</h4>
-<p>Perform full or custom backups of your site with just one click. We don't have issues with large files or databases thanks to our own archive format.</p>
-
-<h4>Reliable Restore</h4>
-<p>No backup is good if it cannot be restored. Our software has been tested in dozens of different environments and restoration is just as good as backup.</p>
-
-<h4>Download/Upload</h4>
-<p>You can download any of your existing backups whenever you want. Also, you are able to import backups by using our wizard or just copying the files to the specified folder.</p>
-
-<h4>Upload to Cloud (PRO)</h4>
-<p>We provide an easy and reliable way to secure your irreplaceable documents and media: automatically upload them to any cloud of your choice.</p>
-
-<h4>Automatization (PRO)</h4>
-<p>Schedule your backup tasks to be performed automatically by your server. Your scheduled backups can also be customized and get uploaded to clouds.</p>
-
-<h4>Customization (PRO)</h4>
-<p>Any backup task can be fully customized. You choose the files/folders to back up, whether to backup database, clouds to upload to and more.</p>
-
-<h4>Background Mode (PRO)</h4>
-<p>When background mode is active, your backup/restore process will consume less CPU resources and therefore allow them to be used by other processes.</p>
-
-<h4>Mail Notifications (PRO)</h4>
-<p>By just entering your e-mail, receive notifications whenever a backup or restore process gets finished. You will be notified on both cases, success or failure.</p>
-
-== Documentation ==
-<p><strong>Perform manual backup</strong><br>
-If you want to create a backup manually, follow these steps:</p>
-
-<p>
-1. Click on the green "Perform manual backup" button.<br>
-2. Select "Full backup" if you want to perform a full backup of your website (files and database), otherwise select "Custom backup" to be able to choose what you really want to backup.<br>
-3. (PRO) Select "Upload to cloud" option if you want to upload your backup to any of your already connected clouds. Note: "Background mode" option will give you the possibility to backup in a low priority mode, consuming fewer resources from your system.<br>
-4. Click on the "Backup" button to start the backup.<br>
-5. You will be able to see the progress of each step and cancel the backup if needed.
-</p>
-
-<p><strong>Import backups from local computer</strong><br>
-If you have an SGBP file in your PC and you want to import it into your website, follow these steps:</p>
-
-<p>
-1. Click on the blue "Import" button.<br>
-2. Browse the file in your local computer. There are 2 things to notice here: a) the maximum upload size will vary depending on the server your website is running on, b) a path is indicated where you can easily upload your file using an FTP client of your preference (the file will be automatically detected).<br>
-3. Press the "Upload" button and wait for your file to be uploaded.
-</p>
-
-<p><strong>Restore</strong><br>
-Restoring is as easy as backing up. Just follow these instructions:</p>
-
-<p>
-1. Localize the backup file you want to restore from.<br>
-2. Click on the green restore button.<br>
-3. After confirmation, the restore progress will start. Note: it is highly recommended that you don't do anything else during the restore progress, because the site is in alteration process and any secondary action can affect its correct restoration.
-</p>
-
-<p><strong>Authorize and connect to Google Drive or Dropbox (PRO)</strong><br>
-If you want to be able to upload backups to cloud, you must authorize first:</p>
-
-<p>
-1. Go to the "Cloud" section.<br>
-2. Turn on the switch of the cloud you want to enable.<br>
-3. You will be redirected to the website in question (where you can grant access to your account).<br>
-4. After that, you will be redirected back to your website, where the switch has turned on.<br>
-5. Starting from now, you will be able to choose this cloud as an upload destination of your backup files. Note: you can change the name of the destination folder at the top of the "Cloud" section.
-</p>
-
-<p><strong>Authorize and connect to FTP (PRO)</strong><br>
-Follow these instructions if you want to be able to upload your backups directly to your FTP server:</p>
-
-<p>
-1. Once in the "Cloud" section, turn on the switch next to FTP.<br>
-2. Fill in the required data to be able to connect to your FTP server.<br>
-3. Click on the "Save" button. A connection attempt will be made, and after success, the popup will close and the switch will turn on.
-</p>
-
-<p><strong>Automatization of backups (PRO)</strong><br>
-If you want to schedule your backups, these are the steps to follow:</p>
-
-<p>
-1. Go to the "Schedule" section. Once there, you will see that the switch is turned off.<br>
-2. Turn on the switch next to "Scheduled backup".<br>
-3. Select the frequency and time you desire. The other options are exactly the same as in manual backup popup.<br>
-4. Hit the "Save" button and you are ready to go. Note: please make sure that cron is enabled and working on your server, otherwise scheduled backups won't work.
-</p>
-
-<p><strong><a href="https://backup-guard.com/support/documentation">Full documentation</a></strong></p>
+* Initial backup plugin was commit

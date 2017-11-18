@@ -1,11 +1,15 @@
 <?php
 require_once(SG_BACKUP_PATH.'SGBackupLog.php');
+require_once(SG_RESTORE_PATH.'SGExternalRestore.php');
+require_once(SG_LIB_PATH.'SGState.php');
 @include_once(SG_LIB_PATH.'SGBackgroundMode.php');
 require_once(SG_BACKUP_PATH.'SGBackupFiles.php');
 require_once(SG_BACKUP_PATH.'SGBackupDatabase.php');
 @include_once(SG_BACKUP_PATH.'SGBackupStorage.php');
 @include_once(SG_BACKUP_PATH.'SGBackupMailNotification.php');
 require_once(SG_LOG_PATH.'SGFileLogHandler.php');
+require_once(SG_LIB_PATH.'SGReloader.php');
+require_once(SG_LIB_PATH.'SGCallback.php');
 
 //close session for writing
 @session_write_close();
@@ -24,91 +28,381 @@ class SGBackup implements SGIBackupDelegate
 	private $backupLogPath = '';
 	private $restoreLogPath = '';
 	private $backgroundMode = false;
-	private $queuedStorageUploads = array();
-	private $reloading = false;
+	private $pendingStorageUploads = array();
+	private $state = null;
+	private $token = '';
+	private $options = array();
 
 	public function __construct()
 	{
-		$this->filesBackupAvailable = SGConfig::get('SG_ACTION_BACKUP_FILES_AVAILABLE');
-		$this->databaseBackupAvailable = SGConfig::get('SG_ACTION_BACKUP_DATABASE_AVAILABLE');
-		$this->backgroundMode = SGConfig::get('SG_BACKUP_IN_BACKGROUND_MODE');
-
 		$this->backupFiles = new SGBackupFiles();
 		$this->backupFiles->setDelegate($this);
 
-		if ($this->databaseBackupAvailable)
-		{
-			$this->backupDatabase = new SGBackupDatabase();
-			$this->backupDatabase->setDelegate($this);
+		$this->backupDatabase = new SGBackupDatabase();
+		$this->backupDatabase->setDelegate($this);
+	}
+
+	public function getScheduleParamsById($id)
+	{
+		$sgdb = SGDatabase::getInstance();
+		$res = $sgdb->query('SELECT * FROM '.SG_SCHEDULE_TABLE_NAME.' WHERE id=%d', array($id));
+		if (empty($res)) {
+			return '';
+		}
+		return $res[0];
+	}
+
+	private function handleBackupExecutionTimeout()
+	{
+		$this->backupDatabase->setFilePath($this->databaseBackupPath);
+		$this->backupDatabase->cancel();
+
+		$this->backupFiles->setFilePath($this->filesBackupPath);
+		$this->backupFiles->cancel();
+
+		if (SGBoot::isFeatureAvailable('NOTIFICATIONS')) {
+			file_put_contents(dirname($this->filesBackupPath).'/'.SG_REPORT_FILE_NAME, 'Backup: failed', FILE_APPEND);
+			SGBackupMailNotification::sendBackupNotification(SG_ACTION_STATUS_ERROR, array(
+				'flowFilePath' => dirname($this->filesBackupPath).'/'.SG_REPORT_FILE_NAME,
+				'archiveName' => $this->fileName
+			));
+		}
+	}
+
+	private function handleRestoreExecutionTimeout()
+	{
+		if (SGBoot::isFeatureAvailable('NOTIFICATIONS')) {
+			file_put_contents(dirname($this->filesBackupPath).'/'.SG_REPORT_FILE_NAME, 'Restore: failed', FILE_APPEND);
+			SGBackupMailNotification::sendRestoreNotification(false, array(
+				'flowFilePath' => dirname($this->filesBackupPath).'/'.SG_REPORT_FILE_NAME,
+				'archiveName' => $this->fileName
+			));
+		}
+	}
+
+	public function handleExecutionTimeout($actionId)
+	{
+		$this->actionId = $actionId;
+		$action = self::getAction($actionId);
+		$this->fileName = $action['name'];
+		$actionType = $action['type'];
+		$backupPath = SG_BACKUP_DIRECTORY.$this->fileName;
+
+		$this->filesBackupPath = $backupPath.'/'.$this->fileName.'.sgbp';
+		$this->databaseBackupPath = $backupPath.'/'.$this->fileName.'.sql';
+
+		if ($actionType == SG_ACTION_TYPE_RESTORE) {
+			$this->handleRestoreExecutionTimeout();
+			$this->prepareRestoreLogFile($backupPath, true);
+		}
+		elseif ($actionType == SG_ACTION_TYPE_BACKUP) {
+			$this->handleBackupExecutionTimeout();
+			$this->prepareBackupLogFile($backupPath, true);
+		}
+		else{
+			$this->setBackupStatusToWarning($this->fileName);
+			$this->prepareBackupLogFile($backupPath, true);
 		}
 
-		$notificationCenter = SGNotificationCenter::getInstance();
-		$notificationCenter->addObserver(SG_NOTIFICATION_SAVE_ACTION_STATE, $this, 'saveStateData', true);
+		//Stop all the running actions related to the specific backup, like backup, upload...
+		$allActions = self::getRunningActions();
+		foreach ($allActions as $action) {
+			self::changeActionStatus($action['id'], SG_ACTION_STATUS_ERROR);
+		}
+
+		$exception = new SGExceptionExecutionTimeError();
+		SGBackupLog::writeExceptionObject($exception);
+		SGConfig::set('SG_EXCEPTION_TIMEOUT_ERROR', '1', true);
+	}
+
+	public function setBackupStatusToWarning($actionName)
+	{
+		$type = SG_ACTION_TYPE_BACKUP;
+		$sgdb = SGDatabase::getInstance();
+		$status = SG_ACTION_STATUS_FINISHED_WARNINGS;
+		$date = backupGuardConvertDateTimezone(@date('Y-m-d H:i:s'));
+		$res = $sgdb->query('UPDATE '.SG_ACTION_TABLE_NAME.' SET status=%d, update_date=%s WHERE name=%d AND type=%d', array($status, $date, $actionName, $type));
+	}
+
+	public function listStorage($storage)
+	{
+		if (SGBoot::isFeatureAvailable('DOWNLOAD_FROM_CLOUD')) {
+			$listOfFiles = SGBackupStorage::getInstance()->listStorage($storage);
+			return $listOfFiles;
+		}
+
+		return array();
+	}
+
+	public function downloadBackupArchiveFromCloud($archive, $storage, $size)
+	{
+		$result = false;
+		if (SGBoot::isFeatureAvailable('DOWNLOAD_FROM_CLOUD')) {
+			$result = SGBackupStorage::getInstance()->downloadBackupArchiveFromCloud($storage, $archive, $size);
+		}
+
+		return $result;
+	}
+
+	public function getState()
+	{
+		return $this->state;
+	}
+
+	private function prepareFilesStateFile()
+	{
+		$this->state = new SGFileState();
+
+		$this->state->setRanges(array());
+		$this->state->setOffset(0);
+		$this->state->setToken($this->token);
+		$this->state->setAction(SG_STATE_ACTION_PREPARING_STATE_FILE);
+		$this->state->setType(SG_STATE_TYPE_FILE);
+		$this->state->setActionId($this->actionId);
+		$this->state->setActionStartTs($this->actionStartTs);
+		$this->state->setBackupFileName($this->fileName);
+		$this->state->setBackupFilePath($this->filesBackupPath);
+		$this->state->setPendingStorageUploads($this->pendingStorageUploads);
+		$this->state->setCdrCursor(0);
+		$this->state->setRestoreMode($this->restoreMode);
+		$this->state->setRestoreFiles($this->restoreFiles);
+	}
+
+	private function prepareDBStateFile()
+	{
+		$this->state = new SGDBState();
+		$this->state->setToken($this->token);
+		$this->state->setOffset(0);
+		$this->state->setAction(SG_STATE_ACTION_PREPARING_STATE_FILE);
+		$this->state->setType(SG_STATE_TYPE_DB);
+		$this->state->setActionId($this->actionId);
+		$this->state->setActionStartTs($this->actionStartTs);
+		$this->state->setBackupFileName($this->fileName);
+		$this->state->setBackupFilePath($this->filesBackupPath);
+		$this->state->setPendingStorageUploads($this->pendingStorageUploads);
+		$this->state->setBackedUpTables(array());
+		$this->state->setTablesToBackup($this->options['SG_BACKUP_TABLES_TO_BACKUP']);
+	}
+
+	private function prepareUploadStateFile()
+	{
+		$this->state = new SGUploadState();
+		$this->state->setOffset(0);
+		$this->state->setActiveDirectory('');
+		$this->state->setCurrentUploadChunksCount(0);
+		$this->state->setTotalUploadChunksCount(0);
+		$this->state->setUploadId(0);
+		$this->state->setParts(array());
+		$this->state->setToken($this->token);
+		$this->state->setAction(SG_STATE_ACTION_PREPARING_STATE_FILE);
+		$this->state->setType(SG_STATE_TYPE_UPLOAD);
+		$this->state->setActionId($this->actionId);
+		$this->state->setActionStartTs($this->actionStartTs);
+		$this->state->setBackupFileName($this->fileName);
+		$this->state->setBackupFilePath($this->filesBackupPath);
+		$this->state->setPendingStorageUploads($this->pendingStorageUploads);
+	}
+
+	public function prepareMigrateStateFile()
+	{
+		$this->state = new SGMigrateState();
+		$this->state->setActionId($this->actionId);
+		$this->state->setAction(SG_STATE_ACTION_PREPARING_STATE_FILE);
+		$this->state->setInprogress(false);
+		$this->state->setTableCursor(0);
+		$this->state->setColumnCursor(0);
+		$this->state->setToken($this->token);
+	}
+
+	public function getNoprivReloadAjaxUrl()
+	{
+		$url = @$_SERVER['REQUEST_URI'];
+
+		if (SG_ENV_ADAPTER == SG_ENV_WORDPRESS) {
+			if(strpos($url, 'wp-cron.php')) {
+				$url = substr($url, 0, strpos($url, 'wp-cron.php'));
+				$url .= 'wp-admin/admin-ajax.php';
+			}
+
+			$url = explode('?', $url);
+			$url = $url[0].'?action=backup_guard_awake&token='.$this->token;
+		}
+
+		return $url;
+	}
+
+	public function reload()
+	{
+		$url = $this->getNoprivReloadAjaxUrl();
+		$callback = new SGCallback("SGBackup", "reloadCallback");
+
+		SGReloader::didCompleteCallback();
+		SGReloader::registerCallback($callback);
+		SGReloader::reloadWithAjaxUrl($url);
+		die();
+	}
+
+	public function reloadCallback($params)
+	{
+		$actions = self::getRunningActions();
+		if (count($actions)) {
+			$action = $actions[0];
+			$method = $params['method'];
+
+			$this->state = backupGuardLoadStateData();
+			if ($action['type'] == SG_ACTION_TYPE_RESTORE) {
+				$this->restore($action['name']);
+			}
+			else {
+				$options = json_decode($action['options'], true);
+				$this->backup($options, $this->state, $method);
+			}
+		}
+	}
+
+	private function saveStateFile()
+	{
+		$this->state->save();
+	}
+
+	public function getToken()
+	{
+		return $this->token;
+	}
+
+	private function reloadMethodNameByMethodId($method)
+	{
+		$name = "none";
+		switch ($method) {
+			case SG_RELOAD_METHOD_STREAM:
+				$name = "stream";
+				break;
+			case SG_RELOAD_METHOD_CURL:
+				$name = "curl";
+				break;
+			case SG_RELOAD_METHOD_SOCKET:
+				$name = "socket";
+				break;
+			case SG_RELOAD_METHOD_AJAX:
+				$name = "ajax";
+				break;
+			default:
+				break;
+		}
+
+		return $name;
 	}
 
 	/* Backup implementation */
-
-	public function backup()
+	public function backup($options, $state = false, $reloadMethod = null)
 	{
-		$stateData = self::loadStateData();
+		SGPing::update();
 
-		if ($stateData)
-		{
-			$this->continueBackupWithStateData($stateData);
-		}
-		else
-		{
-			$this->fileName = self::getBackupFileName();
+		$this->options = $options;
+		$this->token = backupGuardGenerateToken();
+
+		$this->filesBackupAvailable = isset($options['SG_ACTION_BACKUP_FILES_AVAILABLE'])?$options['SG_ACTION_BACKUP_FILES_AVAILABLE']:false;
+		$this->databaseBackupAvailable = isset($options['SG_ACTION_BACKUP_DATABASE_AVAILABLE'])?$options['SG_ACTION_BACKUP_DATABASE_AVAILABLE']:false;
+		$this->backgroundMode = isset($options['SG_BACKUP_IN_BACKGROUND_MODE'])?$options['SG_BACKUP_IN_BACKGROUND_MODE']:false;
+
+		if (!$state) {
+			$this->fileName = $this->getBackupFileName();
 			$this->prepareBackupFolder(SG_BACKUP_DIRECTORY.$this->fileName);
+			$this->prepareForBackup($options);
+			$this->prepareBackupReport();
+
+			SGBackupLog::write("Reload method set to ajax");
+			SGConfig::set('SG_RELOAD_METHOD', SG_RELOAD_METHOD_AJAX, true);
+
+			if ($this->databaseBackupAvailable) {
+				$this->prepareDBStateFile();
+			}
+			else {
+				$this->prepareFilesStateFile();
+			}
+
+			$this->saveStateFile();
+			SGReloader::reset();
+			if (backupGuardIsReloadEnabled()) {
+				$this->reload();
+			}
+		}
+		else {
+			$this->state = $state;
+			$this->fileName = $state->getBackupFileName();
+			$this->actionId = $state->getActionId();
+			$this->actionStartTs = $state->getActionStartTs();
+			$this->pendingStorageUploads = $state->getPendingStorageUploads();
+
+			$this->prepareBackupLogFile(SG_BACKUP_DIRECTORY.$this->fileName, true);
+			$this->setBackupPaths();
+			$this->prepareAdditionalConfigurations();
+
+			$method = SGConfig::get('SG_RELOAD_METHOD');
+			if ($method != $reloadMethod) {
+				SGConfig::set('SG_RELOAD_METHOD', $reloadMethod);
+				$reloadMethod = $this->reloadMethodNameByMethodId($reloadMethod);
+				SGBackupLog::write("Reload method changed to ".$reloadMethod);
+			}
 		}
 
-		$shouldContinue = true;
+		SGPing::update();
 
 		try
 		{
-			if (!$stateData)
-			{
-				$this->prepareForBackup();
-			}
-
-			if ($this->databaseBackupAvailable)
-			{
+			if ($this->databaseBackupAvailable) {
 				$this->backupDatabase->setFilePath($this->databaseBackupPath);
-				$this->backupFiles->addDontExclude(realpath($this->databaseBackupPath));
+				$this->backupDatabase->setPendingStorageUploads($this->pendingStorageUploads);
 
-				if (!$stateData || isset($stateData['databaseBackup']))
-				{
-					if (!$this->filesBackupAvailable)
-					{
-						SGConfig::set('SG_BACKUP_FILE_PATHS', '', false);
+				if (!$this->filesBackupAvailable) {
+					$options['SG_BACKUP_FILE_PATHS'] = '';
+				}
+
+				if ($this->state->getType() == SG_STATE_TYPE_DB) {
+					$this->backupDatabase->backup($this->databaseBackupPath);
+					$this->prepareFilesStateFile();
+					$this->saveStateFile();
+					self::changeActionStatus($this->actionId, SG_ACTION_STATUS_IN_PROGRESS_FILES);
+
+					if (backupGuardIsReloadEnabled()) {
+						$this->reload();
 					}
+				}
 
-					$this->backupDatabase->backup($this->databaseBackupPath, $stateData);
-					$stateData = array();
+				$rootDirectory = rtrim(realpath(SGConfig::get('SG_APP_ROOT_DIRECTORY')), '/').'/';
+				$path = substr(realpath($this->databaseBackupPath), strlen($rootDirectory));
+                $this->backupFiles->addDontExclude(realpath($this->databaseBackupPath));
+				$backupItems = $options['SG_BACKUP_FILE_PATHS'];
+				$allItems = $backupItems?explode(',', $backupItems):array();
+				$allItems[] = $path;
+				$options['SG_BACKUP_FILE_PATHS'] = implode(',', $allItems);
 
-					$rootDirectory = realpath(SGConfig::get('SG_APP_ROOT_DIRECTORY')).'/';
-					$path = substr(realpath($this->databaseBackupPath), strlen($rootDirectory));
-                    $this->backupFiles->addDontExclude(realpath($this->databaseBackupPath));
-					$backupItems = SGConfig::get('SG_BACKUP_FILE_PATHS');
-					$allItems = $backupItems?explode(',', $backupItems):array();
-					$allItems[] = $path;
-					SGConfig::set('SG_BACKUP_FILE_PATHS', implode(',', $allItems), false);
-
+				if ($this->state->getType() == SG_STATE_TYPE_DB) {
 					$currentStatus = $this->getCurrentActionStatus();
-					if ($currentStatus==SG_ACTION_STATUS_CANCELLING || $currentStatus==SG_ACTION_STATUS_CANCELLED)
-					{
+					if ($currentStatus==SG_ACTION_STATUS_CANCELLING || $currentStatus==SG_ACTION_STATUS_CANCELLED) {
+						// If action canceled during backup of database, cancelaion handling will happen here
+						// in other cases handling will happen in respective classes
 						$this->cancel();
 					}
-
-					self::changeActionStatus($this->actionId, SG_ACTION_STATUS_IN_PROGRESS_FILES);
 				}
 			}
 
-			if (!$stateData || isset($stateData['filesBackup']))
-			{
-				$this->backupFiles->backup($this->filesBackupPath, $stateData);
+			if ($this->state->getType() == SG_STATE_TYPE_FILE) {
+				$this->backupFiles->setPendingStorageUploads($this->pendingStorageUploads);
+				$this->backupFiles->backup($this->filesBackupPath, $options, $this->state);
 				$this->didFinishBackup();
+
+				SGPing::update();
+
+				$this->prepareUploadStateFile();
+				$this->saveStateFile();
 			}
+
+			//continue uploading backup to storages
+			$this->backupUploadToStorages();
+
+			// Clear temporary files
+			$this->clear();
 		}
 		catch (SGException $exception)
 		{
@@ -116,101 +410,139 @@ class SGBackup implements SGIBackupDelegate
 			{
 				$this->setCurrentActionStatusCancelled();
 			}
-			else if ($exception instanceof SGExceptionPause)
-			{
-				return;
-			}
 			else
 			{
 				SGBackupLog::writeExceptionObject($exception);
 
-				if ($this->databaseBackupAvailable)
-				{
-					$this->backupDatabase->cancel();
+				if ($this->state->getType() != SG_STATE_TYPE_UPLOAD) {
+					if ($this->databaseBackupAvailable)
+					{
+						$this->backupDatabase->cancel();
+					}
+
+					$this->backupFiles->cancel();
 				}
 
-				$this->backupFiles->cancel();
-
-				if (SGBoot::isFeatureAvailable('NOTIFICATIONS'))
-				{
-					SGBackupMailNotification::sendBackupNotification(false);
+				if (SGBoot::isFeatureAvailable('NOTIFICATIONS')) {
+					//Writing backup status to report file
+					file_put_contents(dirname($this->filesBackupPath).'/'.SG_REPORT_FILE_NAME, 'Backup: failed', FILE_APPEND);
+					SGBackupMailNotification::sendBackupNotification(SG_ACTION_STATUS_ERROR, array(
+						'flowFilePath' => dirname($this->filesBackupPath).'/'.SG_REPORT_FILE_NAME,
+						'archiveName' => $this->fileName
+					));
 				}
 
 				self::changeActionStatus($this->actionId, SG_ACTION_STATUS_ERROR);
 			}
 
-			$shouldContinue = false;
+			// Clear temporary files
+			$this->clear();
 		}
-
-		//check if should continue uploading backup to storages
-		if ($shouldContinue)
-		{
-			try
-			{
-				$this->backupUploadToStorages();
-			}
-			catch (SGException $exception)
-			{
-				if ($exception instanceof SGExceptionPause)
-				{
-					return;
-				}
-
-				SGBackupLog::writeExceptionObject($exception);
-			}
-		}
-
-		$notificationCenter = SGNotificationCenter::getInstance();
-		$notificationCenter->postNotification(SG_NOTIFICATION_DID_FINISH_BACKUP);
 	}
 
-	private function continueBackupWithStateData($stateData)
+	private function prepareBackupReport()
 	{
-		$this->fileName = $stateData['SG_BACKUP_FILE_NAME'];
-		$this->actionId = $stateData['SG_BACKUP_ACTION_ID'];
-		$this->actionStartTs = $stateData['SG_BACKUP_ACTION_TS'];
-		$this->queuedStorageUploads = $stateData['SG_STORAGE_UPLOADS'];
+		file_put_contents(dirname($this->filesBackupPath).'/'.SG_REPORT_FILE_NAME, 'Report for: '.SG_SITE_URL."\n", FILE_APPEND);
+	}
 
-		$this->prepareBackupLogFile(SG_BACKUP_DIRECTORY.$this->fileName, true);
-
-		$this->setBackupPaths();
-
-		$this->prepareAdditionalConfigurations();
+	private function shouldDeleteBackupAfterUpload()
+	{
+		return SGConfig::get('SG_DELETE_BACKUP_AFTER_UPLOAD')?true:false;
 	}
 
 	private function backupUploadToStorages()
 	{
 		//check list of storages to upload if any
-		$uploadToStorages = SGConfig::get('SG_BACKUP_SYNCHRONOUS_STORAGE_UPLOAD');
+		$uploadToStorages = count($this->pendingStorageUploads)?true:false;
+
 		if (SGBoot::isFeatureAvailable('STORAGE') && $uploadToStorages)
 		{
-			while (count($this->queuedStorageUploads))
+			while (count($this->pendingStorageUploads))
 			{
-				$actionId = $this->queuedStorageUploads[0];
-				SGBackupStorage::getInstance()->startUploadByActionId($actionId);
-				array_shift($this->queuedStorageUploads);
+				$storageId = $this->pendingStorageUploads[0];
+
+				if ($this->state->getAction() == SG_STATE_ACTION_PREPARING_STATE_FILE) {
+					// Create action for upload
+					$this->actionId = SGBackupStorage::queueBackupForUpload($this->fileName, $storageId, $this->options);
+				}
+				else {
+					// Get upload action id if it does not finished yet
+					$this->actionId = $this->state->getActionId();
+				}
+
+				$sgBackupStorage = SGBackupStorage::getInstance();
+				$sgBackupStorage->setDelegate($this);
+				$sgBackupStorage->setState($this->state);
+				$sgBackupStorage->setToken($this->token);
+				$sgBackupStorage->setPendingStorageUploads($this->pendingStorageUploads);
+				$sgBackupStorage->startUploadByActionId($this->actionId);
+
+				array_shift($this->pendingStorageUploads);
+				// Reset state file to defaults for next storage upload
+				$this->prepareUploadStateFile();
 			}
+
+			$this->didFinishUpload();
 		}
+	}
+
+	private function didFinishUpload()
+	{
+		//check if option is enabled
+		$isDeleteLocalBackupFeatureAvailable = SGBoot::isFeatureAvailable('DELETE_LOCAL_BACKUP_AFTER_UPLOAD');
+
+		if (SGBoot::isFeatureAvailable('NOTIFICATIONS')) {
+			SGBackupMailNotification::sendBackupNotification(SG_ACTION_STATUS_FINISHED, array(
+				'flowFilePath' => dirname($this->filesBackupPath).'/'.SG_REPORT_FILE_NAME,
+				'archiveName' => $this->fileName
+			));
+		}
+
+		$status = SGBackup::getActionStatus($this->actionId);
+
+		if ($this->shouldDeleteBackupAfterUpload() && $isDeleteLocalBackupFeatureAvailable && $status == SG_ACTION_STATUS_FINISHED) {
+			@unlink(SG_BACKUP_DIRECTORY.$this->fileName.'/'.$this->fileName.'.'.SGBP_EXT);
+		}
+	}
+
+	// Delete state and flow files after upload
+	private function clear()
+	{
+		@unlink(dirname($this->filesBackupPath).'/'.SG_REPORT_FILE_NAME);
+
+		@unlink(SG_BACKUP_DIRECTORY.SG_STATE_FILE_NAME);
+		@unlink(SG_BACKUP_DIRECTORY.SG_RELOADER_STATE_FILE_NAME);
+		@unlink(SG_PING_FILE_PATH);
 	}
 
 	private function cleanUp()
 	{
 		//delete sql file
-		if ($this->databaseBackupAvailable)
-		{
-			$this->backupDatabase->cancel();
+		if ($this->databaseBackupAvailable) {
+			@unlink($this->databaseBackupPath);
 		}
-
-		self::removeStateFile();
 	}
 
-	private static function getBackupFileName()
+	private function getBackupFileName()
 	{
-		return 'sg_backup_'.(@date('YmdHis'));
+		$sgBackupPrefix = SG_BACKUP_FILE_NAME_DEFAULT_PREFIX;
+		if (function_exists('backupGuardGetCustomPrefix') && SGBoot::isFeatureAvailable('CUSTOM_BACKUP_NAME')) {
+			$sgBackupPrefix = backupGuardGetCustomPrefix();
+		}
+
+		$sgBackupPrefix .= backupGuardGetFilenameOptions($this->options);
+
+		$date = backupGuardConvertDateTimezone(@date('YmdHis'), 'YmdHis');
+		return $sgBackupPrefix.($date);
 	}
 
 	private function prepareBackupFolder($backupPath)
 	{
+		if (!is_writable(SG_BACKUP_DIRECTORY))
+		{
+			throw new SGExceptionForbidden('Permission denied. Directory is not writable: '.$backupPath);
+		}
+
 		//create backup folder
 		if (!@mkdir($backupPath))
 		{
@@ -233,7 +565,7 @@ class SGBackup implements SGIBackupDelegate
 
 		if (!$exists)
 		{
-			$content = self::getLogFileHeader();
+			$content = self::getLogFileHeader(SG_ACTION_TYPE_BACKUP, $this->fileName);
 
 			$types = array();
 			if ($this->filesBackupAvailable)
@@ -264,29 +596,12 @@ class SGBackup implements SGIBackupDelegate
 		$this->databaseBackupPath = SG_BACKUP_DIRECTORY.$this->fileName.'/'.$this->fileName.'.sql';
 	}
 
-	public function setReloading($reloading)
+	private function prepareUploadToStorages($options)
 	{
-		$this->reloading = $reloading;
-	}
+		$uploadToStorages = $options['SG_BACKUP_UPLOAD_TO_STORAGES'];
 
-	public function getReloading()
-	{
-		return $this->reloading;
-	}
-
-	private function prepareUploadToStorages()
-	{
-		$uploadToStorages = SGConfig::get('SG_BACKUP_UPLOAD_TO_STORAGES');
-		if (SGBoot::isFeatureAvailable('STORAGE') && $uploadToStorages)
-		{
-			$storages = explode(',', $uploadToStorages);
-			$arr = array();
-			foreach ($storages as $storageId)
-			{
-				$actionId = SGBackupStorage::queueBackupForUpload($this->fileName, $storageId);
-				$arr[] = $actionId;
-			}
-			$this->queuedStorageUploads = $arr;
+		if (SGBoot::isFeatureAvailable('STORAGE') && $uploadToStorages) {
+			$this->pendingStorageUploads = explode(',', $uploadToStorages);
 		}
 	}
 
@@ -296,7 +611,7 @@ class SGBackup implements SGIBackupDelegate
 		SGConfig::set('SG_RUNNING_ACTION', 1, true);
 	}
 
-	private function prepareForBackup()
+	private function prepareForBackup($options)
 	{
 		//start logging
 		SGBackupLog::writeAction('backup', SG_BACKUP_LOG_POS_START);
@@ -306,7 +621,7 @@ class SGBackup implements SGIBackupDelegate
 
 		//create action inside db
 		$status = $this->databaseBackupAvailable?SG_ACTION_STATUS_IN_PROGRESS_DB:SG_ACTION_STATUS_IN_PROGRESS_FILES;
-		$this->actionId = self::createAction($this->fileName, SG_ACTION_TYPE_BACKUP, $status);
+		$this->actionId = self::createAction($this->fileName, SG_ACTION_TYPE_BACKUP, $status, 0, json_encode($options));
 
 		//set paths
 		$this->setBackupPaths();
@@ -323,25 +638,27 @@ class SGBackup implements SGIBackupDelegate
 		$this->prepareAdditionalConfigurations();
 
 		//check if upload to storages is needed
-		$this->prepareUploadToStorages();
-
-		//register shutdown function (used for handling execution time limits)
-		register_shutdown_function('shutdownAction', $this->actionId, SG_ACTION_TYPE_BACKUP, $this->filesBackupPath, $this->databaseBackupPath, $this);
+		$this->prepareUploadToStorages($options);
 	}
 
 	public function cancel()
 	{
-		if ($this->databaseBackupAvailable)
-		{
-			$this->backupDatabase->cancel();
+		$dir = SG_BACKUP_DIRECTORY.$this->fileName;
+
+		if (SGBoot::isFeatureAvailable('NOTIFICATIONS')) {
+			//Writing backup status to report file
+			file_put_contents($dir.'/'.SG_REPORT_FILE_NAME, 'Backup: canceled', FILE_APPEND);
+			SGBackupMailNotification::sendBackupNotification(SG_ACTION_STATUS_CANCELLED, array(
+				'flowFilePath' => dirname($this->filesBackupPath).'/'.SG_REPORT_FILE_NAME,
+				'archiveName' => $this->fileName
+			));
 		}
 
-		$this->backupFiles->cancel();
+		if ($dir != SG_BACKUP_DIRECTORY) {
+			backupGuardDeleteDirectory($dir);
+		}
 
-		self::removeStateFile();
-
-		SGBackupLog::write('Backup cancelled');
-
+		$this->clear();
 		throw new SGExceptionSkip();
 	}
 
@@ -357,32 +674,76 @@ class SGBackup implements SGIBackupDelegate
 
 		SGBackupLog::writeAction('backup', SG_BACKUP_LOG_POS_END);
 
-		if (SGBoot::isFeatureAvailable('NOTIFICATIONS'))
-		{
-			SGBackupMailNotification::sendBackupNotification(true);
+		$report = $this->didFindWarnings()?'completed with warnings':'completed';
+
+		//Writing backup status to report file
+		file_put_contents(dirname($this->filesBackupPath).'/'.SG_REPORT_FILE_NAME, 'Backup: '.$report."\n", FILE_APPEND);
+		if (SGBoot::isFeatureAvailable('NOTIFICATIONS') && !count($this->pendingStorageUploads)) {
+			SGBackupMailNotification::sendBackupNotification($action, array(
+				'flowFilePath' => dirname($this->filesBackupPath).'/'.SG_REPORT_FILE_NAME,
+				'archiveName' => $this->fileName
+			));
 		}
 
-		SGBackupLog::write('Total duration: '.formattedDuration($this->actionStartTs, time()));
+		SGBackupLog::write('Total duration: '.backupGuardFormattedDuration($this->actionStartTs, time()));
+
+		$archiveSizeInBytes = backupGuardRealFilesize($this->filesBackupPath);
+		$archiveSize = self::convertToReadableSize($archiveSizeInBytes);
+		SGBackupLog::write("Archive size: ".$archiveSize." (".$archiveSizeInBytes." bytes)");
 
 		$this->cleanUp();
+		if (SGBoot::isFeatureAvailable('NUMBER_OF_BACKUPS_TO_KEEP') && function_exists('backupGuardOutdatedBackupsCleanup')) {
+			backupGuardOutdatedBackupsCleanup(SG_BACKUP_DIRECTORY);
+		}
+	}
+
+	public function handleMigrationErrors($exception)
+	{
+		SGConfig::set('SG_BACKUP_SHOW_MIGRATION_ERROR', 1);
+		SGConfig::set('SG_BACKUP_MIGRATION_ERROR', $exception);
+	}
+
+	public function getActionId()
+	{
+		return $this->actionId;
 	}
 
 	/* Restore implementation */
 
-	public function restore($backupName)
+	public function restore($backupName, $restoreMode=NULL, $restoreFiles = NULL)
 	{
-		$this->prepareForRestore($backupName);
-
 		try
 		{
-			$this->backupFiles->restore($this->filesBackupPath);
-			$this->didFinishFilesRestore();
+			SGPing::update();
+			$this->token = backupGuardGenerateToken();
+			if($restoreMode != NULL) {
+				$this->restoreMode = $restoreMode;
+			}
+			if($restoreFiles != NULL) {
+				$this->restoreFiles = $restoreFiles;
+			}
+			$this->prepareForRestore($backupName);
+
+			if ($this->state && ($this->state->getAction() == SG_STATE_ACTION_RESTORING_DATABASE || $this->state->getAction() == SG_STATE_ACTION_MIGRATING_DATABASE)) {
+				$this->didFinishFilesRestore();
+			}
+			else {
+				$this->backupFiles->setFileName($backupName);
+				$this->backupFiles->restore($this->filesBackupPath);
+
+				$this->prepareDBStateFile();
+				$this->didFinishFilesRestore();
+			}
 		}
 		catch (SGException $exception)
 		{
 			if (!$exception instanceof SGExceptionSkip)
 			{
 				SGBackupLog::writeExceptionObject($exception);
+
+				if ($exception instanceof SGExceptionMigrationError) {
+					$this->handleMigrationErrors($exception);
+				}
 
 				if (SGBoot::isFeatureAvailable('NOTIFICATIONS'))
 				{
@@ -408,28 +769,45 @@ class SGBackup implements SGIBackupDelegate
 		$this->filesBackupPath = $restorePath.'/'.$this->fileName.'.sgbp';
 		$this->databaseBackupPath = $restorePath.'/'.$this->fileName.'.sql';
 
-		//prepare folder
-		$this->prepareRestoreFolder($restorePath);
+		if (!$this->state) {
+			//create action inside db
+			$this->actionId = self::createAction($this->fileName, SG_ACTION_TYPE_RESTORE, SG_ACTION_STATUS_IN_PROGRESS_FILES);
 
-		//start logging
-		SGBackupLog::writeAction('restore', SG_BACKUP_LOG_POS_START);
+			//save current user credentials
+			$this->backupDatabase->saveCurrentUser();
 
-		SGConfig::set('SG_RUNNING_ACTION', 1, true);
+			//check if we can run external restore
+			$externalRestoreEnabled = SGExternalRestore::getInstance()->prepare($this->actionId);
 
-		//save timestamp for future use
-		$this->actionStartTs = time();
+			//prepare folder
+			$this->prepareRestoreFolder($restorePath);
 
-		//create action inside db
-		$this->actionId = self::createAction($this->fileName, SG_ACTION_TYPE_RESTORE, SG_ACTION_STATUS_IN_PROGRESS_FILES);
+			SGConfig::set('SG_RUNNING_ACTION', 1, true);
 
-		//register shutdown function (used for handling execution time limits)
-		register_shutdown_function('shutdownAction', $this->actionId, SG_ACTION_TYPE_RESTORE, $this->filesBackupPath, $this->databaseBackupPath, $this);
+			//save timestamp for future use
+			$this->actionStartTs = time();
+
+			$this->prepareFilesStateFile();
+			$this->saveStateFile();
+			SGReloader::reset();
+
+			if ($externalRestoreEnabled) {
+				$this->reload();
+			}
+		}
+		else {
+			$this->actionId = $this->state->getActionId();
+			$this->actionStartTs = $this->state->getActionStartTs();
+			$this->prepareRestoreLogFile($restorePath, true);
+		}
 	}
 
 	private function prepareRestoreFolder($restorePath)
 	{
 		if (!is_writable($restorePath))
 		{
+			SGConfig::set('SG_BACKUP_NOT_WRITABLE_DIR_PATH', $restorePath);
+			SGConfig::set('SG_BACKUP_SHOW_NOT_WRITABLE_ERROR', 1);
 			throw new SGExceptionForbidden('Permission denied. Directory is not writable: '.$restorePath);
 		}
 
@@ -439,18 +817,19 @@ class SGBackup implements SGIBackupDelegate
 		$this->prepareRestoreLogFile($restorePath);
 	}
 
-	private function prepareRestoreLogFile($backupPath)
+	private function prepareRestoreLogFile($backupPath, $exists = false)
 	{
 		$file = $backupPath.'/'.$this->fileName.'_restore.log';
 		$this->restoreLogPath = $file;
 
-		$content = self::getLogFileHeader();
+		if (!$exists) {
+			$content = self::getLogFileHeader(SG_ACTION_TYPE_RESTORE, $this->fileName);
 
-		$content .= PHP_EOL;
+			$content .= PHP_EOL;
 
-		if (!file_put_contents($file, $content))
-		{
-			throw new SGExceptionMethodNotAllowed('Cannot create restore log file: '.$file);
+			if (!file_put_contents($file, $content)) {
+				throw new SGExceptionMethodNotAllowed('Cannot create restore log file: '.$file);
+			}
 		}
 
 		//create file log handler
@@ -460,17 +839,13 @@ class SGBackup implements SGIBackupDelegate
 
 	private function didFinishRestore()
 	{
-		$action = $this->didFindWarnings()?SG_ACTION_STATUS_FINISHED_WARNINGS:SG_ACTION_STATUS_FINISHED;
-		self::changeActionStatus($this->actionId, $action);
-
 		SGBackupLog::writeAction('restore', SG_BACKUP_LOG_POS_END);
 
-		if (SGBoot::isFeatureAvailable('NOTIFICATIONS'))
-		{
+		if (SGBoot::isFeatureAvailable('NOTIFICATIONS')) {
 			SGBackupMailNotification::sendRestoreNotification(true);
 		}
 
-		SGBackupLog::write('Total duration: '.formattedDuration($this->actionStartTs, time()));
+		SGBackupLog::write('Total duration: '.backupGuardFormattedDuration($this->actionStartTs, time()));
 
 		$this->cleanUp();
 	}
@@ -479,51 +854,126 @@ class SGBackup implements SGIBackupDelegate
 	{
 		$this->databaseBackupAvailable = file_exists($this->databaseBackupPath);
 
-		if ($this->databaseBackupAvailable)
-		{
-			self::changeActionStatus($this->actionId, SG_ACTION_STATUS_IN_PROGRESS_DB);
-			sleep(3);
+		if ($this->databaseBackupAvailable) {
+			if ($this->state->getAction() == SG_STATE_ACTION_RESTORING_DATABASE) {
+				self::changeActionStatus($this->actionId, SG_ACTION_STATUS_IN_PROGRESS_DB);
+			}
+
 			$this->backupDatabase->restore($this->databaseBackupPath);
+		}
+
+		$action = $this->didFindWarnings()?SG_ACTION_STATUS_FINISHED_WARNINGS:SG_ACTION_STATUS_FINISHED;
+
+		self::changeActionStatus($this->actionId, $action);
+
+		//we let the external restore to finalize the restore for itself
+		if (SGExternalRestore::isEnabled()) {
+			return;
 		}
 
 		$this->didFinishRestore();
 	}
 
+	public function finalizeExternalRestore($actionId)
+	{
+		$action = self::getAction($actionId);
+
+		$this->state = backupGuardLoadStateData();
+		$this->prepareForRestore($action['name']);
+
+		$this->databaseBackupAvailable = file_exists($this->databaseBackupPath);
+
+		if ($this->databaseBackupAvailable) {
+			$this->backupDatabase->finalizeRestore();
+		}
+
+		$this->didFinishRestore();
+	}
+
+	private static function convertToReadableSize($size)
+	{
+		if (!$size) {
+			return '';
+		}
+
+		$base = log($size) / log(1000);
+		$suffix = array("", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB");
+		$f_base = floor($base);
+
+		return round(pow(1000, $base - floor($base)), 1) . $suffix[$f_base];
+	}
+
 	/* General methods */
 
-	public static function getLogFileHeader()
+	public static function getLogFileHeader($actionType, $fileName)
 	{
 		$confs = array();
-		$confs['sg_version'] = SG_VERSION;
+		$confs['sg_backup_guard_version'] = SG_BACKUP_GUARD_VERSION;
+		$confs['sg_archive_version'] = SG_ARCHIVE_VERSION;
+		$confs['sg_user_mode'] = SGBoot::isFeatureAvailable('STORAGE')?'pro':'free'; // Check if user is pro or free
 		$confs['os'] = PHP_OS;
 		$confs['server'] = @$_SERVER['SERVER_SOFTWARE'];
 		$confs['php_version'] = PHP_VERSION;
 		$confs['sapi'] = PHP_SAPI;
-		$confs['codepage'] = setlocale(LC_CTYPE, '');
+		$confs['mysql_version'] = SG_MYSQL_VERSION;
 		$confs['int_size'] = PHP_INT_SIZE;
+		$confs['method'] = backupGuardIsReloadEnabled()?'reload':'standard';
+
+		$confs['dbprefix'] = SG_ENV_DB_PREFIX;
+		$confs['siteurl'] = SG_SITE_URL;
+		$confs['homeurl'] = SG_HOME_URL;
+		$confs['uploadspath'] = SG_UPLOAD_PATH;
+		$confs['installation'] = SG_SITE_TYPE;
+		$freeSpace = self::convertToReadableSize(@disk_free_space(SG_APP_ROOT_DIRECTORY));
+		$confs['free_space'] = $freeSpace==false?'unknown':$freeSpace;
 
 		if (extension_loaded('gmp')) $lib = 'gmp';
 		else if (extension_loaded('bcmath')) $lib = 'bcmath';
 		else $lib = 'BigInteger';
 
 		$confs['int_lib'] = $lib;
-		$confs['memory_limit'] = ini_get('memory_limit');
+		$confs['memory_limit'] = SGBoot::$memoryLimit;
 		$confs['max_execution_time'] = SGBoot::$executionTimeLimit;
 		$confs['env'] = SG_ENV_ADAPTER.' '.SG_ENV_VERSION;
 
 		$content = '';
-		$content .= 'Date: '.@date('Y-m-d H:i').PHP_EOL;
-		$content .= 'SG Backup version: '.$confs['sg_version'].PHP_EOL;
+		$content .= 'Date: '.backupGuardConvertDateTimezone(@date('Y-m-d H:i')).PHP_EOL;
+		$content .= 'Backup Method: '.$confs['method'].PHP_EOL;
+
+		if ($actionType == SG_ACTION_TYPE_RESTORE) {
+			$confs['restore_method'] = SGExternalRestore::isEnabled()?'external':'standard';
+			$content .= 'Restore Method: '.$confs['restore_method'].PHP_EOL;
+		}
+
+		$content .= 'User Mode: '.$confs['sg_user_mode'].PHP_EOL;
+		$content .= 'BackupGuard version: '.$confs['sg_backup_guard_version'].PHP_EOL;
+		$content .= 'Supported archive version: '.$confs['sg_archive_version'].PHP_EOL;
+
+		$content .= 'Database prefix: '.$confs['dbprefix'].PHP_EOL;
+		$content .= 'Site URL: '.$confs['siteurl'].PHP_EOL;
+		$content .= 'Home URL: '.$confs['homeurl'].PHP_EOL;
+		$content .= 'Uploads path: '.$confs['uploadspath'].PHP_EOL;
+		$content .= 'Site installation: '.$confs['installation'].PHP_EOL;
+
 		$content .= 'OS: '.$confs['os'].PHP_EOL;
 		$content .= 'Server: '.$confs['server'].PHP_EOL;
 		$content .= 'User agent: '.@$_SERVER['HTTP_USER_AGENT'].PHP_EOL;
 		$content .= 'PHP version: '.$confs['php_version'].PHP_EOL;
 		$content .= 'SAPI: '.$confs['sapi'].PHP_EOL;
-		$content .= 'Codepage: '.$confs['codepage'].PHP_EOL;
+		$content .= 'MySQL version: '.$confs['mysql_version'].PHP_EOL;
 		$content .= 'Int size: '.$confs['int_size'].PHP_EOL;
 		$content .= 'Int lib: '.$confs['int_lib'].PHP_EOL;
 		$content .= 'Memory limit: '.$confs['memory_limit'].PHP_EOL;
 		$content .= 'Max execution time: '.$confs['max_execution_time'].PHP_EOL;
+		$content .= 'Disk free space: '.$confs['free_space'].PHP_EOL;
+
+		if ($actionType == SG_ACTION_TYPE_RESTORE) {
+			$archivePath = SG_BACKUP_DIRECTORY.$fileName.'/'.$fileName.'.sgbp';
+			$archiveSizeInBytes = backupGuardRealFilesize($archivePath);
+			$confs['archiveSize'] = self::convertToReadableSize($archiveSizeInBytes);
+			$content .= 'Archive Size: '.$confs['archiveSize'].' ('.$archiveSizeInBytes.' bytes)'.PHP_EOL;
+		}
+
 		$content .= 'Environment: '.$confs['env'].PHP_EOL;
 
 		return $content;
@@ -536,12 +986,14 @@ class SGBackup implements SGIBackupDelegate
 		return ($warningsFiles||$warningsDatabase);
 	}
 
-	public static function createAction($name, $type, $status, $subtype = 0)
+	public static function createAction($name, $type, $status, $subtype = 0, $options = '')
 	{
 		$sgdb = SGDatabase::getInstance();
-		$res = $sgdb->query('INSERT INTO '.SG_ACTION_TABLE_NAME.' (name, type, subtype, status, start_date) VALUES (%s, %d, %d, %d, %s)', array($name, $type, $subtype, $status, @date('Y-m-d H:i:s')));
-		if (!$res)
-		{
+
+		$date = backupGuardConvertDateTimezone(@date('Y-m-d H:i:s'));
+		$res = $sgdb->query('INSERT INTO '.SG_ACTION_TABLE_NAME.' (name, type, subtype, status, start_date, options) VALUES (%s, %d, %d, %d, %s, %s)', array($name, $type, $subtype, $status, $date, $options));
+
+		if (!$res) {
 			throw new SGExceptionDatabaseError('Could not create action');
 		}
 		return $sgdb->lastInsertId();
@@ -555,7 +1007,8 @@ class SGBackup implements SGIBackupDelegate
 	private function setCurrentActionStatusCancelled()
 	{
 		$sgdb = SGDatabase::getInstance();
-		$sgdb->query('UPDATE '.SG_ACTION_TABLE_NAME.' SET status=%d, update_date=%s WHERE name=%s', array(SG_ACTION_STATUS_CANCELLED, @date('Y-m-d H:i:s'), $this->fileName));
+		$date = backupGuardConvertDateTimezone(@date('Y-m-d H:i:s'));
+		$sgdb->query('UPDATE '.SG_ACTION_TABLE_NAME.' SET status=%d, update_date=%s WHERE name=%s', array(SG_ACTION_STATUS_CANCELLED, $date, $this->fileName));
 	}
 
 	public static function changeActionStatus($actionId, $status)
@@ -577,13 +1030,15 @@ class SGBackup implements SGIBackupDelegate
 			$progress = ' progress='.$progress.',';
 		}
 
-		$res = $sgdb->query('UPDATE '.SG_ACTION_TABLE_NAME.' SET status=%d,'.$progress.' update_date=%s WHERE id=%d', array($status, @date('Y-m-d H:i:s'), $actionId));
+		$date = backupGuardConvertDateTimezone(@date('Y-m-d H:i:s'));
+		$res = $sgdb->query('UPDATE '.SG_ACTION_TABLE_NAME.' SET status=%d,'.$progress.' update_date=%s WHERE id=%d', array($status, $date, $actionId));
 	}
 
 	public static function changeActionProgress($actionId, $progress)
 	{
 		$sgdb = SGDatabase::getInstance();
-		$sgdb->query('UPDATE '.SG_ACTION_TABLE_NAME.' SET progress=%d, update_date=%s WHERE id=%d', array($progress, @date('Y-m-d H:i:s'), $actionId));
+		$date = backupGuardConvertDateTimezone(@date('Y-m-d H:i:s'));
+		$sgdb->query('UPDATE '.SG_ACTION_TABLE_NAME.' SET progress=%d, update_date=%s WHERE id=%d', array($progress, $date, $actionId));
 	}
 
 	/* Methods for frontend use */
@@ -594,6 +1049,16 @@ class SGBackup implements SGIBackupDelegate
 		$res = $sgdb->query('SELECT * FROM '.SG_ACTION_TABLE_NAME.' WHERE id=%d', array($actionId));
 		if (empty($res))
 		{
+			return false;
+		}
+		return $res[0];
+	}
+
+	public static function getActionByName($name)
+	{
+		$sgdb = SGDatabase::getInstance();
+		$res = $sgdb->query('SELECT * FROM '.SG_ACTION_TABLE_NAME.' WHERE name=%s', array($name));
+		if (empty($res)) {
 			return false;
 		}
 		return $res[0];
@@ -628,147 +1093,215 @@ class SGBackup implements SGIBackupDelegate
 		return $res;
 	}
 
+	public static function getBackupFileInfo($file)
+	{
+		return pathinfo(SG_BACKUP_DIRECTORY.$file);
+	}
+
+	public static function autodetectBackups()
+	{
+		$path = SG_BACKUP_DIRECTORY;
+		$files = scandir(SG_BACKUP_DIRECTORY);
+		$backupLogPostfix = "_backup.log";
+		$restoreLogPostfix = "_restore.log";
+
+		foreach ($files as $file) {
+			$fileInfo = self::getBackupFileInfo($file);
+
+			if (@$fileInfo['extension'] == SGBP_EXT) {
+				@mkdir($path.$fileInfo['filename'], 0777);
+
+				if(file_exists($path.$fileInfo['filename'])) {
+					rename($path.$file, $path.$fileInfo['filename'].'/'.$file);
+				}
+
+				if(file_exists($path.$fileInfo['filename'].$backupLogPostfix)){
+					rename($path.$fileInfo['filename'].$backupLogPostfix, $path.$fileInfo['filename'].'/'.$fileInfo['filename'].$backupLogPostfix);
+				}
+
+				if (file_exists($path.$fileInfo['filename'].$restoreLogPostfix)) {
+					rename($path.$fileInfo['filename'].$restoreLogPostfix, $path.$fileInfo['filename'].'/'.$fileInfo['filename'].$restoreLogPostfix);
+				}
+			}
+		}
+	}
+
 	public static function getAllBackups()
 	{
 		$backups = array();
 
 		$path = SG_BACKUP_DIRECTORY;
-
+		self::autodetectBackups();
 		clearstatcache();
 
-		if ($handle = @opendir($path))
-		{
+		$action = self::getRunningActions();
+		if (SGBoot::isFeatureAvailable('NUMBER_OF_BACKUPS_TO_KEEP') && !count($action) && function_exists('backupGuardOutdatedBackupsCleanup')) {
+			backupGuardOutdatedBackupsCleanup($path);
+		}
+
+		//remove external restore file
+		SGExternalRestore::getInstance()->cleanup();
+
+		if ($handle = @opendir($path)) {
 			$sgdb = SGDatabase::getInstance();
-			$data = $sgdb->query('SELECT id, name, type, subtype, status, progress, update_date FROM '.SG_ACTION_TABLE_NAME);
+			$data = $sgdb->query('SELECT id, name, type, subtype, status, progress, update_date, options FROM '.SG_ACTION_TABLE_NAME);
 			$allBackups = array();
-			foreach ($data as $row)
-			{
+			foreach ($data as $row) {
 				$allBackups[$row['name']][] = $row;
 			}
 
-			while (($file = readdir($handle)) !== false)
-			{
-				if ($file === '.')
-				{
-					continue;
-				}
-				if ($file === '..')
-				{
+			while (($entry = readdir($handle)) !== false) {
+				if ($entry === '.' || $entry === '..' || !is_dir($path.$entry)) {
 					continue;
 				}
 
-				if (substr($file, 0, 10)=='sg_backup_')
-				{
-					$backup = array();
-					$backup['name'] = $file;
-					$backup['files'] = file_exists($path.$file.'/'.$file.'.sgbp')?1:0;
-					$backup['backup_log'] = file_exists($path.$file.'/'.$file.'_backup.log')?1:0;
-					$backup['restore_log'] = file_exists($path.$file.'/'.$file.'_restore.log')?1:0;
-					if (!$backup['files'] && !$backup['backup_log'] && !$backup['restore_log'])
-					{
+				$backup = array();
+				$backup['name'] = $entry;
+				$backup['id'] = '';
+				$backup['status'] = '';
+				$backup['files'] = file_exists($path.$entry.'/'.$entry.'.sgbp')?1:0;
+				$backup['backup_log'] = file_exists($path.$entry.'/'.$entry.'_backup.log')?1:0;
+				$backup['restore_log'] = file_exists($path.$entry.'/'.$entry.'_restore.log')?1:0;
+				$backup['options'] = '';
+				if (!$backup['files'] && !$backup['backup_log'] && !$backup['restore_log']) {
+					continue;
+				}
+				$backupRow = null;
+				if (isset($allBackups[$entry])) {
+					$skip = false;
+					foreach ($allBackups[$entry] as $row) {
+						if ($row['status']==SG_ACTION_STATUS_IN_PROGRESS_FILES || $row['status']==SG_ACTION_STATUS_IN_PROGRESS_DB) {
+							$backupRow = $row;
+							break;
+						}
+						else if (($row['status']==SG_ACTION_STATUS_CANCELLING || $row['status']==SG_ACTION_STATUS_CANCELLED) && $row['type']!=SG_ACTION_TYPE_UPLOAD) {
+							$skip = true;
+							break;
+						}
+
+						$backupRow = $row;
+
+						if ($row['status']==SG_ACTION_STATUS_FINISHED_WARNINGS || $row['status']==SG_ACTION_STATUS_ERROR) {
+							if ($row['type'] == SG_ACTION_TYPE_UPLOAD && file_exists(SG_BACKUP_DIRECTORY.$entry.'/'.$entry.'.sgbp')) {
+								$backupRow['status'] = SG_ACTION_STATUS_FINISHED_WARNINGS;
+							}
+						}
+					}
+
+					if ($skip===true) {
 						continue;
 					}
-					$backupRow = null;
-					if (isset($allBackups[$file]))
-					{
-						$skip = false;
-						foreach ($allBackups[$file] as $row)
-						{
-							if ($row['status']==SG_ACTION_STATUS_IN_PROGRESS_FILES || $backupRow['status']==SG_ACTION_STATUS_IN_PROGRESS_DB)
-							{
-								$backupRow = $row;
-								break;
-							}
-							else if (($row['status']==SG_ACTION_STATUS_CANCELLING || $row['status']==SG_ACTION_STATUS_CANCELLED) && $row['type']!=SG_ACTION_TYPE_UPLOAD)
-							{
-								$skip = true;
-								break;
-							}
-
-							$backupRow = $row;
-
-							if ($row['status']==SG_ACTION_STATUS_FINISHED_WARNINGS && $row['type']!=SG_ACTION_TYPE_UPLOAD)
-							{
-								$key = $row['type']==SG_ACTION_TYPE_BACKUP?'backup_warning':'restore_warning';
-								$backupRow[$key] = 1;
-							}
-							else if ($row['status']==SG_ACTION_STATUS_ERROR && $row['type']==SG_ACTION_TYPE_BACKUP)
-							{
-								$backupRow['backup_error'] = 1;
-								break;
-							}
-							else if ($row['status']==SG_ACTION_STATUS_ERROR && $row['type']==SG_ACTION_TYPE_RESTORE)
-							{
-								$backupRow['restore_error'] = 1;
-							}
-						}
-
-						if ($skip===true)
-						{
-							continue;
-						}
-					}
-
-					if ($backupRow)
-					{
-						$backup['active'] = ($backupRow['status']==SG_ACTION_STATUS_IN_PROGRESS_FILES||
-												$backupRow['status']==SG_ACTION_STATUS_IN_PROGRESS_DB||
-												$backupRow['status']==SG_ACTION_STATUS_CREATED)?1:0;                        $backup['type'] = (int)$backupRow['type'];
-												$backup['type'] = (int)$backupRow['type'];
-						$backup['subtype'] = (int)$backupRow['subtype'];
-						$backup['progress'] = (int)$backupRow['progress'];
-						$backup['id'] = (int)$backupRow['id'];
-					}
-					else
-					{
-						$backup['active'] = 0;
-					}
-
-					if ($backup['active']==0)
-					{
-						$backup['backup_warning'] = (int)@$backupRow['backup_warning'];
-						$backup['restore_warning'] = (int)@$backupRow['restore_warning'];
-
-						$backup['backup_error'] = (int)@$backupRow['backup_error'];
-						$backup['restore_error'] = (int)@$backupRow['restore_error'];
-					}
-					else
-					{
-						$backup['backup_warning'] = 0;
-						$backup['restore_warning'] = 0;
-
-						$backup['backup_error'] = 0;
-						$backup['restore_error'] = 0;
-					}
-
-					$size = '';
-					if ($backup['files'])
-					{
-						$size = number_format(realFilesize($path.$file.'/'.$file.'.sgbp')/1024.0/1024.0, 2, '.', '').' MB';
-					}
-
-					$backup['size'] = $size;
-
-					$modifiedTime = filemtime($path.$file.'/.');
-					$backup['date'] = @date('Y-m-d H:i', $modifiedTime);
-					$backups[$modifiedTime] = $backup;
 				}
+
+				if ($backupRow) {
+					$backup['active'] = ($backupRow['status']==SG_ACTION_STATUS_IN_PROGRESS_FILES||
+					$backupRow['status']==SG_ACTION_STATUS_IN_PROGRESS_DB||
+					$backupRow['status']==SG_ACTION_STATUS_CREATED)?1:0;
+
+					$backup['status'] = $backupRow['status'];
+					$backup['type'] = (int)$backupRow['type'];
+					$backup['subtype'] = (int)$backupRow['subtype'];
+					$backup['progress'] = (int)$backupRow['progress'];
+					$backup['id'] = (int)$backupRow['id'];
+					$backup['options'] = $backupRow['options'];
+				}
+				else {
+					$backup['active'] = 0;
+				}
+
+				$size = '';
+				if ($backup['files']) {
+					$size = number_format(backupGuardRealFilesize($path.$entry.'/'.$entry.'.sgbp')/1000.0/1000.0, 2, '.', '').' MB';
+				}
+
+				$backup['size'] = $size;
+
+				$modifiedTime = filemtime($path.$entry.'/.');
+				$date = backupGuardConvertDateTimezone(@date('Y-m-d H:i', $modifiedTime));
+				$backup['date'] = $date;
+				$backup['modifiedTime'] = $modifiedTime;
+				$backups[] = $backup;
 			}
 			closedir($handle);
 		}
 
-		krsort($backups);
+		usort($backups, array('SGBackup', 'sort'));
 		return array_values($backups);
+	}
+
+	public static function sort($arg1, $arg2)
+	{
+		return $arg1['modifiedTime']>$arg2['modifiedTime']?-1:1;
 	}
 
 	public static function deleteBackup($backupName, $deleteAction = true)
 	{
-		deleteDirectory(SG_BACKUP_DIRECTORY.$backupName);
+		$isDeleteBackupFromCloudEnabled = SGConfig::get('SG_DELETE_BACKUP_FROM_CLOUD');
+		if($isDeleteBackupFromCloudEnabled) {
+			$backupRow = self::getActionByName($backupName);
+			if ($backupRow) {
+				$options = $backupRow['options'];
+				if ($options) {
+					$options = json_decode($options, true);
 
-		if ($deleteAction)
-		{
+					if (!empty($options['SG_BACKUP_UPLOAD_TO_STORAGES'])) {
+						$storages = explode(',', $options['SG_BACKUP_UPLOAD_TO_STORAGES']);
+						self::deleteBackupFromCloud($storages, $backupName);
+					}
+				}
+			}
+		}
+
+		backupGuardDeleteDirectory(SG_BACKUP_DIRECTORY.$backupName);
+
+		if ($deleteAction) {
 			$sgdb = SGDatabase::getInstance();
 			$sgdb->query('DELETE FROM '.SG_ACTION_TABLE_NAME.' WHERE name=%s', array($backupName));
+		}
+	}
+
+	private static function deleteBackupFromCloud($storages, $backupName)
+	{
+		foreach ($storages as $storage) {
+			$storageId = 0;
+			$storage = (int)$storage;
+			switch ($storage) {
+				case SG_STORAGE_FTP:
+					$ftp = SGConfig::get('SG_STORAGE_FTP_CONNECTED');
+					if ($ftp) {
+						$storageId = SG_STORAGE_FTP;
+					}
+					break;
+				case SG_STORAGE_DROPBOX:
+					$dropbox = SGConfig::get('SG_DROPBOX_ACCESS_TOKEN');
+					if ($dropbox) {
+						$storageId = SG_STORAGE_DROPBOX;
+					}
+					break;
+				case SG_STORAGE_GOOGLE_DRIVE:
+					$gdrive = SGConfig::get('SG_GOOGLE_DRIVE_REFRESH_TOKEN');
+					if ($gdrive) {
+						$storageId = SG_STORAGE_GOOGLE_DRIVE;
+					}
+					break;
+				case SG_STORAGE_AMAZON:
+					$amazon = SGConfig::get('SG_STORAGE_AMAZON_CONNECTED');
+					if ($amazon) {
+						$storageId = SG_STORAGE_AMAZON;
+					}
+					break;
+				case SG_STORAGE_ONE_DRIVE:
+					$oneDrive = SGConfig::get('SG_ONE_DRIVE_REFRESH_TOKEN');
+					if ($oneDrive) {
+						$storageId = SG_STORAGE_ONE_DRIVE;
+					}
+					break;
+				default:
+					return;
+			}
+
+			$sgBackupStorage = SGBackupStorage::getInstance();
+			$sgBackupStorage->deleteBackupFromStorage($storageId, $backupName);
 		}
 	}
 
@@ -777,9 +1310,28 @@ class SGBackup implements SGIBackupDelegate
 		self::changeActionStatus($actionId, SG_ACTION_STATUS_CANCELLING);
 	}
 
+	public static function importKeyFile($sgSshKeyFile)
+	{
+		$filename = $sgSshKeyFile['name'];
+		$uploadPath = SG_BACKUP_DIRECTORY.SG_SSH_KEY_FILE_FOLDER_NAME;
+		$filename = $uploadPath.$filename;
+
+		if (!@file_exists($uploadPath)) {
+			if (!@mkdir($uploadPath)) {
+				throw new SGExceptionForbidden('SSH key file folder is not accessible');
+			}
+		}
+
+		if (!empty($sgSshKeyFile) && $sgSshKeyFile['name'] != '') {
+			if (!@move_uploaded_file($sgSshKeyFile['tmp_name'], $filename)) {
+				throw new SGExceptionForbidden('Error while uploading ssh key file');
+			}
+		}
+	}
+
 	public static function upload($filesUploadSgbp)
 	{
-		$filename = self::getBackupFileName();
+		$filename = str_replace('.sgbp', '', $filesUploadSgbp['name']);
 		$backupDirectory = $filename.'/';
 		$uploadPath = SG_BACKUP_DIRECTORY.$backupDirectory;
 		$filename = $uploadPath.$filename;
@@ -813,15 +1365,15 @@ class SGBackup implements SGIBackupDelegate
 		{
 			case SG_BACKUP_DOWNLOAD_TYPE_SGBP:
 				$filename .= '.sgbp';
-				downloadFileSymlink($backupDirectory, $filename);
+				backupGuardDownloadFileSymlink($backupDirectory, $filename);
 				break;
 			case SG_BACKUP_DOWNLOAD_TYPE_BACKUP_LOG:
 				$filename .= '_backup.log';
-				downloadFile($backupDirectory.$filename, 'text/plain');
+				backupGuardDownloadFile($backupDirectory.$filename, 'text/plain');
 				break;
 			case SG_BACKUP_DOWNLOAD_TYPE_RESTORE_LOG:
 				$filename .= '_restore.log';
-				downloadFile($backupDirectory.$filename, 'text/plain');
+				backupGuardDownloadFile($backupDirectory.$filename, 'text/plain');
 				break;
 		}
 
@@ -854,45 +1406,5 @@ class SGBackup implements SGIBackupDelegate
 	public function isBackgroundMode()
 	{
 		return $this->backgroundMode;
-	}
-
-	public function saveStateData($data)
-	{
-		$path = SG_BACKUP_DIRECTORY.'sg_backup.state';
-
-		$data['SG_BACKUP_FILE_NAME'] = $this->fileName;
-		$data['SG_BACKUP_ACTION_ID'] = $this->actionId;
-		$data['SG_BACKUP_ACTION_TS'] = $this->actionStartTs;
-		$data['SG_STORAGE_UPLOADS'] = $this->queuedStorageUploads;
-
-		@file_put_contents($path, json_encode($data));
-	}
-
-	public static function loadStateData()
-	{
-		$path = SG_BACKUP_DIRECTORY.'sg_backup.state';
-		if (!file_exists($path))
-		{
-			return false;
-		}
-
-		$contents = file_get_contents($path);
-		if (!$contents)
-		{
-			return false;
-		}
-
-		$contents = json_decode($contents, true);
-		if (!@$contents['SG_BACKUP_FILE_NAME'] || !@$contents['SG_BACKUP_ACTION_ID'] || !@$contents['SG_BACKUP_ACTION_TS'])
-		{
-			return false;
-		}
-
-		return $contents;
-	}
-
-	public static function removeStateFile()
-	{
-		@unlink(SG_BACKUP_DIRECTORY.'sg_backup.state');
 	}
 }

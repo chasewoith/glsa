@@ -64,10 +64,27 @@ class SGExceptionSkip extends SGException
     }
 }
 
-class SGExceptionPause extends SGException
+class SGExceptionExecutionTimeError extends SGException
 {
-    public function __construct($msg = 'Pause exception')
+    public function __construct($msg = 'Execution timeout error')
     {
         parent::__construct($msg, 2, null);
+    }
+}
+
+
+class SGExceptionIO extends SGException
+{
+    public function __construct($msg = 'IO read/write error')
+    {
+        parent::__construct($msg, 3, null);
+    }
+}
+
+class SGExceptionMigrationError extends SGException
+{
+    public function __construct($msg = 'Migration error')
+    {
+        parent::__construct($msg, 4, null);
     }
 }

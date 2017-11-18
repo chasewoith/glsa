@@ -11,27 +11,26 @@
 		<li>Access to Premium Support</li>
 		<li>Discounts of up to 90% available for multiyear and multi-license purchases</li>
 	</ul>
-	<p class="center"><a class="wf-btn wf-btn-primary wf-btn-callout" href="https://www.wordfence.com/gnl1scanSched1/wordfence-signup/" target="_blank">Get Premium</a></p>
+	<p class="center"><a class="wf-btn wf-btn-primary wf-btn-callout" href="https://www.wordfence.com/gnl1scanSched1/wordfence-signup/" target="_blank" rel="noopener noreferrer">Get Premium</a></p>
 </div>
 <?php } ?>
-<?php $schedMode = wfConfig::get('isPaid') ? wfConfig::get('schedMode', 'auto') : 'auto'; ?>
 <div class="wf-container-fluid">
 	<div class="wf-row">
 		<div class="wf-col-xs-12">
-			<div class="wf-card wf-card-left<?php echo ($schedMode == 'auto' ? ' active' : ''); ?>" data-mode="auto">
+			<div class="wf-card wf-card-left<?php echo (wfScan::isAutoScanSchedule() ? ' active' : ''); ?>" data-mode="auto">
 				<div class="wf-card-inner">
 					<div class="wf-card-content">
 						<div class="wf-card-title">
 							Let Wordfence automatically schedule scans (recommended)
 						</div>
 						<div class="wf-card-subtitle">
-							<?php if ($schedMode == 'auto') : ?>
+							<?php if (wfScan::isAutoScanSchedule()) : ?>
 								<?php echo wordfence::getNextScanStartTime(); ?>
 							<?php endif; ?>
 						</div>
 					</div>
 					<div class="wf-card-action"> 
-						<div class="wf-card-action-checkbox<?php echo ($schedMode == 'auto' ? ' checked' : ''); ?>"></div>
+						<div class="wf-card-action-checkbox<?php echo (wfScan::isAutoScanSchedule() ? ' checked' : ''); ?>"></div>
 					</div>
 				</div>
 			</div>
@@ -39,26 +38,29 @@
 	</div>
 	<div class="wf-row">
 		<div class="wf-col-xs-12">
-			<div class="wf-card wf-card-left<?php echo ($schedMode == 'manual' ? ' active' : ''); ?><?php if (!wfConfig::get('isPaid')) { echo ' disabled'; } ?>" data-mode="manual">
+			<div class="wf-card wf-card-left<?php echo (wfScan::isManualScanSchedule() ? ' active' : ''); ?><?php if (!wfConfig::get('isPaid')) { echo ' disabled'; } ?>" data-mode="manual">
 				<div class="wf-card-inner">
 					<div class="wf-card-content">
 						<div class="wf-card-title">
 							Manually schedule scans<?php if (!wfConfig::get('isPaid')) { echo ' (Premium Members Only)'; } ?>
 						</div>
 						<div class="wf-card-subtitle">
-							<?php if ($schedMode == 'manual') : ?>
+							<?php if (wfScan::isManualScanSchedule()) : ?>
 								<?php echo wordfence::getNextScanStartTime(); ?>
 							<?php endif; ?>
 						</div>
 					</div>
 					<div class="wf-card-action">
-						<div class="wf-card-action-checkbox<?php echo ($schedMode == 'manual' ? ' checked' : ''); ?>"></div>
+						<div class="wf-card-action-checkbox<?php echo (wfScan::isManualScanSchedule() ? ' checked' : ''); ?>"></div>
 					</div>
 				</div>
 				<div class="wf-card-extra">
 					<table class="scan-schedule">
-						<tr>
+						<tr class="wf-visible-xs">
 							<th>Shortcuts</th>
+						</tr>
+						<tr>
+							<th class="wf-hidden-xs">Shortcuts</th>
 							<td>
 								<button type="button" class="wf-btn wf-btn-primary scan-shortcut" data-shortcut="onceDaily">Once per day</button> <button type="button" class="wf-btn wf-btn-primary scan-shortcut" data-shortcut="twiceDaily">Twice per day</button> <button type="button" class="wf-btn wf-btn-primary scan-shortcut" data-shortcut="weekends">Weekends</button> <button type="button" class="wf-btn wf-btn-primary scan-shortcut" data-shortcut="oddDaysWE">Odd days and weekends</button> <button type="button" class="wf-btn wf-btn-primary scan-shortcut" data-shortcut="every6hours">Every 6 hours</button>
 							</td>
@@ -77,29 +79,38 @@
 						foreach ($daysOfWeek as $d) :
 							list($dayNumber, $dayName) = $d;
 							?>
-							<tr class="schedule-day" data-day="<?php echo $dayNumber; ?>">
+							<tr class="wf-visible-xs">
 								<th><?php echo $dayName; ?></th>
+							</tr>
+							<tr class="schedule-day" data-day="<?php echo $dayNumber; ?>">
+								<th class="wf-hidden-xs"><?php echo $dayName; ?></th>
 								<td>
-									<ul class="schedule-times">
-										<li class="text-only">AM</li>
-										<?php
-										for ($h = 0; $h < 12; $h++) {
-											$active = (isset($sched[$dayNumber]) && $sched[$dayNumber][$h] ? ' active' : '');
-											echo '<li class="time' . $active . '" data-hour="' . $h . '"><a href="#">' . str_pad($h, 2, '0', STR_PAD_LEFT) . '</a></li>';
-										}
-										?>
-									</ul>
-									<ul class="schedule-times">
-										<li class="text-only">PM</li>
-										<?php
-										for ($i = 0; $i < 12; $i++) {
-											$h = $i;
-											if ($h == 0) { $h = 12; }
-											$active = (isset($sched[$dayNumber]) && $sched[$dayNumber][$i + 12] ? ' active' : '');
-											echo '<li class="time' . $active . '" data-hour="' . ($i + 12) . '"><a href="#">' . str_pad($h, 2, '0', STR_PAD_LEFT) . '</a></li>';
-										}
-										?>
-									</ul>
+									<div class="schedule-times-wrapper">
+										<div class="wf-visible-xs wf-center">AM</div>
+										<ul class="schedule-times">
+											<li class="text-only wf-hidden-xs">AM</li>
+											<?php
+											for ($h = 0; $h < 12; $h++) {
+												$active = (isset($sched[$dayNumber]) && $sched[$dayNumber][$h] ? ' active' : '');
+												echo '<li class="time' . $active . '" data-hour="' . $h . '"><a href="#">' . str_pad($h, 2, '0', STR_PAD_LEFT) . '</a></li>';
+											}
+											?>
+										</ul>
+									</div>
+									<div class="schedule-times-wrapper">
+										<div class="wf-visible-xs wf-center">PM</div>
+										<ul class="schedule-times">
+											<li class="text-only wf-hidden-xs">PM</li>
+											<?php
+											for ($i = 0; $i < 12; $i++) {
+												$h = $i;
+												if ($h == 0) { $h = 12; }
+												$active = (isset($sched[$dayNumber]) && $sched[$dayNumber][$i + 12] ? ' active' : '');
+												echo '<li class="time' . $active . '" data-hour="' . ($i + 12) . '"><a href="#">' . str_pad($h, 2, '0', STR_PAD_LEFT) . '</a></li>';
+											}
+											?>
+										</ul>
+									</div>
 								</td>
 							</tr>
 						<?php endforeach; ?>
@@ -256,7 +267,7 @@ if(wfConfig::get('isPaid')){
 } else {
 ?>
 	If you would like access to this premium feature, please 
-	<a href="https://www.wordfence.com/gnl1scanSched2/wordfence-signup/" target="_blank">upgrade to our Premium version</a>.
+	<a href="https://www.wordfence.com/gnl1scanSched2/wordfence-signup/" target="_blank" rel="noopener noreferrer">upgrade to our Premium version</a>.
 </p>
 <?php
 }

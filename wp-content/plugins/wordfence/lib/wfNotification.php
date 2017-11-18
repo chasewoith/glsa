@@ -3,6 +3,8 @@ class wfNotification {
 	const PRIORITY_LOW = 1500;
 	const PRIORITY_DEFAULT = 1000;
 	const PRIORITY_HIGH = 500;
+	const PRIORITY_HIGH_CRITICAL = 501;
+	const PRIORITY_HIGH_WARNING = 502;
 	
 	protected $_id;
 	protected $_category;
@@ -13,7 +15,8 @@ class wfNotification {
 	
 	public static function notifications($since = 0) {
 		global $wpdb;
-		$rawNotifications = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$wpdb->prefix}wfNotifications WHERE `new` = 1 AND `ctime` > %d ORDER BY `priority` ASC, `ctime` DESC", $since), ARRAY_A); 
+		$prefix = wfDB::networkPrefix();
+		$rawNotifications = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$prefix}wfNotifications WHERE `new` = 1 AND `ctime` > %d ORDER BY `priority` ASC, `ctime` DESC", $since), ARRAY_A); 
 		$notifications = array();
 		foreach ($rawNotifications as $raw) {
 			$notifications[] = new wfNotification($raw['id'], $raw['priority'], $raw['html'], $raw['category'], $raw['ctime'], json_decode($raw['links'], true), true);
@@ -23,7 +26,8 @@ class wfNotification {
 	
 	public static function getNotificationForID($id) {
 		global $wpdb;
-		$rawNotifications = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$wpdb->prefix}wfNotifications WHERE `id` = %s ORDER BY `priority` ASC, `ctime` DESC", $id), ARRAY_A);
+		$prefix = wfDB::networkPrefix();
+		$rawNotifications = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$prefix}wfNotifications WHERE `id` = %s ORDER BY `priority` ASC, `ctime` DESC", $id), ARRAY_A);
 		if (count($rawNotifications) == 1) {
 			$raw = $rawNotifications[0];
 			return new wfNotification($raw['id'], $raw['priority'], $raw['html'], $raw['category'], $raw['ctime'], json_decode($raw['links'], true), true);
@@ -33,12 +37,45 @@ class wfNotification {
 	
 	public static function getNotificationForCategory($category, $requireNew = true) {
 		global $wpdb;
-		$rawNotifications = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$wpdb->prefix}wfNotifications WHERE " . ($requireNew ? '`new` = 1 AND ' : '') . "`category` = %s ORDER BY `priority` ASC, `ctime` DESC LIMIT 1", $category), ARRAY_A);
+		$prefix = wfDB::networkPrefix();
+		$rawNotifications = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$prefix}wfNotifications WHERE " . ($requireNew ? '`new` = 1 AND ' : '') . "`category` = %s ORDER BY `priority` ASC, `ctime` DESC LIMIT 1", $category), ARRAY_A);
 		if (count($rawNotifications) == 1) {
 			$raw = $rawNotifications[0];
 			return new wfNotification($raw['id'], $raw['priority'], $raw['html'], $raw['category'], $raw['ctime'], json_decode($raw['links'], true), true);
 		}
 		return null;
+	}
+	
+	public static function reconcileNotificationsWithOptions() {
+		$notification_updatesNeeded = wfConfig::get('notification_updatesNeeded');
+		$notification_securityAlerts = wfConfig::get('notification_securityAlerts') || !wfConfig::p();
+		$notification_promotions = wfConfig::get('notification_promotions') || !wfConfig::p();
+		$notification_blogHighlights = wfConfig::get('notification_blogHighlights') || !wfConfig::p();
+		$notification_productUpdates = wfConfig::get('notification_productUpdates') || !wfConfig::p();
+		$notification_scanStatus = wfConfig::get('notification_scanStatus');
+		
+		$notifications = self::notifications();
+		foreach ($notifications as $n) {
+			$category = $n->category;
+			
+			if (preg_match('/^release/i', $category) && !$notification_productUpdates) { $n->markAsRead(); }
+			if (preg_match('/^digest/i', $category) && !$notification_blogHighlights) { $n->markAsRead(); }
+			if (preg_match('/^alert/i', $category) && !$notification_securityAlerts) { $n->markAsRead(); }
+			if (preg_match('/^promo/i', $category) && !$notification_promotions) { $n->markAsRead(); }
+			
+			switch ($category) {
+				case 'wfplugin_scan':
+					if (!$notification_scanStatus) { $n->markAsRead(); }
+					break;
+				case 'wfplugin_updates':
+					if (!$notification_updatesNeeded) { $n->markAsRead(); }
+					break;
+				case 'wfplugin_keyconflict':
+				default:
+					//Allow it
+					break;
+			}
+		}
 	}
 	
 	public function __construct($id, $priority, $html, $category = null, $ctime = null, $links = null, $memoryOnly = false) {
@@ -68,6 +105,31 @@ class wfNotification {
 		global $wpdb;
 		if (!$memoryOnly) {
 			$linksJSON = json_encode($links);
+			
+			$notification_updatesNeeded = wfConfig::get('notification_updatesNeeded');
+			$notification_securityAlerts = wfConfig::get('notification_securityAlerts') || !wfConfig::p();
+			$notification_promotions = wfConfig::get('notification_promotions') || !wfConfig::p();
+			$notification_blogHighlights = wfConfig::get('notification_blogHighlights') || !wfConfig::p();
+			$notification_productUpdates = wfConfig::get('notification_productUpdates') || !wfConfig::p();
+			$notification_scanStatus = wfConfig::get('notification_scanStatus');
+			
+			if (preg_match('/^release/i', $category) && !$notification_productUpdates) { return; }
+			if (preg_match('/^digest/i', $category) && !$notification_blogHighlights) { return; }
+			if (preg_match('/^alert/i', $category) && !$notification_securityAlerts) { return; }
+			if (preg_match('/^promo/i', $category) && !$notification_promotions) { return; }
+			
+			switch ($category) {
+				case 'wfplugin_scan':
+					if (!$notification_scanStatus) { return; }
+					break;
+				case 'wfplugin_updates':
+					if (!$notification_updatesNeeded) { return; }
+					break;
+				case 'wfplugin_keyconflict':
+				default:
+					//Allow it
+					break;
+			}
 			
 			if (!empty($category)) {
 				$existing = self::getNotificationForCategory($category);

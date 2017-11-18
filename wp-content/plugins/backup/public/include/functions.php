@@ -1,5 +1,5 @@
 <?php
-function _t($key, $return = false)
+function _backupGuardT($key, $return = false)
 {
     if($return)
     {
@@ -11,7 +11,7 @@ function _t($key, $return = false)
     }
 }
 
-function isAjax()
+function backupGuardIsAjax()
 {
     return (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest');
 }
@@ -37,7 +37,62 @@ function selectElement($data, $attributes=array(), $firstOption='', $selectedKey
     return $select;
 }
 
-function filterStatusesByActionType($currentBackup, $currentOptions)
+function backupGuardParseBackupOptions($options)
+{
+
+    $scheduleOptions = array(
+        'interval' => '',
+        'dayOfInterval' => '',
+        'intervalHour' => '',
+        'isBackgroundMode' => false,
+        'isDatabaseSelected' => false,
+        'isFilesSelected' => false,
+        'isCustomBackup' => false,
+        'selectedDirectories' => array(),
+        'excludeDirectories' => array(),
+        'selectedClouds' => array(),
+        'label' => ''
+    );
+
+    if (isset($options['schedule_options'])) {
+        $scheduleExecutionOptions = json_decode($options['schedule_options'], true);
+
+        $scheduleOptions['interval'] = $scheduleExecutionOptions['interval'];
+        $scheduleOptions['dayOfInterval'] = $scheduleExecutionOptions['dayOfInterval'];
+        $scheduleOptions['intervalHour'] = $scheduleExecutionOptions['intervalHour'];
+    }
+
+    if (isset($options['backup_options'])) {
+
+        $backupOptions = json_decode($options['backup_options'], true);
+
+        $scheduleOptions['isBackgroundMode'] = $backupOptions['SG_BACKUP_IN_BACKGROUND_MODE']?true:false;
+        $scheduleOptions['isDatabaseSelected'] = $backupOptions['SG_ACTION_BACKUP_DATABASE_AVAILABLE']?true:false;
+        $scheduleOptions['isFilesSelected'] = $backupOptions['SG_ACTION_BACKUP_FILES_AVAILABLE']?true:false;
+        $backupType = $backupOptions['SG_BACKUP_TYPE'];
+
+        $scheduleOptions['isCustomBackup'] = $backupType==SG_BACKUP_TYPE_FULL?false:true;
+
+        if ($scheduleOptions['isCustomBackup']) {
+            $scheduleOptions['selectedDirectories'] = explode(',', $backupOptions['SG_BACKUP_FILE_PATHS']);
+            if ($scheduleOptions['isFilesSelected']) {
+                $scheduleOptions['excludeDirectories'] = explode(',', $backupOptions['SG_BACKUP_FILE_PATHS_EXCLUDE']);
+            }
+        }
+
+        if (strlen($backupOptions['SG_BACKUP_UPLOAD_TO_STORAGES'])) {
+            $scheduleOptions['selectedClouds'] = explode(',', $backupOptions['SG_BACKUP_UPLOAD_TO_STORAGES']);
+        }
+    }
+
+    if (isset($options['label'])) {
+        $scheduleOptions['label'] = $options['label'];
+    }
+
+    return $scheduleOptions;
+}
+
+function backupGuardFilterStatusesByActionType($currentBackup, $currentOptions)
 {
     $filteredStatuses = array();
     if($currentBackup['type'] == SG_ACTION_TYPE_RESTORE)
@@ -47,27 +102,54 @@ function filterStatusesByActionType($currentBackup, $currentOptions)
     }
     else
     {
-        $currentOptions = activeOptionToType($currentOptions);
+        $currentOptions = backupGuardActiveOptionToType($currentOptions);
         if ($currentOptions['backupDatabase']) $filteredStatuses[] = $currentOptions['backupDatabase'];
         if ($currentOptions['backupFiles']) $filteredStatuses[] = $currentOptions['backupFiles'];
         if ($currentOptions['ftp']) $filteredStatuses[] = $currentOptions['ftp'];
         if ($currentOptions['dropbox']) $filteredStatuses[] = $currentOptions['dropbox'];
         if ($currentOptions['gdrive']) $filteredStatuses[] = $currentOptions['gdrive'];
+        if ($currentOptions['amazon']) $filteredStatuses[] = $currentOptions['amazon'];
+        if ($currentOptions['oneDrive']) $filteredStatuses[] = $currentOptions['oneDrive'];
     }
     return $filteredStatuses;
 }
 
-function activeOptionToType($activeOption)
+function backupGuardActiveOptionToType($activeOption)
 {
-    $activeOption['backupDatabase'] = !empty($activeOption['backupDatabase'])?SG_ACTION_STATUS_IN_PROGRESS_DB:0;
-    $activeOption['backupFiles'] = !empty($activeOption['backupFiles'])?SG_ACTION_STATUS_IN_PROGRESS_FILES:0;
-    $activeOption['ftp'] = !empty($activeOption['ftp'])?SG_ACTION_TYPE_UPLOAD.SG_STORAGE_FTP:0;
-    $activeOption['dropbox'] = !empty($activeOption['dropbox'])?SG_ACTION_TYPE_UPLOAD.SG_STORAGE_DROPBOX:0;
-    $activeOption['gdrive'] = !empty($activeOption['gdrive'])?SG_ACTION_TYPE_UPLOAD.SG_STORAGE_GOOGLE_DRIVE:0;
-    return $activeOption;
+    $activeOption = json_decode($activeOption, true);
+    $activeOptions['backupDatabase'] = !empty($activeOption['SG_ACTION_BACKUP_DATABASE_AVAILABLE'])?SG_ACTION_STATUS_IN_PROGRESS_DB:0;
+    $activeOptions['backupFiles'] = !empty($activeOption['SG_ACTION_BACKUP_FILES_AVAILABLE'])?SG_ACTION_STATUS_IN_PROGRESS_FILES:0;
+
+    $storages = explode(',', @$activeOption['SG_BACKUP_UPLOAD_TO_STORAGES']);
+    $activeOptions['ftp'] = 0;
+    $activeOptions['dropbox'] = 0;
+    $activeOptions['gdrive'] = 0;
+    $activeOptions['amazon'] = 0;
+    $activeOptions['oneDrive'] = 0;
+    foreach ($storages as $key => $storage) {
+        switch ($storage) {
+            case SG_STORAGE_FTP:
+                $activeOptions['ftp'] = SG_ACTION_TYPE_UPLOAD.SG_STORAGE_FTP;
+                break;
+            case SG_STORAGE_DROPBOX:
+                $activeOptions['dropbox'] = SG_ACTION_TYPE_UPLOAD.SG_STORAGE_DROPBOX;
+                break;
+            case SG_STORAGE_GOOGLE_DRIVE:
+                $activeOptions['gdrive'] = SG_ACTION_TYPE_UPLOAD.SG_STORAGE_GOOGLE_DRIVE;
+                break;
+            case SG_STORAGE_AMAZON:
+                $activeOptions['amazon'] = SG_ACTION_TYPE_UPLOAD.SG_STORAGE_AMAZON;
+                break;
+            case SG_STORAGE_ONE_DRIVE:
+                $activeOptions['oneDrive'] = SG_ACTION_TYPE_UPLOAD.SG_STORAGE_ONE_DRIVE;
+                break;
+        }
+    }
+
+    return $activeOptions;
 }
 
-function convertToBytes($from){
+function backupGuardConvertToBytes($from){
     $number=substr($from,0,-2);
     switch(strtoupper(substr($from,-2))){
         case "KB":
@@ -85,40 +167,51 @@ function convertToBytes($from){
     }
 }
 
-function getRunningActions()
+function backupGuardGetRunningActions()
 {
     $runningActions = SGBackup::getRunningActions();
     $isAnyActiveActions = count($runningActions);
-    if($isAnyActiveActions)
-    {
-        $activeBackup = $runningActions[0];
-        return $activeBackup;
+    if($isAnyActiveActions) {
+        return $runningActions;
     }
     return false;
 }
 
-function getReport()
+function backupGuardShouldUpdate()
 {
-    $jsonArray = array();
-    $headerArray = array();
-    $jsonArray['ptype'] = '1';
-    $jsonArray['token'] = '28016ffb35b451291bfed7c5905474d6';
-    $lastReportTime = SGConfig::get('SG_LAST_REPORT_DATE');
-    if(!$lastReportTime)
-    {
-        SGConfig::set('SG_LAST_REPORT_DATE', time());
+    $currentVersion = SG_BACKUP_GUARD_VERSION;
+    $oldVersion = SGConfig::get('SG_BACKUP_GUARD_VERSION', true);
+
+    if (!$oldVersion) {
+        return true;
     }
-    SGBackup::getLogFileHeader($headerArray);
-    $jsonArray['header'] = $headerArray;
-    $jsonArray['header']['uid'] = sha1("http://".@$_SERVER[HTTP_HOST].@$_SERVER[REQUEST_URI]);
-    $sgdb = SGDatabase::getInstance();
-    $res = $sgdb->query('SELECT type, subtype, status, count(*) AS scount FROM '.SG_ACTION_TABLE_NAME.' WHERE update_date > FROM_UNIXTIME(%d) GROUP BY type, subtype, status', array($lastReportTime));
-    if(count($res))
-    {
-        foreach ($res as $item)
-        {
-            $jsonArray['log'][] = $item;
-        }
+
+    if ($currentVersion !== $oldVersion) {
+        SGConfig::set('SG_BACKUP_GUARD_VERSION', $currentVersion, true);
+        return SG_FORCE_DB_TABLES_RESET;
     }
-    return json_encode($jsonArray);
+
+    return false;
+}
+
+function backupGuardLoggedMessage()
+{
+    if (!SGBoot::isFeatureAvailable('SCHEDULE')) {
+        return '';
+    }
+
+    $user = SGConfig::get('SG_LOGGED_USER');
+    if (!$user) {
+        return '';
+    }
+
+    $user = unserialize($user);
+    if (!$user || empty($user['firstname'])) {
+        return '';
+    }
+
+    $html = '<span class="bg-logged-msg-container">';
+    $html .= 'Welcome, <b>'.$user['firstname'].'</b>! ';
+    $html .= '(<a href="javascript:void(0)" onclick="sgBackup.logout()">Log Out</a>)</span>';
+    return $html;
 }
