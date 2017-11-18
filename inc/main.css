@@ -1,0 +1,489 @@
+
+/*
+ +------------------------------------------------------------------------+
+ | GREENLAKECHILDCARE.ORG                                                 |
+ +------------------------------------------------------------------------+
+ | main.css                                                               |
+ | main style sheet                                                       |
+ |                                                                        |
+ | Dtek Digital Media, www.dtek.net                                       |
+ | 2005.11.09                                                             |
+ |                                                                        |
+ +------------------------------------------------------------------------+
+ */
+ 
+/*
+
+notes:
+* this file is filtered from older browsers like NN4 and IE4
+* hacks are noted in comments below
+
+*/
+ 
+ 
+/* main layout blocks
+ +------------------------------------------------------------------------+
+ */
+ 
+body
+{
+	background: #236845 url(../img/bg_page.gif) repeat-x;
+	margin: 0;
+	padding: 0;
+	color: #000000;
+	line-height: 1.4;
+	font-family: sans-serif;
+	font-size: 10pt;
+}
+
+div.skiplink
+{
+	display: none;
+}
+
+div#container
+{
+	/* hack: min-width is emulated for IE via postweaks.js */
+	min-width: 760px;
+}
+
+div#topblock
+{
+	background: #FFFFFF url(../img/bg_top.jpg) repeat-x;
+}
+
+div#header
+{
+	background: url(../img/masthead.jpg) no-repeat;
+	height: 117px;
+	/* hack: border coerces Firefox to obey our float clears */
+	border-bottom: 1px #FFFFFF solid;
+} 
+
+div#tagline
+{
+	float: right;
+	width: 229px;
+	/* hack: Mac/IE5 has trouble w/ a top margin on this element. as a 
+	   workaround, add margin (12px) to height and align bg image to the
+	   bottom. */
+	height: 76px;
+	margin: 0 26px;
+	display: inline; /* hack: fix IE double-margin float bug */
+	background: url(../img/tagline.gif) right bottom no-repeat;
+}
+
+div#menu
+{
+	clear: right;
+	margin: 0;
+ 	padding: 18px 20px 0 20px;
+}
+
+div#menu a
+{
+	float: left;
+	display: block;
+	margin: 0;
+	padding: 0 7px 0 14px;
+	/* hack: Konqueror (and Safari?) need the bg rules separated... */
+	background-image: url(../img/separator_header.gif);
+	background-position: left;
+	background-repeat: no-repeat;
+}
+div#menu a.first, div#menu a.firstsel
+{
+	/* we could use the following selector instead, but IE doesn't 
+	   support the first-child pseudo-element selector:
+	   div#menu ul li:first-child a */
+	float: left;
+	display: block;
+	margin: 0;
+	padding: 0 7px 0 0;
+	background: none;
+}
+div#menu ul
+{
+	margin: 0;
+	padding: 0;
+	height: 1em;
+	/* IE6 needs an explicit width to clear the floated tagline div */
+	width: 100%;
+	list-style: none;
+}
+div#menu ul li
+{
+	margin: 0;
+	padding: 0;
+	display: inline; /* hack: fix IE whitespace bug */
+}
+
+div#middleblock
+{
+	/* hack: it's ideal for this element to clear all previous floats, but
+	   Mac/IE clears the contenthome element under the logohomeblock element
+	   when set, so we hide the following rule from Mac/IE */
+	/* \*/
+	clear: both;
+	/* */
+	background-color: #FFFFFF;
+	/* hack: borders coerce Firefox to obey our float clears */
+	border-top: 1px #FFFFFF solid;
+	border-bottom: 1px #FFFFFF solid;
+	/* min-height only relevant if we don't have a photo on the page */
+	/* hack: min-height is emulated for Win/IE via postweaks.js */
+	min-height: 300px;
+}
+
+div#logohomeblock
+{
+	float: left;
+	width: 198px;
+	margin: 20px;
+	display: inline; /* hack: fix IE double-margin float bug */
+}
+
+div#logospacer
+{
+	float: right;
+	width: 110px;
+	height: 90px;
+}
+
+div#quoteblock
+{
+	background: url(../img/bg_quote.jpg) repeat-x;
+	/* hack: min-height is emulated for IE via postweaks.js */
+	min-height: 174px;
+}
+
+div#quoteblock blockquote
+{
+	padding: 10px 0;
+	margin: 0 20px;
+}
+
+div#content
+{
+	padding: 18px 20px 19px 20px;
+	background: url(../img/logo.jpg) top right no-repeat;
+}
+
+div#contenthome
+{
+	padding: 18px 20px 19px 238px;
+}
+
+div#bottomblock
+{
+	background: #236845 url(../img/bg_bottom.jpg) repeat-x;
+	height: 127px; /* this value overridden by postweaks.js */
+}
+
+div#footer
+{
+	padding: 13px 20px;
+}
+
+div#footer address
+{
+	float: left;
+	display: block;
+	margin: 0;
+	padding: 0 7px 0 14px;
+	/* hack: Konqueror (and Safari?) need the bg rules separated... */
+	background-image: url(../img/separator_footer.gif);
+	background-position: left;
+	background-repeat: no-repeat;
+}
+
+div.error
+{
+}
+
+div.break, br.break
+{
+	clear: both;
+	font-size: 0.1em;
+}
+
+
+
+/* fonts
+ +------------------------------------------------------------------------+
+ */
+ 
+p, div, ul, ol, form input.text, form textarea, form input.button
+{
+	color: #000000;
+	line-height: 1.4;
+	font-family: sans-serif;
+	font-size: 10pt;
+}
+
+a:link, a:visited, a:active
+{
+	color: #FF6600;
+	text-decoration: none;
+}
+a:hover
+{
+	color: #145535;
+	text-decoration: underline;
+}
+ 
+h1
+{
+	display: none;
+	margin: 0;
+	padding: 0;
+}
+
+h2
+{
+	margin: 0 0 0.5em 0;
+	padding: 0;
+	font-size: 1.4em;
+	font-weight: bold;
+	color: #145535;
+	background: url(../img/boundary_content.jpg) repeat-x left bottom;
+}
+#content h2
+{
+	margin-right: 104px;
+}
+
+h3
+{
+	margin: 0.4em 0;
+	font-size: 1em;
+	font-weight: bold;
+	color: #145535;
+	/*background: url(../img/boundary_content.jpg) repeat-x left bottom;*/
+}
+
+p
+{
+	margin-top: 0;
+}
+
+ul, ol
+{
+	margin-top: 0;
+	margin-left: 16px;
+	padding-left: 0;
+}
+
+span.caption, p.caption, a.caption
+{
+	font-style: italic;
+	color: #897E6D;
+}
+
+em, p.em, a.em
+{
+	font-style: italic;
+}
+
+strong, p.strong, a.strong
+{
+	font-weight: bold;
+}
+
+address
+{
+	font-style: normal;
+}
+
+blockquote, blockquote p
+{
+	line-height: 1.2;
+	color: #145535;
+}
+
+cite, blockquote cite
+{
+	display: block;
+	text-align: right;
+	font-size: 0.9em;
+	font-weight: bold;
+	font-style: normal;
+}
+
+#menu
+{
+ 	font-weight: bold;
+}
+#menu a:link, #menu a:visited, #menu a:active
+{
+	color: #145535;
+	text-decoration: none;
+	font-weight: bold;
+}
+#menu a:hover,
+#menu a.sel:link, #menu a.sel:visited, #menu a.sel:active,
+#menu a.firstsel:link, #menu a.firstsel:visited, #menu a.firstsel:active
+{
+	color: #FF6600;
+	text-decoration: none;
+	font-weight: bold;
+}
+
+#footer
+{
+	color: #FFFFFF;
+ 	font-weight: bold;
+}
+#footer a:link, #footer a:visited, #footer a:active
+{ 	
+	color: #FFFFFF;
+ 	text-decoration: none;
+ 	font-weight: bold;
+}
+#footer a:hover
+{
+	color: #FFFFFF;
+	text-decoration: underline;
+	font-weight: bold;
+}
+
+div.error p, div.error strong, div.error li
+{
+	color: red;
+}
+
+
+
+/* layout rules for specific page content
+ +------------------------------------------------------------------------+
+ */
+
+table#rates
+{
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+table#rates th
+{
+	text-align: left;
+	font-weight: bold;
+	margin: 0;
+	padding: 0 1em 0 0;
+}
+table#rates th.dpw
+{
+	text-align: left;
+	font-weight: normal;
+	color: #000000;
+}
+table#rates td
+{
+	text-align: center;
+}
+
+ul.cal
+{
+}
+
+
+
+/* images and media blocks
+ +------------------------------------------------------------------------+
+ */
+
+img
+{
+	border: 0;
+}
+
+img#logo
+{
+	width: 107px;
+	height: 117px; 
+}
+
+img#logohome
+{
+	width: 198px; 
+	height: 219px;
+}
+
+img#footer-dtek
+{
+	float: right;
+}
+img#footer-glsa
+{
+	float: left;
+}
+
+div.photoblock
+{
+	clear: right;
+	float: right;
+	/* hack: the top margin here helps avoid text overlapping the top of 
+	   this float in Mozilla and Konqueror */
+	margin: 1.6em 0 10px 10px;
+   width: 265px;
+}
+div.photoblock img
+{
+	width: 265px;
+	border-top: 1px #145535 solid;
+	border-bottom: 5px #FF6600 solid;
+}
+div.photoblock img.quoted
+{
+	border-bottom: 0;
+}
+div.photoblockhome
+{
+	clear: right;
+	float: right;
+	margin: 0 0 10px 10px;
+}
+div.photoblockhome img
+{
+	width: 250px;
+	border: 0;
+}
+ 
+
+
+/* form elements
+ +------------------------------------------------------------------------+
+ */
+
+form
+{
+	margin: 0;
+	padding: 0;
+/* 	border: 1px green dashed; */
+}
+
+form input.text
+{
+	border: 1px solid #145535;
+	width: 25em;
+}
+
+form textarea
+{
+	height: 10em;
+	border: 1px solid #145535;
+	width: 25em;
+}
+
+form input.button
+{
+	border: 1px solid #145535;
+	background-color: #FFFFFF;
+	color: #FF6600;
+	width: 10em;
+}
+
+form input.error, form textarea.error { border: 1px solid red; }
+
+/* anti-spam trickery */
+input#email { display: none; }

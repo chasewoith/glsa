@@ -1,0 +1,416 @@
+
+/*
+ +------------------------------------------------------------------------+
+ | GREENLAKECHILDCARE.ORG                                                 |
+ +------------------------------------------------------------------------+
+ | print.css                                                              |
+ | simple printing style sheet                                            |
+ |                                                                        |
+ | Dtek Digital Media, www.dtek.net                                       |
+ | 2005.11.09                                                             |
+ |                                                                        |
+ +------------------------------------------------------------------------+
+ */
+ 
+/*
+
+notes:
+* this file is filtered from older browsers like NN4 and IE4
+* hacks are noted in comments below
+
+*/
+ 
+ 
+/* main layout blocks
+ +------------------------------------------------------------------------+
+ */
+ 
+body
+{
+	margin: 0;
+	padding: 0;
+	color: #000000;
+	line-height: 1.4;
+	font-family: sans-serif;
+	font-size: 10pt;
+}
+
+div.skiplink
+{
+	display: none;
+}
+
+div#container
+{
+}
+
+div#topblock
+{
+}
+
+div#header
+{
+} 
+
+div#tagline
+{
+	height: auto;
+	display: none;
+}
+
+div#menu
+{
+	display: none;
+}
+
+div#menu a
+{
+}
+div#menu a.first, div#menu a.firstsel
+{
+}
+div#menu ul
+{
+}
+div#menu ul li
+{
+}
+
+div#middleblock
+{
+	/* hack: it's ideal for this element to clear all previous floats, but
+	   Mac/IE clears the contenthome element under the logohomeblock element
+	   when set, so we hide the following rule from Mac/IE */
+	/* \*/
+	clear: both;
+	/* */
+}
+
+div#logohomeblock
+{
+	float: left;
+	width: 198px;
+	margin: 0;
+}
+
+div#logospacer
+{
+	display: none;
+}
+
+div#quoteblock
+{
+}
+
+div#quoteblock blockquote
+{
+	padding: 10px 0;
+	margin: 0 20px;
+}
+
+div#content
+{
+	padding: 0;
+}
+
+div#contenthome
+{
+	padding: 0;
+}
+
+div#bottomblock
+{
+}
+
+div#footer
+{
+	padding: 13px 0;
+}
+
+div#footer address
+{
+	display: block;
+	margin: 0;
+	padding: 0 2em 0 0;
+}
+
+div.error
+{
+}
+
+div.break, br.break
+{
+	clear: both;
+	font-size: 0.1em;
+}
+
+
+
+/* fonts
+ +------------------------------------------------------------------------+
+ */
+ 
+p, div, ul, ol, form input.text, form textarea, form input.button
+{
+	color: #000000;
+	line-height: 1.4;
+	font-family: sans-serif;
+	font-size: 10pt;
+}
+
+a:link, a:visited, a:active
+{
+	color: #FF6600;
+	text-decoration: none;
+}
+a:hover
+{
+	color: #145535;
+	text-decoration: underline;
+}
+ 
+h1
+{
+	display: inline;
+	margin: 0;
+	padding: 0;
+}
+
+h2
+{
+	margin: 0 0 0.5em 0;
+	padding: 0;
+	font-size: 1.4em;
+	font-weight: bold;
+	color: #145535;
+	background: url(../img/boundary_content.jpg) repeat-x left bottom;
+}
+#content h2
+{
+	margin-right: 104px;
+}
+
+h3
+{
+	margin: 0.4em 0;
+	font-size: 1em;
+	font-weight: bold;
+	color: #145535;
+	/*background: url(../img/boundary_content.jpg) repeat-x left bottom;*/
+}
+
+p
+{
+	margin-top: 0;
+}
+
+ul
+{
+	margin-top: 0;
+	margin-left: 16px;
+	padding-left: 0;
+}
+
+span.caption, p.caption, a.caption
+{
+	font-style: italic;
+	color: #897E6D;
+}
+
+em, p.em, a.em
+{
+	font-style: italic;
+}
+
+strong, p.strong, a.strong
+{
+	font-weight: bold;
+}
+
+address
+{
+	font-style: normal;
+}
+
+blockquote, blockquote p
+{
+	line-height: 1.2;
+	color: #145535;
+}
+
+cite, blockquote cite
+{
+	display: block;
+	text-align: right;
+	font-size: 0.9em;
+	font-weight: bold;
+	font-style: normal;
+}
+
+#menu
+{
+ 	font-weight: bold;
+}
+#menu a:link, #menu a:visited, #menu a:active
+{
+	color: #145535;
+	text-decoration: none;
+	font-weight: bold;
+}
+#menu a:hover,
+#menu a.sel:link, #menu a.sel:visited, #menu a.sel:active,
+#menu a.firstsel:link, #menu a.firstsel:visited, #menu a.firstsel:active
+{
+	color: #FF6600;
+	text-decoration: none;
+	font-weight: bold;
+}
+
+#footer
+{
+	color: #FFFFFF;
+ 	font-weight: bold;
+}
+#footer a:link, #footer a:visited, #footer a:active
+{ 	
+	color: #FFFFFF;
+ 	text-decoration: none;
+ 	font-weight: bold;
+}
+#footer a:hover
+{
+	color: #FFFFFF;
+	text-decoration: underline;
+	font-weight: bold;
+}
+
+div.error p, div.error strong, div.error li
+{
+	color: red;
+}
+
+
+
+/* layout rules for specific page content
+ +------------------------------------------------------------------------+
+ */
+
+table#rates
+{
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+table#rates th
+{
+	text-align: left;
+	font-weight: bold;
+	margin: 0;
+	padding: 0 1em 0 0;
+}
+table#rates th.dpw
+{
+	text-align: left;
+	font-weight: normal;
+	color: #000000;
+}
+table#rates td
+{
+	text-align: center;
+}
+
+ul.cal
+{
+}
+
+
+
+/* images and media blocks
+ +------------------------------------------------------------------------+
+ */
+
+img
+{
+	border: 0;
+}
+
+img#logo
+{
+	width: 107px;
+	height: 117px; 
+}
+
+img#logohome
+{
+	width: 198px; 
+	height: 219px;
+}
+
+img#footer-dtek
+{
+	display: none;
+}
+img#footer-glsa
+{
+	display: none;
+}
+
+div.photoblock
+{
+	clear: right;
+	float: right;
+	/* hack: the top margin here helps avoid text overlapping the top of 
+	   this float in Mozilla and Konqueror */
+	margin: 1.6em 0 10px 10px;
+}
+div.photoblock img
+{
+	width: 265px;
+	border-top: 1px #145535 solid;
+	border-bottom: 5px #FF6600 solid;
+}
+div.photoblockhome
+{
+	clear: right;
+	float: right;
+	margin: 0 0 10px 10px;
+}
+div.photoblockhome img
+{
+	width: 250px;
+	border: 0;
+}
+ 
+
+
+/* form elements
+ +------------------------------------------------------------------------+
+ */
+
+form
+{
+	margin: 0;
+	padding: 0;
+/* 	border: 1px green dashed; */
+}
+
+form input.text
+{
+	border: 1px solid #145535;
+	width: 25em;
+}
+
+form textarea
+{
+	height: 10em;
+	border: 1px solid #145535;
+	width: 25em;
+}
+
+form input.button
+{
+	border: 1px solid #145535;
+	background-color: #FFFFFF;
+	color: #FF6600;
+	width: 10em;
+}

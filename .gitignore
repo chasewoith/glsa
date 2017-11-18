@@ -1,0 +1,142 @@
+##       --------------------------------                                     #
+##                                                                            #
+###############################################################################
+ 
+###############################################################################
+##                                                                            #
+##       NOTE: TO STOP TRACKING A FILE AFTER IGNORING IT,                     #
+##             USE THESE GIT COMMANDS:                                        #
+##                                                                            #
+##             git rm --cached <file>                                         #
+##             git add . # or git add <file>                                  #
+##                                                                            #
+##                                                                            #
+##                                                                            #
+##                                                                            #
+##                                                                            #
+################################################################################
+ 
+##============================ WORDPRESS SPECIFIC ============================##
+ 
+#==============================================================================#
+#                                                                              #
+#   Get your local configured to play nicely here:                             #
+#   https://markjaquith.wordpress.com/2011/06/24/wordpress-local-dev-tips/     #
+#==============================================================================#
+wp-config.php
+wp-config*.php*
+!wp-config-local.php
+!wp-config-sample.php
+readme.html
+phpMyAdmin/
+ 
+#==============================================================================#
+#     OPTIONAL  Ignore wp-content, except the Plugins and Themes.              #
+#     Use  care when using git clean -d  or git stash -u as the directory is   #
+#     not ignored, only the contents of the directory.  you will lose data     #
+#     if you run these commands while ignoring the contents of a directory     #
+#     but not the directory itself                                             #
+#==============================================================================#
+ 
+# wp-content/*
+# !wp-content/plugins/
+# !wp-content/mu-plugins/
+# !wp-content/themes/
+ 
+# !wp-content/plugins/my-directory-plugin/
+# !wp-content/themes/my-theme/
+ 
+ 
+#==============================================================================#
+#     DEFAULT  Ignore uploads and cache dirs only, track rest of wp-content    #
+#     You cannot un ignore subfiles or folders - everything in this dir        #
+#     is irrevocably ignored, but git clean -d and git stash -u are safe       #
+#     If you need to unignore a file/ dir that is inside the ignored dir       #
+#     Try changing this to:                                                    #
+#         wp-contentuploads*                                                 #
+#         !wp-contentuploadsdont_ignore_this_blob                            #
+#                                                                              #
+#==============================================================================#
+ 
+wp-content/uploads/
+wp-content/cache/
+ 
+#==============================================================================#
+#     Specific Themes   (By default we remove the pre-loaded themes)           #
+#==============================================================================#
+wp-content/themes/twentyten/
+wp-content/themes/twentyeleven/
+wp-content/themes/twentytwelve/
+wp-content/themes/twentythirteen/
+wp-content/themes/twentyfourteen/
+wp-content/themes/twentyfifteen/
+wp-content/themes/twentysixteen/
+wp-content/themes/index.php
+ 
+ 
+#==============================================================================#
+#     File level ignores  -  Keep these at the end so they override any        #
+#     negation (!) statements at the directory level (like !dir/*  -   We      #
+#     still want to ignore these files even if we are `unignoring` a dir that  #
+#     contains one of these files )                                            #
+#==============================================================================#
+ 
+ 
+##### CACHE Files #####
+ 
+wp-content/advanced-cache.php
+wp-content/wp-cache-config.php
+ 
+# OS Excludes #
+ 
+#==================#
+#     OS Files     #
+#==================#
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+*[Tt]humbs.db
+*.Trashes
+.modgit/
+ 
+ 
+#==================#
+#    Log files     #
+#==================#
+*.log
+error_log
+access_log
+wp-content/wflogs/config.php 
+wp-content/plugins/wordfence/tmp/configCache.php
+ 
+#===================================#
+#          npm Files                #
+#===================================#
+ 
+node_modules
+ 
+ 
+#===================================#
+#       Some Other Files            #
+#===================================#
+ 
+.idea
+.phpintel
+.htaccess
+ 
+#===================================#
+#     Backups/Compressed Files      #
+#===================================#
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+*.sql
+*.sqlite
