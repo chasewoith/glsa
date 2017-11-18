@@ -1,22 +1,22 @@
 <?php
     require_once(dirname(__FILE__).'/../boot.php');
     require_once(SG_BACKUP_PATH.'SGBackup.php');
-    if(isAjax() && count($_POST))
-    {
+    if(backupGuardIsAjax() && count($_POST)) {
         $error = array();
-        try
-        {
-            //Unset Active Options
-            $activeOptions = array('database' => 0, 'files' => 0, 'ftp' => 0, 'gdrive' => 0, 'dropbox' => 0, 'background' => 0);
-            SGConfig::set('SG_ACTIVE_BACKUP_OPTIONS', json_encode($activeOptions));
-
+        try {
             //Getting Backup Name
             $backupName = $_POST['bname'];
+            $restoreMode = isset($_POST['type'])? $_POST['type'] : SG_RESTORE_MODE_FULL; //if type is not set that means it is an old backup and no selective restore is available. only full
+
+            if (!SGBoot::isFeatureAvailable('SLECTIVE_RESTORE')) {
+                $restoreMode = SG_RESTORE_MODE_FULL;
+            }
+
+			$restoreFiles = isset($_POST['paths']) ? $_POST['paths'] : array();
             $backup = new SGBackup();
-            $backup->restore($backupName);
+            $backup->restore($backupName, $restoreMode, $restoreFiles);
         }
-        catch(SGException $exception)
-        {
+        catch(SGException $exception) {
             array_push($error, $exception->getMessage());
             die(json_encode($error));
         }

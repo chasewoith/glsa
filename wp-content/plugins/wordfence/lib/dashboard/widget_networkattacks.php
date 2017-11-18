@@ -62,17 +62,9 @@ STYLING;
 												$labels = array();
 												$values = array();
 												
-												$utc = new DateTimeZone('UTC');
 												foreach ($blocks as $b) {
 													$values[] = $b['c'];
-													
-													$dtStr = date("c", $b['t']); //Have to do it this way because of PHP 5.2
-													$dt = new DateTime($dtStr, $utc);
-													$tz = get_option('timezone_string');
-													if (!empty($tz)) {
-														$dt->setTimezone(new DateTimeZone($tz));
-													}
-													$labels[] = "'" . $dt->format('g a') . "'";
+													$labels[] = "'" . wfUtils::formatLocalTime('g a', $b['t']) . "'";
 												}
 												?>
 												labels: [<?php echo implode(',', $labels); ?>],
@@ -114,17 +106,9 @@ STYLING;
 												$labels = array();
 												$values = array();
 												
-												$utc = new DateTimeZone('UTC');
 												foreach ($blocks as $b) {
 													$values[] = $b['c'];
-													
-													$dtStr = date("c", $b['t']); //Have to do it this way because of PHP 5.2
-													$dt = new DateTime($dtStr, $utc);
-													$tz = get_option('timezone_string');
-													if (!empty($tz)) {
-														$dt->setTimezone(new DateTimeZone($tz));
-													}
-													$labels[] = "'" . $dt->format('M j') . "'";
+													$labels[] = "'" . wfUtils::formatLocalTime('M j', $b['t']) . "'";
 												}
 												?>
 												labels: [<?php echo implode(',', $labels); ?>],
@@ -166,17 +150,9 @@ STYLING;
 												$labels = array();
 												$values = array();
 												
-												$utc = new DateTimeZone('UTC');
 												foreach ($blocks as $b) {
 													$values[] = $b['c'];
-													
-													$dtStr = date("c", $b['t']); //Have to do it this way because of PHP 5.2
-													$dt = new DateTime($dtStr, $utc);
-													$tz = get_option('timezone_string');
-													if (!empty($tz)) {
-														$dt->setTimezone(new DateTimeZone($tz));
-													}
-													$labels[] = "'" . $dt->format('M j') . "'";
+													$labels[] = "'" . wfUtils::formatLocalTime('M j', $b['t']) . "'";
 												}
 												?>
 												labels: [<?php echo implode(',', $labels); ?>],
@@ -226,6 +202,7 @@ STYLING;
 						<?php endif; ?>
 					</li>
 				</ul>
+				<p class="wf-dashboard-last-updated">Last Updated: <?php echo esc_html(wfUtils::makeTimeAgo(time() - $d->lastGenerated)); ?> ago</p>
 			</div>
 		</div>
 	</div>

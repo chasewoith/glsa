@@ -4,7 +4,7 @@ $d = new wfDashboard();
 <div class="wrap wordfence">
 	<div class="wf-container-fluid">
 		<?php $pageTitle = "Wordfence Dashboard"; include('pageTitle.php'); ?>
-		<div class="wordfenceHelpLink"><a href="http://docs.wordfence.com/en/Wordfence_Dashboard" target="_blank" class="wfhelp"></a><a href="http://docs.wordfence.com/en/Wordfence_Dashboard" target="_blank">Learn more about the Wordfence Dashboard</a></div>
+		<div class="wordfenceHelpLink"><a href="http://docs.wordfence.com/en/Wordfence_Dashboard" target="_blank" rel="noopener noreferrer" class="wfhelp"></a><a href="http://docs.wordfence.com/en/Wordfence_Dashboard" target="_blank" rel="noopener noreferrer">Learn more about the Wordfence Dashboard</a></div>
 		<div id="wordfenceMode_dashboard"></div>
 		<div class="wf-row wf-add-top">
 			<div class="wf-col-xs-12">
@@ -17,12 +17,12 @@ $d = new wfDashboard();
 							</div>
 						<?php elseif ($d->scanLastStatus == wfDashboard::SCAN_SUCCESS): ?>
 							<div class="wf-dashboard-item-title">
-								<strong>Last scan completed: <?php echo esc_html(date_i18n(get_option('date_format') . ' ' . get_option('time_format'), $d->scanLastCompletion)); ?></strong>
+								<strong>Last scan completed: <?php echo esc_html(wfUtils::formatLocalTime(get_option('date_format') . ' ' . get_option('time_format'), $d->scanLastCompletion)); ?></strong>
 							</div>
 							<div class="wf-dashboard-item-action wf-dashboard-item-action-text wf-dashboard-item-action-text-success">No security problems detected</div>
 						<?php elseif ($d->scanLastStatus == wfDashboard::SCAN_WARNINGS): ?>
 							<div class="wf-dashboard-item-title">
-								<strong>Last scan completed: <?php echo esc_html(date_i18n(get_option('date_format') . ' ' . get_option('time_format'), $d->scanLastCompletion)); ?></strong>
+								<strong>Last scan completed: <?php echo esc_html(wfUtils::formatLocalTime(get_option('date_format') . ' ' . get_option('time_format'), $d->scanLastCompletion)); ?></strong>
 							</div>
 							<div class="wf-dashboard-item-action wf-dashboard-item-action-text wf-dashboard-item-action-text-warning"><a href="<?php echo network_admin_url('admin.php?page=WordfenceScan'); ?>"><?php echo esc_html($d->scanLastStatusMessage); ?></a></div>
 						<?php elseif ($d->scanLastStatus == wfDashboard::SCAN_FAILED): ?>
@@ -52,24 +52,25 @@ $d = new wfDashboard();
 					</div>
 					<div class="wf-dashboard-item-extra">
 						<ul class="wf-dashboard-item-list">
-						<?php for ($g = 0; $g < ceil(count($d->features) / 5); $g++): ?>
 							<li>
-								<ul class="wf-dashboard-item-list wf-dashboard-item-list-horizontal">
-								<?php for ($f = $g * 5; $f < min(($g + 1) * 5, count($d->features)); $f++): ?>
+								<ul class="wf-dashboard-item-list wf-dashboard-item-list-horizontal wf-dashboard-item-list-equal">
+								<?php foreach ($d->features as $f): ?>
 									<li>
-										<div class="wf-dashboard-item-list-title"><a href="<?php echo esc_html($d->features[$f]['link']); ?>"><?php echo esc_html($d->features[$f]['name']); ?></a></div>
-										<?php if ($d->features[$f]['state'] == wfDashboard::FEATURE_ENABLED): ?>
-										<div class="wf-dashboard-item-list-state wf-dashboard-item-list-state-enabled"><i class="fa fa-circle" aria-hidden="true"></i> Enabled</div>
-										<?php elseif ($d->features[$f]['state'] == wfDashboard::FEATURE_DISABLED): ?>
-											<div class="wf-dashboard-item-list-state wf-dashboard-item-list-state-disabled"><i class="fa fa-circle" aria-hidden="true"></i> Disabled</div>
-										<?php elseif ($d->features[$f]['state'] == wfDashboard::FEATURE_PREMIUM): ?>
-											<div class="wf-dashboard-item-list-state wf-dashboard-item-list-state-premium"><i class="fa fa-circle" aria-hidden="true"></i> Premium</div>
+										<div class="wf-dashboard-item-list-title"><a href="<?php echo esc_html($f['link']); ?>"><?php echo esc_html($f['name']); ?></a></div>
+										<?php if ($f['state'] == wfDashboard::FEATURE_ENABLED): ?>
+										<div class="wf-dashboard-item-list-state wf-dashboard-item-list-state-enabled"><i class="fa fa-circle" aria-hidden="true"></i><span class="wf-hidden-lg"><br></span> Enabled</div>
+										<?php elseif ($f['state'] == wfDashboard::FEATURE_DISABLED): ?>
+											<div class="wf-dashboard-item-list-state wf-dashboard-item-list-state-disabled"><i class="fa fa-circle" aria-hidden="true"></i><span class="wf-hidden-lg"><br></span> Disabled</div>
+										<?php elseif ($f['state'] == wfDashboard::FEATURE_PREMIUM): ?>
+											<div class="wf-dashboard-item-list-state wf-dashboard-item-list-state-premium"><i class="fa fa-circle" aria-hidden="true"></i><span class="wf-hidden-lg"><br></span> Premium</div>
 										<?php endif; ?>
 									</li>
-								<?php endfor; ?>
+								<?php endforeach; ?>
+								<?php if (count($d->features) % 2 == 1): ?>
+									<li></li>
+								<?php endif; ?>
 								</ul>
 							</li>
-						<?php endfor; ?>
 						</ul>
 					</div>
 				</div>

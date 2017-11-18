@@ -38,7 +38,8 @@ class SGFileLogHandler implements SGILogHandler
             return false;
         }
 
-        $content = @date('Y-m-d H:i').': '.$message.PHP_EOL;
+        $date = backupGuardConvertDateTimezone(@date('Y-m-d H:i'));
+        $content = $date.': '.$message.PHP_EOL;
         if (file_put_contents($this->filePath, $content, FILE_APPEND))
         {
             return true;

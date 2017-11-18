@@ -477,7 +477,7 @@ select {
     padding-top: 2px;
     min-height: 10px;
 }
-.sg-close, .sg-custom-backup, .sg-custom-backup-files, .sg-custom-backup-cloud, .sg-schedule-settings-closed{
+.sg-close, .sg-custom-backup, .sg-custom-backup-files, .sg-custom-backup-tables, sg-backup-db-options, .sg-custom-backup-cloud, .sg-schedule-settings-closed{
     display: none;
 }
 .sg-open{
@@ -622,4 +622,21 @@ only screen and (min-resolution: 240dpi) {
 .sg-btn-grey:hover{
     background-color: #777;
     border-color: #777;
+}
+
+.sg-custom-backup-tables .sg-disableText {
+	color: #bbb;
+	font-size: 12px;
+}
+
+.sg-backup-db-options .checkbox .sg-backup-db-mode {
+	padding-left: 15px;
+}
+
+.sg-backup-db-options .checkbox .sg-backup-db-mode:first-of-type {
+	padding-left: 0px;
+}
+
+.sg-backup-db-options .checkbox .sg-backup-db-mode input {
+	margin: 0px;
 }

@@ -1,4 +1,4 @@
-<div class="wordfenceHelpLink"><a href="<?php echo $helpLink; ?>" target="_blank" class="wfhelp"></a><a href="<?php echo $helpLink; ?>" target="_blank"><?php echo $helpLabel; ?></a></div>
+<div class="wordfenceHelpLink"><a href="<?php echo $helpLink; ?>" target="_blank" rel="noopener noreferrer" class="wfhelp"></a><a href="<?php echo $helpLink; ?>" target="_blank" rel="noopener noreferrer"><?php echo $helpLabel; ?></a></div>
 <div>
 	<div class="wordfenceModeElem" id="wordfenceMode_twoFactor"></div>
 	<?php if(! wfConfig::get('isPaid')){ ?>
@@ -19,7 +19,7 @@
 			<li>Discounts of up to 90% available for multiyear and multi-license purchases</li>
 		</ul>
 
-		<p class="center"><a class="wf-btn wf-btn-primary wf-btn-callout" href="https://www.wordfence.com/gnl1twoFac1/wordfence-signup/" target="_blank">Get Premium</a></p>
+		<p class="center"><a class="wf-btn wf-btn-primary wf-btn-callout" href="https://www.wordfence.com/gnl1twoFac1/wordfence-signup/" target="_blank" rel="noopener noreferrer">Get Premium</a></p>
 	</div>
 <?php } ?>
 	
@@ -34,16 +34,31 @@
 	
 	<h2>Enable Cellphone Sign-in</h2>
 	<p><em>Our Cellphone Sign-in uses a technique called "Two Factor Authentication" which is used by banks, government agencies and military world-wide as one of the most secure forms of remote system authentication. We recommend you enable Cellphone Sign-in for all Administrator level accounts.</em></p>
-	<table class="wfConfigForm">
-		<tr><td>Username to enable Cellphone Sign-in for:</td><td><input type="text" id="wfUsername" value="" size="20" /></td></tr>
-		<tr><td class="align-top">Code generation mode:</td><td>
-				<table class="wfConfigForm">
-					<tr><td><input type="radio" name="wf2faMode" value="authenticator" checked></td><td>Use authenticator app</td></tr>
-					<tr><td><input type="radio" name="wf2faMode" value="phone"></td><td>Send code to a phone number: <input type="text" id="wfPhone" value="" size="20" disabled><br><em>Format: +1-123-555-5034</em></td></tr>
-				</table>
-		</td></tr>
-		<tr><td colspan="2"><input type="button" class="wf-btn wf-btn-primary wf-btn-callout" value="Enable Cellphone Sign-in" onclick="WFAD.addTwoFactor(jQuery('#wfUsername').val(), jQuery('#wfPhone').val(), jQuery('input[name=wf2faMode]:checked').val());" /></td></tr>
-	</table>
+	<div class="wf-form wf-form-twofactor">
+		<div class="wf-form-group">
+			<label for="wfUsername">Username<span class="wf-hidden-xs"> to enable Cellphone Sign-in for</span></label>
+			<input type="text" id="wfUsername" class="wf-form-control" value="" size="20">
+		</div>
+		<div class="wf-form-group">
+			<label for="wf2faMode"><span class="wf-visible-xs">Mode</span><span class="wf-hidden-xs">Code generation mode</span></label>
+		</div>
+		<div class="wf-radio">
+			<label>
+				<input type="radio" name="wf2faMode" id="wf2faMode-authenticator" value="authenticator" checked>
+				Use authenticator app
+			</label>
+		</div>
+		<div class="wf-radio">
+			<label>
+				<input type="radio" name="wf2faMode" id="wf2faMode-phone" value="phone">
+				Send code to a phone number:
+			</label>
+			<div class="wf-radio-offset"><input type="text" id="wfPhone" value="" size="20" disabled><br><em>Format: +1-123-555-5034</em></div>
+		</div>
+		<div class="wf-form-group">
+			<input type="button" class="wf-btn wf-btn-primary" value="Enable Cellphone Sign-in" onclick="WFAD.addTwoFactor(jQuery('#wfUsername').val(), jQuery('#wfPhone').val(), jQuery('input[name=wf2faMode]:checked').val());">
+		</div>
+	</div>
 	<div style="height: 20px;">
 		<div id="wfTwoFacMsg" style="color: #F00;">
 		&nbsp;
@@ -59,7 +74,7 @@
 	<table class="wfConfigForm">
 		<tr>
 			<td><input type="checkbox" class="twoFactorOption" id="loginSec_requireAdminTwoFactor" name="loginSec_requireAdminTwoFactor"<?php echo wfConfig::get('loginSec_requireAdminTwoFactor') ? ' checked' : ''; ?>></td>
-			<th>Require Cellphone Sign-in for all Administrators<a href="<?php echo $helpLink; ?>" target="_blank" class="wfhelp"></a><br>
+			<th>Require Cellphone Sign-in for all Administrators<a href="<?php echo $helpLink; ?>" target="_blank" rel="noopener noreferrer" class="wfhelp"></a><br>
 				<em>This setting requires at least one administrator to have Cellphone Sign-in enabled. On multisite, this option applies only to super admins.</em></th>
 		</tr>
 		<tr>
@@ -67,7 +82,7 @@
 			$allowSeparatePrompt = ini_get('output_buffering') > 0;
 			?>
 			<td><input type="checkbox" class="twoFactorOption" id="loginSec_enableSeparateTwoFactor" name="loginSec_enableSeparateTwoFactor"<?php echo wfConfig::get('loginSec_enableSeparateTwoFactor') ? ' checked' : ''; echo ($allowSeparatePrompt ? '' : ' disabled'); ?>></td>
-			<th>Enable Separate Prompt for Two Factor Code<a href="<?php echo $helpLink; ?>" target="_blank" class="wfhelp"></a><br>
+			<th>Enable Separate Prompt for Two Factor Code<a href="<?php echo $helpLink; ?>" target="_blank" rel="noopener noreferrer" class="wfhelp"></a><br>
 				<em>This setting changes the behavior for obtaining the two factor authentication code from using the password field to showing a separate prompt. If your theme overrides the default login page, you may not be able to use this option.</em>
 			<?php echo ($allowSeparatePrompt ? '' : '<br><strong>This setting will be ignored because the PHP configuration option <code>output_buffering</code> is off.</strong>'); ?></th>
 		</tr>
@@ -86,19 +101,19 @@
 </div>
 
 <script type="text/x-jquery-template" id="wfTwoFacUserTmpl">
-	<table class="wf-striped-table">
+	<table class="wf-table wf-table-striped wf-table-bordered wf-table-twofactor"> 
 		<thead>
 			<tr>
-				<th style="width: 80px;"></th>
-				<th style="width: 100px;">User</th>
-				<th style="width: 180px;">Mode</th>
+				<th></th>
+				<th>User</th>
+				<th>Mode</th>
 				<th>Status</th>
 			</tr>
 		</thead>
 		<tbody>
 		{{each(idx, user) users}}
 			<tr id="twoFactorUser-${user.userID}">
-				<td style="white-space: nowrap; text-align: center;"><a href="#" class="button" onclick="WFAD.delTwoFac('${user.userID}'); return false;">Delete</a></td>
+				<td style="white-space: nowrap; text-align: center;" class="wf-twofactor-delete"><a href="#" onclick="WFAD.delTwoFac('${user.userID}'); return false;"><i class="wf-ion-trash-a"></i></a></td>
 				<td style="white-space: nowrap;">${user.username}</td>
 				{{if user.mode == 'phone'}}
 				<td style="white-space: nowrap;">Phone (${user.phone})</td>
@@ -109,7 +124,12 @@
 					{{if user.status == 'activated'}}
 						<span style="color: #0A0;">Cellphone Sign-in Enabled</span>
 					{{else}}
-						Enter activation code: <input type="text" id="wfActivate-${user.userID}" size="6" /><input type="button" value="Activate" onclick="WFAD.twoFacActivate('${user.userID}', jQuery('#wfActivate-${user.userID}').val());" />
+					<div class="wf-form-inline">
+						<div class="wf-form-group">
+							<label class="wf-plain wf-hidden-xs" style="margin: 0;" for="wfActivate-${user.userID}">Enter activation code:</label> <input class="wf-form-control" type="text" id="wfActivate-${user.userID}" size="6" placeholder="Code">
+						</div>
+						<input class="wf-btn wf-btn-default" type="button" value="Activate" onclick="WFAD.twoFacActivate('${user.userID}', jQuery('#wfActivate-${user.userID}').val());">
+					</div>
 					{{/if}}
 				</td>
 			</tr>
@@ -150,7 +170,7 @@ if(wfConfig::get('isPaid')){
 } else {
 ?>
 	If you would like access to this premium feature, please 
-	<a href="https://www.wordfence.com/gnl1twoFac2/wordfence-signup/" target="_blank">upgrade to our premium version</a>.
+	<a href="https://www.wordfence.com/gnl1twoFac2/wordfence-signup/" target="_blank" rel="noopener noreferrer">upgrade to our premium version</a>.
 <?php
 }
 ?>

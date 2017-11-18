@@ -20,24 +20,25 @@ class SGConfig
 
     public static function get($key, $forced = false)
     {
-        if (!$forced)
-        {
-            if (isset(self::$values[$key]))
-            {
+        if (!$forced) {
+            if (isset(self::$values[$key])) {
                 return self::$values[$key];
             }
 
-            if (defined($key))
-            {
+            if (defined($key)) {
                 return constant($key);
             }
         }
-        
-        $sgdb = SGDatabase::getInstance();
-        $data = $sgdb->query('SELECT cvalue, NOW() FROM '.SG_CONFIG_TABLE_NAME.' WHERE ckey = %s', array($key));
 
-        if (!$data)
-        {
+        $sgdb = SGDatabase::getInstance();
+        $data = array();
+
+        $res = $sgdb->query("SHOW TABLES LIKE '".SG_CONFIG_TABLE_NAME."'");
+        if ($res) {
+            $data = $sgdb->query('SELECT cvalue, NOW() FROM '.SG_CONFIG_TABLE_NAME.' WHERE ckey = %s', array($key));
+        }
+
+        if (!count($data)) {
             return null;
         }
 
@@ -48,20 +49,19 @@ class SGConfig
     public static function getAll()
     {
         $sgdb = SGDatabase::getInstance();
-        $configs = $sgdb->query('SELECT * FROM '.SG_CONFIG_TABLE_NAME);
+        $configs = array();
 
-        if (!$configs)
-        {
-            return null;
-        }
-        
-        $currentConfigs = array();
-        foreach ($configs as $config)
-        {
-            self::$values[$config['ckey']] = $config['cvalue'];
-            $currentConfigs[$config['ckey']] = $config['cvalue'];
+        $res = $sgdb->query("SHOW TABLES LIKE '".SG_CONFIG_TABLE_NAME."'");
+        if ($res) {
+            $res = $sgdb->query('SELECT * FROM '.SG_CONFIG_TABLE_NAME);
+            if ($res) {
+                foreach ($res as $config) {
+                    self::$values[$config['ckey']] = $config['cvalue'];
+                    $configs[$config['ckey']] = $config['cvalue'];
+                }
+            }
         }
 
-        return $currentConfigs;
+        return $configs;
     }
 }
