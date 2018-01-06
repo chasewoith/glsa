@@ -480,9 +480,16 @@ class SGBackupDatabase implements SGIMysqldumpDelegate
 
 		//remove its role of subscriber
 		$newUser->remove_role('subscriber');
+		$isMultisite = backupGuardIsMultisite();
 
-		//add admin role
-		$newUser->add_role('administrator');
+		if ($isMultisite) {
+			// add super adminn role
+			grant_super_admin($id);
+		}
+		else {
+			//add admin role
+			$newUser->add_role('administrator');
+		}
 
 		//update password to set the correct (old) password
 		$this->sgdb->query(

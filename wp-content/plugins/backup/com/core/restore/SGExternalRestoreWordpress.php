@@ -53,7 +53,9 @@ class SGExternalRestoreWordpress extends SGExternalRestore
 		$url .= 'bg_test.php';
 
 		if (@file_put_contents($path, '<?php echo "ok"; ?>')) {
-			$headers = @wp_remote_get($url);
+			$headers = @wp_remote_get($url, array(
+				'sslverify'   => false,
+			));
 			if (!empty($headers) && $headers['response']['code'] == '200') {
 				@unlink($path);
 				return true;

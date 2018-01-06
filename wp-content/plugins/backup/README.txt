@@ -5,7 +5,7 @@ Author: Backup Guard
 Donate link: https://backup-guard.com/products/backup-wordpress
 Tags: backup, backup plugin, site backup, database backup, migrate
 Requires at least: 3.8
-Tested up to: 4.8
+Tested up to: 4.9
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -156,6 +156,9 @@ When you are facing an issue of any kind with any of our products, the first thi
 6.  Site backup customization
 
 == Changelog ==
+
+= 1.1.54 =
+* New option added to specify reload method
 
 = 1.1.53 =
 * WordPress dashboard widget added

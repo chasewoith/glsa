@@ -3,7 +3,7 @@ require_once(dirname(__FILE__).'/../boot.php');
 $error = array();
 $success = array('success'=>1);
 
-if(backupGuardIsAjax() && isset($_POST['cancel'])) {
+if (backupGuardIsAjax() && isset($_POST['cancel'])) {
     SGConfig::set('SG_AMOUNT_OF_BACKUPS_TO_KEEP', SG_NUMBER_OF_BACKUPS_TO_KEEP);
     SGConfig::set('SG_NOTIFICATIONS_ENABLED', '0');
     SGConfig::set('SG_NOTIFICATIONS_EMAIL_ADDRESS', '');
@@ -13,11 +13,13 @@ if(backupGuardIsAjax() && isset($_POST['cancel'])) {
     SGConfig::set('SG_PATHS_TO_EXCLUDE', '');
     SGConfig::set('SG_BACKUP_DATABASE_INSERT_LIMIT', 0);
     SGConfig::set('SG_TABLES_TO_EXCLUDE', '');
+    SGConfig::set('SG_DISABLE_ADS', '0');
+    SGConfig::set('SG_BACKGROUND_RELOAD_METHOD', SG_RELOAD_METHOD_CURL);
 
     die(json_encode($success));
 }
 
-if(backupGuardIsAjax() && count($_POST)) {
+if (backupGuardIsAjax() && count($_POST)) {
     $_POST = backupGuardRemoveSlashes($_POST);
     $_POST = backupGuardSanitizeTextField($_POST);
 
@@ -29,7 +31,7 @@ if(backupGuardIsAjax() && count($_POST)) {
 
     SGConfig::set('SG_NOTIFICATIONS_ENABLED', '0');
     $email = '';
-    if(isset($_POST['sgIsEmailNotification'])) {
+    if (isset($_POST['sgIsEmailNotification'])) {
         $email = @$_POST['sgUserEmail'];
         if (empty($email)) {
             array_push($error, _backupGuardT('Email is required.', true));
@@ -42,27 +44,45 @@ if(backupGuardIsAjax() && count($_POST)) {
     }
     $ajaxInterval = (int)$_POST['ajaxInterval'];
 
-    if(count($error)) {
+    if (count($error)) {
         die(json_decode($error));
+    }
+
+    if (isset($_POST['sg-hide-ads'])) {
+        SGConfig::set('SG_DISABLE_ADS', '1');
+    }
+    else {
+        SGConfig::set('SG_DISABLE_ADS', '0');
+    }
+
+    if (isset($_POST['sg-background-reload-method'])) {
+        SGConfig::set('SG_BACKGROUND_RELOAD_METHOD', (int)$_POST['sg-background-reload-method']);
+    }
+    else {
+        SGConfig::set('SG_BACKGROUND_RELOAD_METHOD', SG_RELOAD_METHOD_CURL);
     }
 
     if (isset($_POST['delete-backup-after-upload'])) {
         SGConfig::set('SG_DELETE_BACKUP_AFTER_UPLOAD', '1');
-    }else{
+    }
+    else {
 		SGConfig::set('SG_DELETE_BACKUP_AFTER_UPLOAD', '0');
 	}
 
     if (isset($_POST['delete-backup-from-cloud'])) {
         SGConfig::set('SG_DELETE_BACKUP_FROM_CLOUD', '1');
-    }else{
+    }
+    else {
 		SGConfig::set('SG_DELETE_BACKUP_FROM_CLOUD', '0');
 	}
 
     if (isset($_POST['alert-before-update'])) {
 		SGConfig::set('SG_ALERT_BEFORE_UPDATE', '1');
-	} else {
+	}
+    else {
 		SGConfig::set('SG_ALERT_BEFORE_UPDATE', '0');
 	}
+
     SGConfig::set('SG_BACKUP_DATABASE_INSERT_LIMIT', 0);
     if (isset($_POST['sg-number-of-rows-to-backup'])) {
         SGConfig::set('SG_BACKUP_DATABASE_INSERT_LIMIT', (int)$_POST['sg-number-of-rows-to-backup']);
@@ -80,7 +100,8 @@ if(backupGuardIsAjax() && count($_POST)) {
 
     if (isset($_POST['sg-paths-to-exclude'])) {
         SGConfig::set('SG_PATHS_TO_EXCLUDE', $_POST['sg-paths-to-exclude']);
-    }else{
+    }
+    else {
 		SGConfig::set('SG_PATHS_TO_EXCLUDE', '');
 	}
 
@@ -98,10 +119,10 @@ if(backupGuardIsAjax() && count($_POST)) {
     die(json_encode($success));
 }
 
-if(backupGuardIsAjax() && $_SERVER['REQUEST_METHOD'] === 'GET'){
-	if($_GET["type"] == "updateSetting"){
+if (backupGuardIsAjax() && $_SERVER['REQUEST_METHOD'] === 'GET') {
+	if ($_GET["type"] == "updateSetting") {
 		//disable alert-before-update from updates page
-		if(isset($_GET["alert-before-update"])) {
+		if (isset($_GET["alert-before-update"])) {
 			SGConfig::set('SG_ALERT_BEFORE_UPDATE', $_GET["alert-before-update"]);
 		}
 	}

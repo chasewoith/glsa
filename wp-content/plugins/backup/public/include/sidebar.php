@@ -1,6 +1,7 @@
 <?php
     $page = $_GET['page'];
 
+    $isDisabelAdsEnabled = SGConfig::get('SG_DISABLE_ADS');
     $showUpgradeButton = SGBoot::isFeatureAvailable('SHOW_UPGRADE_PAGE');
     $buttonText = 'Buy now!';
     $upgradeText = 'Website migration, Backup to cloud, automatization, mail notifications, and more in our PRO package!';
@@ -72,7 +73,7 @@
             <?php endif; ?>
         </ul>
     </nav>
-    <?php if ($showUpgradeButton):?>
+    <?php if ($showUpgradeButton && !$isDisabelAdsEnabled):?>
         <div class="sg-alert-pro">
             <p>
                 <?php _backupGuardT($upgradeText); ?>

@@ -109,7 +109,7 @@ define('SG_WP_OPTIONS_MIGRATABLE_VALUES', 'user_roles');
 define('SG_WP_USERMETA_MIGRATABLE_VALUES', 'capabilities,user_level,dashboard_quick_press_last_post_id,user-settings,user-settings-time');
 define('SG_MISC_MIGRATABLE_TABLES', SG_ENV_DB_PREFIX.'options,'.SG_ENV_DB_PREFIX.'usermeta');
 define('SG_MULTISITE_TABLES_TO_MIGRATE', SG_ENV_DB_PREFIX.'blogs,'.SG_ENV_DB_PREFIX.'site');
-define('SG_SUBDOMAIN_INSTALL', defined('SUBDOMAIN_INSTALL')?SG_SUBDOMAIN_INSTALL:false);
+define('SG_SUBDOMAIN_INSTALL', defined('SUBDOMAIN_INSTALL')?SUBDOMAIN_INSTALL:false);
 
 
 define('SG_BACKUP_PRODUCTS_URL', 'https://backup-guard.com/admin/products/view');
