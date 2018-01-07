@@ -559,6 +559,29 @@ add_action('wp_dashboard_setup', 'add_dashboard_widgets' );
 
 function add_dashboard_widgets()
 {
+	require_once(SG_CORE_PATH.'SGConfig.php');
+
+	$userId = get_current_user_id();
+	$userData = get_userdata($userId);
+	$userRoles = $userData->roles;
+	$isAdminUser = false;
+	for($i = 0; $i < count($userRoles); $i++) {
+		if ($userRoles[$i] == "administrator") {
+			$isAdminUser = true;
+			break;
+		}
+	}
+
+	if (!$isAdminUser ) {
+		return;
+	}
+
+	$isShowStatisticsWidgetEnabled = SGConfig::get('SG_SHOW_STATISTICS_WIDGET');
+	if (!$isShowStatisticsWidgetEnabled) {
+		return;
+	}
+
+
 	require_once(plugin_dir_path( __FILE__ ).'public/dashboardWidget.php');
 	wp_add_dashboard_widget('backupGuardWidget', 'Backup Guard', 'dashboard_widget_function');
 }

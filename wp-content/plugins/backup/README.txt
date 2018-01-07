@@ -1,9 +1,9 @@
-=== WordPress Backup and Migrate Plugin - BackupGuard ===
-Plugin Name: WordPress Backup and Migrate Plugin - BackupGuard
+=== WordPress Backup and Migrate Plugin - Backup Guard ===
+Plugin Name: WordPress Backup and Migrate Plugin - Backup Guard
 Contributors: Backup Guard, Backup Guard Support
 Author: Backup Guard
 Donate link: https://backup-guard.com/products/backup-wordpress
-Tags: backup, backup plugin, site backup, database backup, migrate
+Tags: backup, wordpress backup plugin, backup plugin, database backup, migrate
 Requires at least: 3.8
 Tested up to: 4.9
 Stable tag: trunk
@@ -14,7 +14,7 @@ Backup site, restore or migrate it wherever you need it. Backup to Dropbox, Goog
 
 == Description ==
 
-BackupGuard is the most complete site backup and restore plugin. We offer the easiest way to <strong>Backup</strong>, <strong>Restore</strong> and <strong>Migrate</strong> your website. You can backup and restore your files, database or both.
+Backup Guard is the most complete WordPress backup plugin. We offer the easiest way to <strong>Backup</strong>, <strong>Restore</strong> and <strong>Migrate</strong> your WordPress website. You can backup and restore your WordPress files, database or both.
 
 https://www.youtube.com/watch?v=HCz4mkMMXos
 
@@ -156,6 +156,12 @@ When you are facing an issue of any kind with any of our products, the first thi
 6.  Site backup customization
 
 == Changelog ==
+
+= 1.1.55 =
+* cURL & Stream supported for external restoration
+* Conflicts were resolved with update checker
+* New option to show/hide statistics
+* Database restoration related bug resolved
 
 = 1.1.54 =
 * New option added to specify reload method

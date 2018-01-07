@@ -7,6 +7,7 @@ $isDeleteBackupAfterUploadEnabled = SGConfig::get('SG_DELETE_BACKUP_AFTER_UPLOAD
 $isDeleteBackupFromCloudEnabled = SGConfig::get('SG_DELETE_BACKUP_FROM_CLOUD');
 $isDisabelAdsEnabled = SGConfig::get('SG_DISABLE_ADS');
 $isAlertBeforeUpdateEnabled = SGConfig::get('SG_ALERT_BEFORE_UPDATE');
+$isShowStatisticsWidgetEnabled = SGConfig::get('SG_SHOW_STATISTICS_WIDGET');
 $isReloadingsEnabled = SGConfig::get('SG_BACKUP_WITH_RELOADINGS');
 $intervalSelectElement = array(
                             '1000'=>'1 second',
@@ -108,7 +109,16 @@ $sgBackgroundReloadMethod = SGConfig::get('SG_BACKGROUND_RELOAD_METHOD');
                                     </label>
                                 </div>
                             </div>
-
+							<div class="form-group">
+								<label class="col-md-8 sg-control-label">
+									<?php echo _backupGuardT('Show statistics'); ?>
+								</label>
+								<div class="col-md-3 pull-right text-right">
+									<label class="sg-switch-container">
+										<input type="checkbox" name="show-statistics-widget" class="sg-switch" <?php echo $isShowStatisticsWidgetEnabled?'checked="checked"':''?>>
+									</label>
+								</div>
+							</div>
                             <div class="form-group">
                                 <label class="col-md-8 sg-control-label">
                                     <?php echo _backupGuardT('Disable ads'); ?>

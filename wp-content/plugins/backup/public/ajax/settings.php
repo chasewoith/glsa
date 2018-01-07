@@ -9,6 +9,7 @@ if (backupGuardIsAjax() && isset($_POST['cancel'])) {
     SGConfig::set('SG_NOTIFICATIONS_EMAIL_ADDRESS', '');
     SGConfig::set('SG_DELETE_BACKUP_AFTER_UPLOAD', '0');
     SGConfig::set('SG_ALERT_BEFORE_UPDATE', '0');
+	SGConfig::set('SG_SHOW_STATISTICS_WIDGET', '0');
     SGConfig::set('SG_BACKUP_FILE_NAME_PREFIX', '');
     SGConfig::set('SG_PATHS_TO_EXCLUDE', '');
     SGConfig::set('SG_BACKUP_DATABASE_INSERT_LIMIT', 0);
@@ -81,6 +82,13 @@ if (backupGuardIsAjax() && count($_POST)) {
 	}
     else {
 		SGConfig::set('SG_ALERT_BEFORE_UPDATE', '0');
+	}
+
+	if (isset($_POST['show-statistics-widget'])) {
+		SGConfig::set('SG_SHOW_STATISTICS_WIDGET', '1');
+
+	} else {
+		SGConfig::set('SG_SHOW_STATISTICS_WIDGET', '0');
 	}
 
     SGConfig::set('SG_BACKUP_DATABASE_INSERT_LIMIT', 0);
