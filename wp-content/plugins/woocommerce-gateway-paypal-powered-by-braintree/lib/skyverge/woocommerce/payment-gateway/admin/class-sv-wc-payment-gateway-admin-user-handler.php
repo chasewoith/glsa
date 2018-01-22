@@ -208,7 +208,7 @@ class SV_WC_Payment_Gateway_Admin_User_Handler {
 
 		$plugin_title = trim( str_replace( 'WooCommerce', '', $this->get_plugin()->get_plugin_name() ) );
 
-		$title = sprintf( __( '%s Payment Tokens', 'woocommerce-plugin-framework' ), $plugin_title );
+		$title = sprintf( __( '%s Payment Tokens', 'woocommerce-gateway-paypal-powered-by-braintree' ), $plugin_title );
 
 		/**
 		 * Filter the admin token editor title.
@@ -286,10 +286,10 @@ class SV_WC_Payment_Gateway_Admin_User_Handler {
 				continue;
 			}
 
-			$label = __( 'Customer ID', 'woocommerce-plugin-framework' );
+			$label = __( 'Customer ID', 'woocommerce-gateway-paypal-powered-by-braintree' );
 
 			// If the plugin has multiple gateways configured for multiple environments, append the environment name to keep things straight
-			$label .= ( $this->has_multiple_environments() ) ? ' ' . sprintf( __( '(%s)', 'woocommerce-plugin-framework' ), $gateway->get_environment_name() ) : '';
+			$label .= ( $this->has_multiple_environments() ) ? ' ' . sprintf( __( '(%s)', 'woocommerce-gateway-paypal-powered-by-braintree' ), $gateway->get_environment_name() ) : '';
 
 			$fields[] = array(
 				'label' => $label,

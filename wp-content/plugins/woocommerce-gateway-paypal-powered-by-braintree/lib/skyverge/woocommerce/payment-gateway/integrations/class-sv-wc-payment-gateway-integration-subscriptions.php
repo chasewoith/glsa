@@ -218,7 +218,7 @@ class SV_WC_Payment_Gateway_Integration_Subscriptions extends SV_WC_Payment_Gate
 		// payment token must be present and valid
 		if ( empty( $token ) || ! $this->get_gateway()->get_payment_tokens_handler()->user_has_token( $order->get_user_id(), $token ) ) {
 
-			$this->get_gateway()->mark_order_as_failed( $order, __( 'Subscription Renewal: payment token is missing/invalid.', 'woocommerce-plugin-framework' ) );
+			$this->get_gateway()->mark_order_as_failed( $order, __( 'Subscription Renewal: payment token is missing/invalid.', 'woocommerce-gateway-paypal-powered-by-braintree' ) );
 
 			return;
 		}
@@ -244,7 +244,7 @@ class SV_WC_Payment_Gateway_Integration_Subscriptions extends SV_WC_Payment_Gate
 	 */
 	public function get_order( $order ) {
 
-		$order->description = sprintf( esc_html__( '%1$s - Subscription Renewal Order %2$s', 'woocommerce-plugin-framework' ), wp_specialchars_decode( SV_WC_Helper::get_site_name(), ENT_QUOTES ), $order->get_order_number() );
+		$order->description = sprintf( esc_html__( '%1$s - Subscription Renewal Order %2$s', 'woocommerce-gateway-paypal-powered-by-braintree' ), wp_specialchars_decode( SV_WC_Helper::get_site_name(), ENT_QUOTES ), $order->get_order_number() );
 
 		// override the payment total with the amount to charge given by Subscriptions
 		$order->payment_total = $this->renewal_payment_total;
@@ -376,12 +376,12 @@ class SV_WC_Payment_Gateway_Integration_Subscriptions extends SV_WC_Payment_Gate
 		} catch( SV_WC_Payment_Gateway_Exception $e ) {
 
 			/* translators: Placeholders: %1$s - payment gateway title, %2$s - error message; e.g. Order Note: [Payment method] Payment Change failed [error] */
-			$note = sprintf( __( '%1$s Payment Change Failed (%2$s)', 'woocommerce-plugin-framework' ), $gateway->get_method_title(), $e->getMessage() );
+			$note = sprintf( __( '%1$s Payment Change Failed (%2$s)', 'woocommerce-gateway-paypal-powered-by-braintree' ), $gateway->get_method_title(), $e->getMessage() );
 
 			// add a subscription note to keep track of failures
 			$subscription->add_order_note( $note );
 
-			SV_WC_Helper::wc_add_notice( __( 'An error occurred, please try again or try an alternate form of payment.', 'woocommerce-plugin-framework' ), 'error' );
+			SV_WC_Helper::wc_add_notice( __( 'An error occurred, please try again or try an alternate form of payment.', 'woocommerce-gateway-paypal-powered-by-braintree' ), 'error' );
 
 			// this isn't used by Subscriptions, but return a failure result anyway
 			$result = array(
@@ -507,7 +507,7 @@ class SV_WC_Payment_Gateway_Integration_Subscriptions extends SV_WC_Payment_Gate
 		$token = $this->get_gateway()->get_payment_tokens_handler()->get_token( $subscription->get_user_id(), $this->get_gateway()->get_order_meta( SV_WC_Order_Compatibility::get_prop( $subscription, 'id' ), 'payment_token' ) );
 
 		if ( $token instanceof SV_WC_Payment_Gateway_Payment_Token ) {
-			$payment_method_to_display = sprintf( __( 'Via %s ending in %s', 'woocommerce-plugin-framework' ), $token->get_type_full(), $token->get_last_four() );
+			$payment_method_to_display = sprintf( __( 'Via %s ending in %s', 'woocommerce-gateway-paypal-powered-by-braintree' ), $token->get_type_full(), $token->get_last_four() );
 		}
 
 		return $payment_method_to_display;
@@ -534,7 +534,7 @@ class SV_WC_Payment_Gateway_Integration_Subscriptions extends SV_WC_Payment_Gate
 
 			// Add the header before the actions
 			if ( 'actions' === $id ) {
-				$new_headers['subscriptions'] = __( 'Subscriptions', 'woocommerce-plugin-framework' );
+				$new_headers['subscriptions'] = __( 'Subscriptions', 'woocommerce-gateway-paypal-powered-by-braintree' );
 			}
 
 			$new_headers[ $id ] = $label;
@@ -564,7 +564,7 @@ class SV_WC_Payment_Gateway_Integration_Subscriptions extends SV_WC_Payment_Gate
 
 		// Build a link for each subscription
 		foreach ( $this->get_payment_token_subscriptions( get_current_user_id(), $token ) as $subscription ) {
-			$subscription_ids[] = sprintf( '<a href="%1$s">%2$s</a>', esc_url( $subscription->get_view_order_url() ), esc_attr( sprintf( _x( '#%s', 'hash before order number', 'woocommerce-plugin-framework' ), $subscription->get_order_number() ) ) );
+			$subscription_ids[] = sprintf( '<a href="%1$s">%2$s</a>', esc_url( $subscription->get_view_order_url() ), esc_attr( sprintf( _x( '#%s', 'hash before order number', 'woocommerce-gateway-paypal-powered-by-braintree' ), $subscription->get_order_number() ) ) );
 		}
 
 		if ( ! empty( $subscription_ids ) ) {
@@ -604,7 +604,7 @@ class SV_WC_Payment_Gateway_Integration_Subscriptions extends SV_WC_Payment_Gate
 
 			if ( isset( $actions['delete'] ) ) {
 				$actions['delete']['class'][] = 'disabled';
-				$actions['delete']['tip'] = __( 'This payment method is tied to a subscription and cannot be deleted. Please switch the subscription to another method first.', 'woocommerce-plugin-framework' );
+				$actions['delete']['tip'] = __( 'This payment method is tied to a subscription and cannot be deleted. Please switch the subscription to another method first.', 'woocommerce-gateway-paypal-powered-by-braintree' );
 			}
 
 			// If there is only one subscription, provide a handy link to view it
@@ -614,7 +614,7 @@ class SV_WC_Payment_Gateway_Integration_Subscriptions extends SV_WC_Payment_Gate
 
 				$actions['view-subscription'] = array(
 					'url'  => $subscription->get_view_order_url(),
-					'name' => __( 'View Subscription', 'woocommerce-plugin-framework' ),
+					'name' => __( 'View Subscription', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 				);
 			}
 
@@ -668,11 +668,11 @@ class SV_WC_Payment_Gateway_Integration_Subscriptions extends SV_WC_Payment_Gate
 			'post_meta' => array(
 				$prefix . 'payment_token' => array(
 					'value' => $this->get_gateway()->get_order_meta( SV_WC_Order_Compatibility::get_prop( $subscription, 'id' ), 'payment_token' ),
-					'label' => __( 'Payment Token', 'woocommerce-plugin-framework' ),
+					'label' => __( 'Payment Token', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 				),
 				$prefix . 'customer_id'   => array(
 					'value' => $this->get_gateway()->get_order_meta( SV_WC_Order_Compatibility::get_prop( $subscription, 'id' ), 'customer_id' ),
-					'label' => __( 'Customer ID', 'woocommerce-plugin-framework' ),
+					'label' => __( 'Customer ID', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 				),
 			)
 		);
@@ -696,12 +696,12 @@ class SV_WC_Payment_Gateway_Integration_Subscriptions extends SV_WC_Payment_Gate
 
 		// payment token
 		if ( empty( $meta['post_meta'][ $prefix . 'payment_token' ]['value'] ) ) {
-			throw new \Exception( sprintf( __( '%s is required.', 'woocommerce-plugin-framework' ), $meta['post_meta'][ $prefix . 'payment_token' ]['label'] ) );
+			throw new \Exception( sprintf( __( '%s is required.', 'woocommerce-gateway-paypal-powered-by-braintree' ), $meta['post_meta'][ $prefix . 'payment_token' ]['label'] ) );
 		}
 
 		// customer ID - optional for some gateways so check if it's set first
 		if ( isset( $meta['post_meta'][ $prefix . 'customer_id'] ) && empty( $meta['post_meta'][ $prefix . 'customer_id' ]['value'] ) ) {
-			throw new \Exception( sprintf( __( '%s is required.', 'woocommerce-plugin-framework' ), $meta['post_meta'][ $prefix . 'customer_id' ]['label'] ) );
+			throw new \Exception( sprintf( __( '%s is required.', 'woocommerce-gateway-paypal-powered-by-braintree' ), $meta['post_meta'][ $prefix . 'customer_id' ]['label'] ) );
 		}
 	}
 
@@ -856,7 +856,7 @@ class SV_WC_Payment_Gateway_Integration_Subscriptions extends SV_WC_Payment_Gate
 			if ( 0 == $amount_to_charge ) {
 
 				// add order note
-				$order->add_order_note( sprintf( __( '%s0 Subscription Renewal Approved', 'woocommerce-plugin-framework' ), get_woocommerce_currency_symbol() ) );
+				$order->add_order_note( sprintf( __( '%s0 Subscription Renewal Approved', 'woocommerce-gateway-paypal-powered-by-braintree' ), get_woocommerce_currency_symbol() ) );
 
 				// update subscription
 				\WC_Subscriptions_Manager::process_subscription_payments_on_order( $order, $product_id );
@@ -894,7 +894,7 @@ class SV_WC_Payment_Gateway_Integration_Subscriptions extends SV_WC_Payment_Gate
 				// order note based on gateway type
 				if ( $this->get_gateway()->is_credit_card_gateway() ) {
 					$message = sprintf(
-						_x( '%s %s Subscription Renewal Payment Approved: %s ending in %s (expires %s)', 'woocommerce-plugin-framework' ),
+						_x( '%s %s Subscription Renewal Payment Approved: %s ending in %s (expires %s)', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 						$this->get_gateway()->get_method_title(),
 						$this->get_gateway()->perform_credit_card_authorization( $order ) ? 'Authorization' : 'Charge',
 						$token->get_card_type() ? $token->get_type_full() : 'card',
@@ -904,7 +904,7 @@ class SV_WC_Payment_Gateway_Integration_Subscriptions extends SV_WC_Payment_Gate
 				} elseif ( $this->get_gateway()->is_echeck_gateway() ) {
 
 					// there may or may not be an account type (checking/savings) available, which is fine
-					$message = sprintf( __( '%s Check Subscription Renewal Payment Approved: %s account ending in %s', 'woocommerce-plugin-framework' ), $this->get_gateway()->get_method_title(), $token->get_account_type(), $token->get_last_four() );
+					$message = sprintf( __( '%s Check Subscription Renewal Payment Approved: %s account ending in %s', 'woocommerce-gateway-paypal-powered-by-braintree' ), $this->get_gateway()->get_method_title(), $token->get_account_type(), $token->get_last_four() );
 				}
 
 				// add order note
@@ -927,7 +927,7 @@ class SV_WC_Payment_Gateway_Integration_Subscriptions extends SV_WC_Payment_Gate
 		} catch ( SV_WC_Plugin_Exception $e ) {
 
 			// don't mark the order as failed, Subscriptions will handle marking the renewal order as failed
-			$order->add_order_note( sprintf( _x( '%s Renewal Payment Failed (%s)', 'woocommerce-plugin-framework' ), $this->get_gateway()->get_method_title(), $e->getMessage() ) );
+			$order->add_order_note( sprintf( _x( '%s Renewal Payment Failed (%s)', 'woocommerce-gateway-paypal-powered-by-braintree' ), $this->get_gateway()->get_method_title(), $e->getMessage() ) );
 
 			// update subscription
 			\WC_Subscriptions_Manager::process_subscription_payment_failure_on_order( $order, $product_id );
@@ -1027,7 +1027,7 @@ class SV_WC_Payment_Gateway_Integration_Subscriptions extends SV_WC_Payment_Gate
 		$token = $this->get_gateway()->get_payment_tokens_handler()->get_token( $order->get_user_id(), $this->get_gateway()->get_order_meta( SV_WC_Order_Compatibility::get_prop( $order, 'id' ), 'payment_token' ) );
 
 		if ( is_object( $token ) ) {
-			$payment_method_to_display = sprintf( __( 'Via %s ending in %s', 'woocommerce-plugin-framework' ), $token->get_type_full(), $token->get_last_four() );
+			$payment_method_to_display = sprintf( __( 'Via %s ending in %s', 'woocommerce-gateway-paypal-powered-by-braintree' ), $token->get_type_full(), $token->get_last_four() );
 		}
 
 		return $payment_method_to_display;

@@ -18,7 +18,7 @@
  *
  * @package   WC-Braintree/Gateway/Payment-Form
  * @author    WooCommerce
- * @copyright Copyright: (c) 2016-2017, Automattic, Inc.
+ * @copyright Copyright: (c) 2016-2018, Automattic, Inc.
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License v3.0
  */
 
@@ -101,10 +101,11 @@ abstract class WC_Braintree_Payment_Form extends WC_Braintree_Framework\SV_WC_Pa
 
 		// defaults for both gateways
 		$params = array_merge( array(
-			'id'            => $this->get_gateway()->get_id(),
-			'id_dasherized' => $this->get_gateway()->get_id_dasherized(),
-			'debug'         => $this->get_gateway()->debug_checkout(),
-			'type'          => str_replace( '-', '_', $this->get_gateway()->get_payment_type() ),
+			'id'                 => $this->get_gateway()->get_id(),
+			'id_dasherized'      => $this->get_gateway()->get_id_dasherized(),
+			'debug'              => $this->get_gateway()->debug_log(),
+			'type'               => str_replace( '-', '_', $this->get_gateway()->get_payment_type() ),
+			'client_token_nonce' => wp_create_nonce( 'wc_' . $this->get_gateway()->get_id() . '_get_client_token' ),
 		), $this->get_payment_form_handler_js_params() );
 
 		$handler_class = $this->get_gateway()->is_credit_card_gateway() ? 'WC_Braintree_Credit_Card_Payment_Form_Handler' : 'WC_Braintree_PayPal_Payment_Form_Handler';

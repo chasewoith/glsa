@@ -118,7 +118,7 @@ class SV_WC_Payment_Gateway_My_Payment_Methods {
 				$( ".wc-' . $this->get_plugin()->get_id_dasherized() . '-payment-method-actions .button.tip" ).tipTip();
 
 				$( ".wc-' . $this->get_plugin()->get_id_dasherized() . '-payment-method-actions a.delete-payment-method" ).on( "click", function( e ) {
-					if ( $( this ).hasClass( "disabled" ) || ! confirm( "' . esc_js( /* translators: Payment method as in a specific credit card, e-check or bank account */ esc_html__( 'Are you sure you want to delete this payment method?', 'woocommerce-plugin-framework' ) ) . '" ) ) {
+					if ( $( this ).hasClass( "disabled" ) || ! confirm( "' . esc_js( /* translators: Payment method as in a specific credit card, e-check or bank account */ esc_html__( 'Are you sure you want to delete this payment method?', 'woocommerce-gateway-paypal-powered-by-braintree' ) ) . '" ) ) {
 						e.preventDefault();
 					}
 				} );
@@ -253,7 +253,7 @@ class SV_WC_Payment_Gateway_My_Payment_Methods {
 		 * @param \SV_WC_Payment_Gateway_My_Payment_Methods $this instance
 		 */
 		/* translators: Payment method as in a specific credit card, eCheck or bank account */
-		$html = '<p>' . apply_filters( 'wc_' . $this->get_plugin()->get_id() . '_no_payment_methods_text', esc_html__( 'You do not have any saved payment methods.', 'woocommerce-plugin-framework' ), $this ) . '</p>';
+		$html = '<p>' . apply_filters( 'wc_' . $this->get_plugin()->get_id() . '_no_payment_methods_text', esc_html__( 'You do not have any saved payment methods.', 'woocommerce-gateway-paypal-powered-by-braintree' ), $this ) . '</p>';
 
 		/**
 		 * My Payment Methods Table No Methods HTML Filter.
@@ -290,7 +290,7 @@ class SV_WC_Payment_Gateway_My_Payment_Methods {
 		 * @param \SV_WC_Payment_Gateway_My_Payment_Methods $this instance
 		 */
 		/* translators: Payment method as in a specific credit card, eCheck or bank account */
-		$title = apply_filters( 'wc_' . $this->get_plugin()->get_id() . '_my_payment_methods_table_title', esc_html__( 'My Payment Methods', 'woocommerce-plugin-framework' ), $this );
+		$title = apply_filters( 'wc_' . $this->get_plugin()->get_id() . '_my_payment_methods_table_title', esc_html__( 'My Payment Methods', 'woocommerce-gateway-paypal-powered-by-braintree' ), $this );
 
 		$html = '<div class="sv-wc-payment-gateway-my-payment-methods-table-title">';
 
@@ -298,7 +298,7 @@ class SV_WC_Payment_Gateway_My_Payment_Methods {
 
 		if ( $this->supports_add_payment_method() ) {
 			/* translators: Payment method as in a specific credit card, e-check or bank account */
-			$html .= sprintf( '<a class="button sv-wc-payment-gateway-my-payment-methods-add-payment-method-button dashicons-before dashicons-plus-alt" href="%s">%s</a>', esc_url( wc_get_endpoint_url( 'add-payment-method' ) ), esc_html__( 'Add New Payment Method', 'woocommerce-plugin-framework' ) );
+			$html .= sprintf( '<a class="button sv-wc-payment-gateway-my-payment-methods-add-payment-method-button dashicons-before dashicons-plus-alt" href="%s">%s</a>', esc_url( wc_get_endpoint_url( 'add-payment-method' ) ), esc_html__( 'Add New Payment Method', 'woocommerce-gateway-paypal-powered-by-braintree' ) );
 		}
 
 		$html .= '</div>';
@@ -384,8 +384,8 @@ class SV_WC_Payment_Gateway_My_Payment_Methods {
 	protected function get_table_headers() {
 
 		$headers = array(
-			'title'   => esc_html__( 'Method', 'woocommerce-plugin-framework' ),
-			'expiry'  => esc_html__( 'Expires', 'woocommerce-plugin-framework' ),
+			'title'   => esc_html__( 'Method', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+			'expiry'  => esc_html__( 'Expires', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 			'actions' => '&nbsp;'
 		);
 
@@ -419,13 +419,13 @@ class SV_WC_Payment_Gateway_My_Payment_Methods {
 		if ( $this->credit_card_tokens && $this->echeck_tokens ) {
 
 			$html .= sprintf( '<tr class="sv-wc-payment-gateway-my-payment-methods-type-divider wc-%s-my-payment-methods-type-divider"><td colspan="%d">%s</td><tr>',
-				sanitize_html_class( $this->get_plugin()->get_id_dasherized() ), count( $this->get_table_headers() ), esc_html__( 'Credit/Debit Cards', 'woocommerce-plugin-framework' )
+				sanitize_html_class( $this->get_plugin()->get_id_dasherized() ), count( $this->get_table_headers() ), esc_html__( 'Credit/Debit Cards', 'woocommerce-gateway-paypal-powered-by-braintree' )
 			);
 
 			$html .= $this->get_table_body_row_html( $this->credit_card_tokens );
 
 			$html .= sprintf( '<tr class="sv-wc-payment-gateway-my-payment-methods-type-divider wc-%s-my-payment-methods-type-divider"><td colspan="%d">%s</td><tr>',
-				sanitize_html_class( $this->get_plugin()->get_id_dasherized() ), count( $this->get_table_headers() ), esc_html__( 'Bank Accounts', 'woocommerce-plugin-framework' )
+				sanitize_html_class( $this->get_plugin()->get_id_dasherized() ), count( $this->get_table_headers() ), esc_html__( 'Bank Accounts', 'woocommerce-gateway-paypal-powered-by-braintree' )
 			);
 
 			$html .= $this->get_table_body_row_html( $this->echeck_tokens );
@@ -472,7 +472,7 @@ class SV_WC_Payment_Gateway_My_Payment_Methods {
 			// Display the row data in the order of the headers
 			foreach ( $headers as $attribute => $attribute_title ) {
 
-				$value = isset( $method[ $attribute ] ) ? $method[ $attribute ] : __( 'N/A', 'woocommerce-plugin-framework' );
+				$value = isset( $method[ $attribute ] ) ? $method[ $attribute ] : __( 'N/A', 'woocommerce-gateway-paypal-powered-by-braintree' );
 
 				$html .= sprintf(
 					'<td class="sv-wc-payment-gateway-payment-method-%1$s wc-%2$s-payment-method-%1$s" data-title="%4$s">%3$s</td>',
@@ -592,7 +592,7 @@ class SV_WC_Payment_Gateway_My_Payment_Methods {
 				) ), 'wc-' . $this->get_plugin()->get_id_dasherized() . '-token-action' ),
 				'class' => array( 'make-payment-method-default' ),
 				/* translators: Set a payment method as the default option */
-				'name'  => esc_html__( 'Make Default', 'woocommerce-plugin-framework' )
+				'name'  => esc_html__( 'Make Default', 'woocommerce-gateway-paypal-powered-by-braintree' )
 			);
 		}
 
@@ -603,7 +603,7 @@ class SV_WC_Payment_Gateway_My_Payment_Methods {
 				'wc-' . $this->get_plugin()->get_id_dasherized() . '-action' => 'delete'
 			) ), 'wc-' . $this->get_plugin()->get_id_dasherized() . '-token-action' ),
 			'class' => array( 'delete-payment-method' ),
-			'name'  => esc_html__( 'Delete', 'woocommerce-plugin-framework' ),
+			'name'  => esc_html__( 'Delete', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 		);
 
 		/**
@@ -642,25 +642,25 @@ class SV_WC_Payment_Gateway_My_Payment_Methods {
 		if ( $image_url ) {
 
 			// format like "<Amex logo image> American Express"
-			$title = sprintf( '<img src="%1$s" alt="%2$s" title="%2$s" width="40" height="25" />%3$s', esc_url( $image_url ), esc_attr__( $type, 'woocommerce-plugin-framework' ), esc_html__( $type, 'woocommerce-plugin-framework' ) );
+			$title = sprintf( '<img src="%1$s" alt="%2$s" title="%2$s" width="40" height="25" />%3$s', esc_url( $image_url ), esc_attr__( $type, 'woocommerce-gateway-paypal-powered-by-braintree' ), esc_html__( $type, 'woocommerce-gateway-paypal-powered-by-braintree' ) );
 
 		} else {
 
 			// missing payment method image, format like "American Express"
-			$title = esc_html__( $type, 'woocommerce-plugin-framework' );
+			$title = esc_html__( $type, 'woocommerce-gateway-paypal-powered-by-braintree' );
 		}
 
 		// add "ending in XXXX" if available
 		if ( $last_four ) {
 
 			/* translators: %s - last four digits of a card/account */
-			$title .= '&nbsp;' . sprintf( esc_html__( 'ending in %s', 'woocommerce-plugin-framework' ), $last_four );
+			$title .= '&nbsp;' . sprintf( esc_html__( 'ending in %s', 'woocommerce-gateway-paypal-powered-by-braintree' ), $last_four );
 		}
 
 		// add "(default)" if token is set as default
 		if ( $token->is_default() ) {
 
-			$title .= ' ' . esc_html__( '(default)', 'woocommerce-plugin-framework' );
+			$title .= ' ' . esc_html__( '(default)', 'woocommerce-gateway-paypal-powered-by-braintree' );
 		}
 
 		/**
@@ -701,7 +701,7 @@ class SV_WC_Payment_Gateway_My_Payment_Methods {
 			// security check
 			if ( false === wp_verify_nonce( $_GET['_wpnonce'], 'wc-' . $this->get_plugin()->get_id_dasherized() . '-token-action' ) ) {
 
-				SV_WC_Helper::wc_add_notice( esc_html__( 'Oops, you took too long, please try again.', 'woocommerce-plugin-framework' ), 'error' );
+				SV_WC_Helper::wc_add_notice( esc_html__( 'Oops, you took too long, please try again.', 'woocommerce-gateway-paypal-powered-by-braintree' ), 'error' );
 
 				$this->redirect_to_my_account();
 			}
@@ -714,7 +714,7 @@ class SV_WC_Payment_Gateway_My_Payment_Methods {
 			// couldn't find an associated gateway for that token
 			if ( ! is_object( $gateway ) ) {
 
-				SV_WC_Helper::wc_add_notice( esc_html__( 'There was an error with your request, please try again.', 'woocommerce-plugin-framework' ), 'error' );
+				SV_WC_Helper::wc_add_notice( esc_html__( 'There was an error with your request, please try again.', 'woocommerce-gateway-paypal-powered-by-braintree' ), 'error' );
 
 				$this->redirect_to_my_account();
 			}
@@ -727,12 +727,12 @@ class SV_WC_Payment_Gateway_My_Payment_Methods {
 					if ( ! $gateway->get_payment_tokens_handler()->remove_token( $user_id, $token ) ) {
 
 						/* translators: Payment method as in a specific credit card, e-check or bank account */
-						SV_WC_Helper::wc_add_notice( esc_html__( 'Error removing payment method', 'woocommerce-plugin-framework' ), 'error' );
+						SV_WC_Helper::wc_add_notice( esc_html__( 'Error removing payment method', 'woocommerce-gateway-paypal-powered-by-braintree' ), 'error' );
 
 					} else {
 
 						/* translators: Payment method as in a specific credit card, e-check or bank account */
-						SV_WC_Helper::wc_add_notice( esc_html__( 'Payment method deleted.', 'woocommerce-plugin-framework' ) );
+						SV_WC_Helper::wc_add_notice( esc_html__( 'Payment method deleted.', 'woocommerce-gateway-paypal-powered-by-braintree' ) );
 					}
 
 				break;
@@ -742,7 +742,7 @@ class SV_WC_Payment_Gateway_My_Payment_Methods {
 					$gateway->get_payment_tokens_handler()->set_default_token( $user_id, $token );
 
 					/* translators: Payment method as in a specific credit card, e-check or bank account */
-					SV_WC_Helper::wc_add_notice( esc_html__( 'Default payment method updated.', 'woocommerce-plugin-framework' ) );
+					SV_WC_Helper::wc_add_notice( esc_html__( 'Default payment method updated.', 'woocommerce-gateway-paypal-powered-by-braintree' ) );
 				break;
 
 				// custom actions

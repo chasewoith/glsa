@@ -2,7 +2,7 @@
 WooCommerce Braintree SCSS
 Version 2.0.0
 
-Copyright (c) 2016-2017, Automattic, Inc.
+Copyright (c) 2016-2018, Automattic, Inc.
 Licensed under the GNU General Public License v3.0
 http://www.gnu.org/licenses/gpl-3.0.html
 */
@@ -16,6 +16,19 @@ http://www.gnu.org/licenses/gpl-3.0.html
 .woocommerce #wc_braintree_paypal_container img {
   float: none !important;
   max-height: 100% !important; }
+
+.woocommerce #wc_braintree_paypal_container .wc-braintree-paypal-account {
+  padding: 1em 0;
+  border-top: 1px solid #bbb;
+  border-bottom: 1px solid #bbb; }
+  .woocommerce #wc_braintree_paypal_container .wc-braintree-paypal-account .name {
+    display: inline-block;
+    margin-right: 0.5em;
+    font-weight: bold; }
+  .woocommerce #wc_braintree_paypal_container .wc-braintree-paypal-account .email {
+    opacity: 0.5; }
+  .woocommerce #wc_braintree_paypal_container .wc-braintree-paypal-account .cancel {
+    float: right; }
 
 .woocommerce #payment div.payment_method_braintree_credit_card label.sv-wc-payment-gateway-payment-form-saved-payment-method,
 .woocommerce #payment div.payment_method_braintree_credit_card label[for="wc-braintree-credit-card-use-new-payment-method"],
@@ -52,13 +65,15 @@ http://www.gnu.org/licenses/gpl-3.0.html
   .woocommerce #payment div.payment_method_braintree_credit_card .wc-braintree-hosted-field-card-number.card-type-american-express {
     background-image: url("../../../lib/skyverge/woocommerce/payment-gateway/assets/images/card-amex.svg"); }
   .woocommerce #payment div.payment_method_braintree_credit_card .wc-braintree-hosted-field-card-number.card-type-diners-club {
-    background-image: url("../../../lib/skyverge/woocommerce/payment-gateway/assets/images/card-diners.svg"); }
+    background-image: url("../../../lib/skyverge/woocommerce/payment-gateway/assets/images/card-dinersclub.svg"); }
   .woocommerce #payment div.payment_method_braintree_credit_card .wc-braintree-hosted-field-card-number.card-type-maestro {
     background-image: url("../../../lib/skyverge/woocommerce/payment-gateway/assets/images/card-maestro.svg"); }
   .woocommerce #payment div.payment_method_braintree_credit_card .wc-braintree-hosted-field-card-number.card-type-jcb {
     background-image: url("../../../lib/skyverge/woocommerce/payment-gateway/assets/images/card-jcb.svg"); }
   .woocommerce #payment div.payment_method_braintree_credit_card .wc-braintree-hosted-field-card-number.card-type-discover {
     background-image: url("../../../lib/skyverge/woocommerce/payment-gateway/assets/images/card-discover.svg"); }
+  .woocommerce #payment div.payment_method_braintree_credit_card .wc-braintree-hosted-field-card-number.card-type-invalid {
+    background-image: url("../../../lib/skyverge/woocommerce/payment-gateway/assets/images/card-cc-invalid.svg"); }
   @media only screen and (max-width: 320px) {
     .woocommerce #payment div.payment_method_braintree_credit_card .wc-braintree-hosted-field-card-number {
       background-image: none; } }
@@ -75,6 +90,29 @@ http://www.gnu.org/licenses/gpl-3.0.html
 
 .woocommerce #payment div.payment_method_braintree_credit_card .braintree-hosted-fields-invalid {
   border-color: #a00; }
+
+#wc-braintree-credit-card-3dsecure-container {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 3000;
+  cursor: pointer; }
+  #wc-braintree-credit-card-3dsecure-container iframe {
+    overflow: auto;
+    margin: auto;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: white;
+    padding: 1em;
+    box-sizing: content-box;
+    border-radius: 5px; }
 
 #add_payment_method ul.payment_methods li {
   list-style-type: none; }

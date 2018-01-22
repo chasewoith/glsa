@@ -18,7 +18,7 @@
  *
  * @package   WC-Braintree/Gateway/API
  * @author    WooCommerce
- * @copyright Copyright: (c) 2016-2017, Automattic, Inc.
+ * @copyright Copyright: (c) 2016-2018, Automattic, Inc.
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License v3.0
  */
 
@@ -62,25 +62,6 @@ class WC_Braintree_API extends WC_Braintree_Framework\SV_WC_API_Base implements 
 	public function __construct( $gateway ) {
 
 		$this->gateway = $gateway;
-
-		$this->init_sdk();
-	}
-
-
-	/**
-	 * Load and configure the Braintree SDK
-	 *
-	 * @since 3.0.0
-	 */
-	protected function init_sdk() {
-
-		// if SDK is already loaded, bail
-		if ( class_exists( 'Braintree\Configuration', false ) ) {
-			return;
-		}
-
-		// load Braintree PHP SDK
-		require_once( $this->get_gateway()->get_plugin()->get_plugin_path() . '/lib/Braintree.php' );
 	}
 
 

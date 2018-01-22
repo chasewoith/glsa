@@ -18,7 +18,7 @@
  *
  * @package   WC-Braintree/Gateway
  * @author    WooCommerce
- * @copyright Copyright: (c) 2016-2017, Automattic, Inc.
+ * @copyright Copyright: (c) 2016-2018, Automattic, Inc.
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License v3.0
  */
 
@@ -50,7 +50,9 @@ class WC_Braintree_PayPal_Cart {
 
 		$this->gateway = $gateway;
 
-		$this->add_hooks();
+		if ( $gateway->cart_checkout_enabled() ) {
+			$this->add_hooks();
+		}
 	}
 
 
@@ -138,10 +140,31 @@ class WC_Braintree_PayPal_Cart {
 	 */
 	public function render_js() {
 
+		$default_button_styles = array(
+			'label' => 'checkout',
+			'size'  => 'responsive',
+			'shape' => 'pill',
+			'color' => 'gold',
+		);
+
+		/**
+		 * Filters the PayPal cart button style parameters.
+		 *
+		 * See https://developer.paypal.com/docs/integration/direct/express-checkout/integration-jsv4/customize-button/
+		 *
+		 * @since 2.1.0
+		 *
+		 * @param array $styles style parameters
+		 */
+		$button_styles = apply_filters( 'wc_' . $this->get_gateway()->get_id() . '_cart_button_styles', $default_button_styles );
+
 		$params = array(
-			'id'            => $this->get_gateway()->get_id(),
-			'id_dasherized' => $this->get_gateway()->get_id_dasherized(),
-			'debug'         => $this->get_gateway()->debug_checkout(),
+			'id'                  => $this->get_gateway()->get_id(),
+			'id_dasherized'       => $this->get_gateway()->get_id_dasherized(),
+			'debug'               => $this->get_gateway()->debug_log(),
+			'is_test_environment' => $this->get_gateway()->is_test_environment(),
+			'client_token_nonce'  => wp_create_nonce( 'wc_' . $this->get_gateway()->get_id() . '_get_client_token' ),
+			'button_styles'       => wp_parse_args( $button_styles, $default_button_styles ), // ensure all expected parameters are present after filtering to avoid JS errors
 		);
 
 		wc_enqueue_js( sprintf( 'window.wc_%1$s_handler = new WC_Braintree_PayPal_Cart_Handler( %2$s );', esc_js( $this->get_gateway()->get_id() ), json_encode( $params ) ) );
@@ -166,7 +189,7 @@ class WC_Braintree_PayPal_Cart {
 		}
 
 		wp_send_json( array(
-			'redirect_url' => WC()->cart->get_checkout_url(),
+			'redirect_url' => wc_get_checkout_url(),
 		) );
 	}
 
@@ -366,7 +389,7 @@ class WC_Braintree_PayPal_Cart {
 
 		printf(
 			'<a href="%1$s" class="wc-' . sanitize_html_class( $this->get_gateway()->get_id_dasherized() ) . '-cancel">%2$s</a>',
-			esc_url( add_query_arg( array( 'wc_' . $this->get_gateway()->get_id() . '_clear_session' => true ), WC()->cart->get_cart_url() ) ),
+			esc_url( add_query_arg( array( 'wc_' . $this->get_gateway()->get_id() . '_clear_session' => true ), wc_get_cart_url() ) ),
 			esc_html__( 'Cancel', 'woocommerce-gateway-paypal-powered-by-braintree' )
 		);
 	}

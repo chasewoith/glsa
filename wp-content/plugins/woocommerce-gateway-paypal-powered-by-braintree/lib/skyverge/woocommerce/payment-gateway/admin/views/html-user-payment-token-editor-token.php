@@ -40,7 +40,7 @@
 
 				<select name="<?php echo esc_attr( $token_input_name ); ?>[<?php echo esc_attr( $field_id ); ?>]">
 
-					<option value=""><?php esc_html_e( '-- Select an option --', 'woocommerce-plugin-framework' ); ?></option>
+					<option value=""><?php esc_html_e( '-- Select an option --', 'woocommerce-gateway-paypal-powered-by-braintree' ); ?></option>
 
 					<?php foreach ( $field['options'] as $value => $label ) : ?>
 						<option value="<?php echo esc_attr( $value ); ?>" <?php selected( $value, $token[ $field_id ] ); ?>><?php echo esc_html( $label ); ?></option>

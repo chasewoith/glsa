@@ -98,7 +98,7 @@ abstract class SV_WC_Payment_Gateway_Direct extends SV_WC_Payment_Gateway {
 
 				// unknown token?
 				if ( ! $this->get_payment_tokens_handler()->user_has_token( get_current_user_id(), SV_WC_Helper::get_post( 'wc-' . $this->get_id_dasherized() . '-payment-token' ) ) ) {
-					SV_WC_Helper::wc_add_notice( esc_html__( 'Payment error, please try another payment method or contact us to complete your transaction.', 'woocommerce-plugin-framework' ), 'error' );
+					SV_WC_Helper::wc_add_notice( esc_html__( 'Payment error, please try another payment method or contact us to complete your transaction.', 'woocommerce-gateway-paypal-powered-by-braintree' ), 'error' );
 					$is_valid = false;
 				}
 
@@ -198,7 +198,7 @@ abstract class SV_WC_Payment_Gateway_Direct extends SV_WC_Payment_Gateway {
 			( $expiration_year == $current_year && $expiration_month < $current_month ) ||
 			$expiration_year > $current_year + 20
 		) {
-			SV_WC_Helper::wc_add_notice( esc_html__( 'Card expiration date is invalid', 'woocommerce-plugin-framework' ), 'error' );
+			SV_WC_Helper::wc_add_notice( esc_html__( 'Card expiration date is invalid', 'woocommerce-gateway-paypal-powered-by-braintree' ), 'error' );
 			$is_valid = false;
 		}
 
@@ -222,23 +222,23 @@ abstract class SV_WC_Payment_Gateway_Direct extends SV_WC_Payment_Gateway {
 
 		if ( empty( $account_number ) ) {
 
-			SV_WC_Helper::wc_add_notice( esc_html__( 'Card number is missing', 'woocommerce-plugin-framework' ), 'error' );
+			SV_WC_Helper::wc_add_notice( esc_html__( 'Card number is missing', 'woocommerce-gateway-paypal-powered-by-braintree' ), 'error' );
 			$is_valid = false;
 
 		} else {
 
 			if ( strlen( $account_number ) < 12 || strlen( $account_number ) > 19 ) {
-				SV_WC_Helper::wc_add_notice( esc_html__( 'Card number is invalid (wrong length)', 'woocommerce-plugin-framework' ), 'error' );
+				SV_WC_Helper::wc_add_notice( esc_html__( 'Card number is invalid (wrong length)', 'woocommerce-gateway-paypal-powered-by-braintree' ), 'error' );
 				$is_valid = false;
 			}
 
 			if ( ! ctype_digit( $account_number ) ) {
-				SV_WC_Helper::wc_add_notice( esc_html__( 'Card number is invalid (only digits allowed)', 'woocommerce-plugin-framework' ), 'error' );
+				SV_WC_Helper::wc_add_notice( esc_html__( 'Card number is invalid (only digits allowed)', 'woocommerce-gateway-paypal-powered-by-braintree' ), 'error' );
 				$is_valid = false;
 			}
 
 			if ( ! SV_WC_Payment_Gateway_Helper::luhn_check( $account_number ) ) {
-				SV_WC_Helper::wc_add_notice( esc_html__( 'Card number is invalid', 'woocommerce-plugin-framework' ), 'error' );
+				SV_WC_Helper::wc_add_notice( esc_html__( 'Card number is invalid', 'woocommerce-gateway-paypal-powered-by-braintree' ), 'error' );
 				$is_valid = false;
 			}
 
@@ -265,19 +265,19 @@ abstract class SV_WC_Payment_Gateway_Direct extends SV_WC_Payment_Gateway {
 
 			// digit validation
 			if ( ! ctype_digit( $csc ) ) {
-				SV_WC_Helper::wc_add_notice( esc_html__( 'Card security code is invalid (only digits are allowed)', 'woocommerce-plugin-framework' ), 'error' );
+				SV_WC_Helper::wc_add_notice( esc_html__( 'Card security code is invalid (only digits are allowed)', 'woocommerce-gateway-paypal-powered-by-braintree' ), 'error' );
 				$is_valid = false;
 			}
 
 			// length validation
 			if ( strlen( $csc ) < 3 || strlen( $csc ) > 4 ) {
-				SV_WC_Helper::wc_add_notice( esc_html__( 'Card security code is invalid (must be 3 or 4 digits)', 'woocommerce-plugin-framework' ), 'error' );
+				SV_WC_Helper::wc_add_notice( esc_html__( 'Card security code is invalid (must be 3 or 4 digits)', 'woocommerce-gateway-paypal-powered-by-braintree' ), 'error' );
 				$is_valid = false;
 			}
 
 		} elseif ( $this->csc_required() ) {
 
-			SV_WC_Helper::wc_add_notice( esc_html__( 'Card security code is missing', 'woocommerce-plugin-framework' ), 'error' );
+			SV_WC_Helper::wc_add_notice( esc_html__( 'Card security code is missing', 'woocommerce-gateway-paypal-powered-by-braintree' ), 'error' );
 			$is_valid = false;
 		}
 
@@ -304,20 +304,20 @@ abstract class SV_WC_Payment_Gateway_Direct extends SV_WC_Payment_Gateway {
 		// routing number exists?
 		if ( empty( $routing_number ) ) {
 
-			SV_WC_Helper::wc_add_notice( esc_html__( 'Routing Number is missing', 'woocommerce-plugin-framework' ), 'error' );
+			SV_WC_Helper::wc_add_notice( esc_html__( 'Routing Number is missing', 'woocommerce-gateway-paypal-powered-by-braintree' ), 'error' );
 			$is_valid = false;
 
 		} else {
 
 			// routing number digit validation
 			if ( ! ctype_digit( $routing_number ) ) {
-				SV_WC_Helper::wc_add_notice( esc_html__( 'Routing Number is invalid (only digits are allowed)', 'woocommerce-plugin-framework' ), 'error' );
+				SV_WC_Helper::wc_add_notice( esc_html__( 'Routing Number is invalid (only digits are allowed)', 'woocommerce-gateway-paypal-powered-by-braintree' ), 'error' );
 				$is_valid = false;
 			}
 
 			// routing number length validation
 			if ( 9 != strlen( $routing_number ) ) {
-				SV_WC_Helper::wc_add_notice( esc_html__( 'Routing number is invalid (must be 9 digits)', 'woocommerce-plugin-framework' ), 'error' );
+				SV_WC_Helper::wc_add_notice( esc_html__( 'Routing number is invalid (must be 9 digits)', 'woocommerce-gateway-paypal-powered-by-braintree' ), 'error' );
 				$is_valid = false;
 			}
 
@@ -326,33 +326,33 @@ abstract class SV_WC_Payment_Gateway_Direct extends SV_WC_Payment_Gateway {
 		// account number exists?
 		if ( empty( $account_number ) ) {
 
-			SV_WC_Helper::wc_add_notice( esc_html__( 'Account Number is missing', 'woocommerce-plugin-framework' ), 'error' );
+			SV_WC_Helper::wc_add_notice( esc_html__( 'Account Number is missing', 'woocommerce-gateway-paypal-powered-by-braintree' ), 'error' );
 			$is_valid = false;
 
 		} else {
 
 			// account number digit validation
 			if ( ! ctype_digit( $account_number ) ) {
-				SV_WC_Helper::wc_add_notice( esc_html__( 'Account Number is invalid (only digits are allowed)', 'woocommerce-plugin-framework' ), 'error' );
+				SV_WC_Helper::wc_add_notice( esc_html__( 'Account Number is invalid (only digits are allowed)', 'woocommerce-gateway-paypal-powered-by-braintree' ), 'error' );
 				$is_valid = false;
 			}
 
 			// account number length validation
 			if ( strlen( $account_number ) < 5 || strlen( $account_number ) > 17 ) {
-				SV_WC_Helper::wc_add_notice( esc_html__( 'Account number is invalid (must be between 5 and 17 digits)', 'woocommerce-plugin-framework' ), 'error' );
+				SV_WC_Helper::wc_add_notice( esc_html__( 'Account number is invalid (must be between 5 and 17 digits)', 'woocommerce-gateway-paypal-powered-by-braintree' ), 'error' );
 				$is_valid = false;
 			}
 		}
 
 		// optional drivers license number validation
 		if ( ! empty( $drivers_license_number ) &&  preg_match( '/^[a-zA-Z0-9 -]+$/', $drivers_license_number ) ) {
-			SV_WC_Helper::wc_add_notice( esc_html__( 'Drivers license number is invalid', 'woocommerce-plugin-framework' ), 'error' );
+			SV_WC_Helper::wc_add_notice( esc_html__( 'Drivers license number is invalid', 'woocommerce-gateway-paypal-powered-by-braintree' ), 'error' );
 			$is_valid = false;
 		}
 
 		// optional check number validation
 		if ( ! empty( $check_number ) && ! ctype_digit( $check_number ) ) {
-			SV_WC_Helper::wc_add_notice( esc_html__( 'Check Number is invalid (only digits are allowed)', 'woocommerce-plugin-framework' ), 'error' );
+			SV_WC_Helper::wc_add_notice( esc_html__( 'Check Number is invalid (only digits are allowed)', 'woocommerce-gateway-paypal-powered-by-braintree' ), 'error' );
 			$is_valid = false;
 		}
 
@@ -602,17 +602,17 @@ abstract class SV_WC_Payment_Gateway_Direct extends SV_WC_Payment_Gateway {
 
 			// check order note. there may not be an account_type available, but that's fine
 			/* translators: Placeholders: %1$s - payment method title, %2$s - payment account type (savings/checking) (may or may not be available), %3$s - last four digits of the account */
-			$message = sprintf( esc_html__( '%1$s Check Transaction Approved: %2$s account ending in %3$s', 'woocommerce-plugin-framework' ), $this->get_method_title(), $order->payment->account_type, $last_four );
+			$message = sprintf( esc_html__( '%1$s Check Transaction Approved: %2$s account ending in %3$s', 'woocommerce-gateway-paypal-powered-by-braintree' ), $this->get_method_title(), $order->payment->account_type, $last_four );
 
 			// optional check number
 			if ( ! empty( $order->payment->check_number ) ) {
 				/* translators: Placeholders: %s - check number */
-				$message .= '. ' . sprintf( esc_html__( 'Check number %s', 'woocommerce-plugin-framework' ), $order->payment->check_number );
+				$message .= '. ' . sprintf( esc_html__( 'Check number %s', 'woocommerce-gateway-paypal-powered-by-braintree' ), $order->payment->check_number );
 			}
 
 			// adds the transaction id (if any) to the order note
 			if ( $response->get_transaction_id() ) {
-				$message .= ' ' . sprintf( esc_html__( '(Transaction ID %s)', 'woocommerce-plugin-framework' ), $response->get_transaction_id() );
+				$message .= ' ' . sprintf( esc_html__( '(Transaction ID %s)', 'woocommerce-gateway-paypal-powered-by-braintree' ), $response->get_transaction_id() );
 			}
 
 			/**
@@ -675,10 +675,10 @@ abstract class SV_WC_Payment_Gateway_Direct extends SV_WC_Payment_Gateway {
 			// credit card order note
 			$message = sprintf(
 				/* translators: Placeholders: %1$s - payment method title, %2$s - environment ("Test"), %3$s - transaction type (authorization/charge), %4$s - card type (mastercard, visa, ...), %5$s - last four digits of the card, %6$s - expiry date */
-				esc_html__( '%1$s %2$s %3$s Approved: %4$s ending in %5$s (expires %6$s)', 'woocommerce-plugin-framework' ),
+				esc_html__( '%1$s %2$s %3$s Approved: %4$s ending in %5$s (expires %6$s)', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 				$this->get_method_title(),
-				$this->is_test_environment() ? esc_html_x( 'Test', 'noun, software environment', 'woocommerce-plugin-framework' ) : '',
-				$this->perform_credit_card_authorization( $order ) ? esc_html_x( 'Authorization', 'credit card transaction type', 'woocommerce-plugin-framework' ) : esc_html_x( 'Charge', 'noun, credit card transaction type', 'woocommerce-plugin-framework' ),
+				$this->is_test_environment() ? esc_html_x( 'Test', 'noun, software environment', 'woocommerce-gateway-paypal-powered-by-braintree' ) : '',
+				$this->perform_credit_card_authorization( $order ) ? esc_html_x( 'Authorization', 'credit card transaction type', 'woocommerce-gateway-paypal-powered-by-braintree' ) : esc_html_x( 'Charge', 'noun, credit card transaction type', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 				SV_WC_Payment_Gateway_Helper::payment_type_to_name( $card_type ),
 				$last_four,
 				$order->payment->exp_month . '/' . substr( $order->payment->exp_year, -2 )
@@ -687,7 +687,7 @@ abstract class SV_WC_Payment_Gateway_Direct extends SV_WC_Payment_Gateway {
 			// adds the transaction id (if any) to the order note
 			if ( $response->get_transaction_id() ) {
 				/* translators: Placeholders: %s - transaction ID */
-				$message .= ' ' . sprintf( esc_html__( '(Transaction ID %s)', 'woocommerce-plugin-framework' ), $response->get_transaction_id() );
+				$message .= ' ' . sprintf( esc_html__( '(Transaction ID %s)', 'woocommerce-gateway-paypal-powered-by-braintree' ), $response->get_transaction_id() );
 			}
 
 			/**
@@ -749,7 +749,7 @@ abstract class SV_WC_Payment_Gateway_Direct extends SV_WC_Payment_Gateway {
 						// transaction has already been successful, but we've encountered an issue with the post-tokenization, add an order note to that effect and continue on
 						$message = sprintf(
 							/* translators: Placeholders: %s - failure message */
-							esc_html__( 'Tokenization Request Failed: %s', 'woocommerce-plugin-framework' ),
+							esc_html__( 'Tokenization Request Failed: %s', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 							$e->getMessage()
 						);
 
@@ -760,7 +760,7 @@ abstract class SV_WC_Payment_Gateway_Direct extends SV_WC_Payment_Gateway {
 						// transaction has already been successful, but we've encountered an issue with the post-tokenization, add an order note to that effect and continue on
 						$message = sprintf(
 							/* translators: Placeholders: %1$s - payment method title, %2$s - failure message */
-							esc_html__( '%1$s Tokenization Request Failed: %2$s', 'woocommerce-plugin-framework' ),
+							esc_html__( '%1$s Tokenization Request Failed: %2$s', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 							$this->get_method_title(),
 							$e->getMessage()
 						);
@@ -781,7 +781,7 @@ abstract class SV_WC_Payment_Gateway_Direct extends SV_WC_Payment_Gateway {
 			if ( $response->transaction_held() || ( $this->supports( self::FEATURE_CREDIT_CARD_AUTHORIZATION ) && $this->perform_credit_card_authorization( $order ) ) ) {
 				// TODO: need to make this more flexible, and not force the message to 'Authorization only transaction' for auth transactions (re moneris efraud handling)
 				/* translators: This is a message describing that the transaction in question only performed a credit card authorization and did not capture any funds. */
-				$this->mark_order_as_held( $order, $this->supports( self::FEATURE_CREDIT_CARD_AUTHORIZATION ) && $this->perform_credit_card_authorization( $order ) ? esc_html__( 'Authorization only transaction', 'woocommerce-plugin-framework' ) : $response->get_status_message(), $response );
+				$this->mark_order_as_held( $order, $this->supports( self::FEATURE_CREDIT_CARD_AUTHORIZATION ) && $this->perform_credit_card_authorization( $order ) ? esc_html__( 'Authorization only transaction', 'woocommerce-gateway-paypal-powered-by-braintree' ) : $response->get_status_message(), $response );
 			}
 
 			return true;
@@ -1140,7 +1140,7 @@ abstract class SV_WC_Payment_Gateway_Direct extends SV_WC_Payment_Gateway {
 
 			$result = array(
 				/* translators: Placeholders: %s - failure message. Payment method as in a specific credit card, e-check or bank account */
-				'message' => sprintf( esc_html__( 'Oops, adding your new payment method failed: %s', 'woocommerce-plugin-framework' ), $e->getMessage() ),
+				'message' => sprintf( esc_html__( 'Oops, adding your new payment method failed: %s', 'woocommerce-gateway-paypal-powered-by-braintree' ), $e->getMessage() ),
 				'success' => false,
 			);
 		}
@@ -1192,7 +1192,7 @@ abstract class SV_WC_Payment_Gateway_Direct extends SV_WC_Payment_Gateway {
 			if ( $this->is_credit_card_gateway() ) {
 
 				/* translators: Payment method as in a specific credit card. Placeholders: %1$s - card type (visa, mastercard, ...), %2$s - last four digits of the card, %3$s - card expiry date */
-				$message = sprintf( esc_html__( 'Nice! New payment method added: %1$s ending in %2$s (expires %3$s)', 'woocommerce-plugin-framework' ),
+				$message = sprintf( esc_html__( 'Nice! New payment method added: %1$s ending in %2$s (expires %3$s)', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 					$token->get_type_full(),
 					$token->get_last_four(),
 					$token->get_exp_date()
@@ -1202,14 +1202,14 @@ abstract class SV_WC_Payment_Gateway_Direct extends SV_WC_Payment_Gateway {
 
 				// account type (checking/savings) may or may not be available, which is fine
 				/* translators: Payment method as in a specific e-check account. Placeholders: %1$s - account type (checking/savings), %2$s - last four digits of the account */
-				$message = sprintf( esc_html__( 'Nice! New payment method added: %1$s account ending in %2$s', 'woocommerce-plugin-framework' ),
+				$message = sprintf( esc_html__( 'Nice! New payment method added: %1$s account ending in %2$s', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 					$token->get_account_type(),
 					$token->get_last_four()
 				);
 
 			} else {
 				/* translators: Payment method as in a specific credit card, e-check or bank account */
-				$message = esc_html__( 'Nice! New payment method added.', 'woocommerce-plugin-framework' );
+				$message = esc_html__( 'Nice! New payment method added.', 'woocommerce-gateway-paypal-powered-by-braintree' );
 			}
 
 			// add transaction data to user meta
@@ -1316,7 +1316,7 @@ abstract class SV_WC_Payment_Gateway_Direct extends SV_WC_Payment_Gateway {
 		$order->customer_id = $this->get_customer_id( $order->get_user_id() );
 
 		/* translators: Placeholders: %1$s - site title, %2$s - customer email. Payment method as in a specific credit card, e-check or bank account */
-		$order->description = sprintf( esc_html__( '%1$s - Add Payment Method for %2$s', 'woocommerce-plugin-framework' ), sanitize_text_field( SV_WC_Helper::get_site_name() ), $properties['billing_email'] );
+		$order->description = sprintf( esc_html__( '%1$s - Add Payment Method for %2$s', 'woocommerce-gateway-paypal-powered-by-braintree' ), sanitize_text_field( SV_WC_Helper::get_site_name() ), $properties['billing_email'] );
 
 		// force zero amount
 		$order->payment_total = '0.00';

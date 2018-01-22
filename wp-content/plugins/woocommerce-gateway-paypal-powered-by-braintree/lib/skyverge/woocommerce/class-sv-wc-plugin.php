@@ -168,7 +168,7 @@ abstract class SV_WC_Plugin {
 	 */
 	public function __clone() {
 		/* translators: Placeholders: %s - plugin name */
-		_doing_it_wrong( __FUNCTION__, sprintf( esc_html__( 'You cannot clone instances of %s.', 'woocommerce-plugin-framework' ), $this->get_plugin_name() ), '3.1.0' );
+		_doing_it_wrong( __FUNCTION__, sprintf( esc_html__( 'You cannot clone instances of %s.', 'woocommerce-gateway-paypal-powered-by-braintree' ), $this->get_plugin_name() ), '3.1.0' );
 	}
 
 	/**
@@ -178,7 +178,7 @@ abstract class SV_WC_Plugin {
 	 */
 	public function __wakeup() {
 		/* translators: Placeholders: %s - plugin name */
-		_doing_it_wrong( __FUNCTION__, sprintf( esc_html__( 'You cannot unserialize instances of %s.', 'woocommerce-plugin-framework' ), $this->get_plugin_name() ), '3.1.0' );
+		_doing_it_wrong( __FUNCTION__, sprintf( esc_html__( 'You cannot unserialize instances of %s.', 'woocommerce-gateway-paypal-powered-by-braintree' ), $this->get_plugin_name() ), '3.1.0' );
 	}
 
 
@@ -439,7 +439,7 @@ abstract class SV_WC_Plugin {
 
 							$setting_message = sprintf(
 								/** translators: Placeholders: %s - a PHP setting value */
-								__( '%s or higher', 'woocommerce-plugin-framework' ),
+								__( '%s or higher', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 								$setting_message
 							);
 						}
@@ -449,7 +449,7 @@ abstract class SV_WC_Plugin {
 
 				$message .= '</ul>';
 
-				$message .= __( 'Please contact your hosting provider or server administrator to configure these settings.', 'woocommerce-plugin-framework' );
+				$message .= __( 'Please contact your hosting provider or server administrator to configure these settings.', 'woocommerce-gateway-paypal-powered-by-braintree' );
 
 				$this->get_admin_notice_handler()->add_admin_notice( $message, 'bad-php-configuration', array(
 					'notice_class' => 'error',
@@ -479,12 +479,12 @@ abstract class SV_WC_Plugin {
 		// documentation url if any
 		if ( $this->get_documentation_url() ) {
 			/* translators: Docs as in Documentation */
-			$custom_actions['docs'] = sprintf( '<a href="%s" target="_blank">%s</a>', $this->get_documentation_url(), esc_html__( 'Docs', 'woocommerce-plugin-framework' ) );
+			$custom_actions['docs'] = sprintf( '<a href="%s" target="_blank">%s</a>', $this->get_documentation_url(), esc_html__( 'Docs', 'woocommerce-gateway-paypal-powered-by-braintree' ) );
 		}
 
 		// support url if any
 		if ( $this->get_support_url() ) {
-			$custom_actions['support'] = sprintf( '<a href="%s">%s</a>', $this->get_support_url(), esc_html_x( 'Support', 'noun', 'woocommerce-plugin-framework' ) );
+			$custom_actions['support'] = sprintf( '<a href="%s">%s</a>', $this->get_support_url(), esc_html_x( 'Support', 'noun', 'woocommerce-gateway-paypal-powered-by-braintree' ) );
 		}
 
 		// add the links to the front of the actions list
@@ -672,7 +672,7 @@ abstract class SV_WC_Plugin {
 					continue;
 				}
 
-				$note = __( '%1$s - A minimum of %2$s is required.', 'woocommerce-plugin-framework' );
+				$note = __( '%1$s - A minimum of %2$s is required.', 'woocommerce-gateway-paypal-powered-by-braintree' );
 
 			} else {
 
@@ -681,7 +681,7 @@ abstract class SV_WC_Plugin {
 					continue;
 				}
 
-				$note = __( 'Set as %1$s - %2$s is required.', 'woocommerce-plugin-framework' );
+				$note = __( 'Set as %1$s - %2$s is required.', 'woocommerce-gateway-paypal-powered-by-braintree' );
 			}
 
 			$note = sprintf( $note, $values['actual'], $values['expected'] );
@@ -918,7 +918,7 @@ abstract class SV_WC_Plugin {
 		$settings_url = $this->get_settings_url( $plugin_id );
 
 		if ( $settings_url ) {
-			return sprintf( '<a href="%s">%s</a>', $settings_url, esc_html__( 'Configure', 'woocommerce-plugin-framework' ) );
+			return sprintf( '<a href="%s">%s</a>', $settings_url, esc_html__( 'Configure', 'woocommerce-gateway-paypal-powered-by-braintree' ) );
 		}
 
 		// no settings

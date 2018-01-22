@@ -18,7 +18,7 @@
  *
  * @package   WC-Braintree/Gateway/Payment-Form/Hosted-Fields
  * @author    WooCommerce
- * @copyright Copyright: (c) 2016-2017, Automattic, Inc.
+ * @copyright Copyright: (c) 2016-2018, Automattic, Inc.
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License v3.0
  */
 
@@ -101,7 +101,7 @@ class WC_Braintree_Hosted_Fields_Payment_Form extends WC_Braintree_Payment_Form 
 		?>
 		<div class="form-row <?php echo implode( ' ', array_map( 'sanitize_html_class', $field['class'] ) ); ?>">
 			<label for="<?php echo esc_attr( $field['id'] ) . '-hosted'; ?>"><?php echo esc_html( $field['label'] ); if ( $field['required'] ) : ?><abbr class="required" title="required">&nbsp;*</abbr><?php endif; ?></label>
-			<div id="<?php echo esc_attr( $field['id'] ) . '-hosted'; ?>" class="<?php echo implode( ' ', array_map( 'sanitize_html_class', $field['input_class'] ) ); ?>"></div>
+			<div id="<?php echo esc_attr( $field['id'] ) . '-hosted'; ?>" class="<?php echo implode( ' ', array_map( 'sanitize_html_class', $field['input_class'] ) ); ?>" data-placeholder="<?php echo isset( $field['placeholder'] ) ? esc_attr( $field['placeholder'] ) : ''; ?>"></div>
 		</div>
 		<?php
 	}
@@ -124,7 +124,34 @@ class WC_Braintree_Hosted_Fields_Payment_Form extends WC_Braintree_Payment_Form 
 				'failure_message'                 => __( 'We cannot process your order with the payment information that you provided. Please use an alternate payment method.', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 			),
 			'hosted_fields_styles' => $this->get_hosted_fields_styles(),
+			'enabled_card_types'   => $this->get_enabled_card_types(),
 		);
+	}
+
+
+	/**
+	 * Gets the enabled card types in the Braintree SDK format.
+	 *
+	 * @since 2.1.0
+	 *
+	 * @return array
+	 */
+	protected function get_enabled_card_types() {
+
+		$types = array_map( array( '\\SkyVerge\\Plugin_Framework\\SV_WC_Payment_Gateway_Helper', 'normalize_card_type' ), $this->get_gateway()->get_card_types() );
+
+		// The Braintree SDK has its own strings for a few card types that we need to match
+		$types = str_replace( array(
+			WC_Braintree_Framework\SV_WC_Payment_Gateway_Helper::CARD_TYPE_AMEX,
+			WC_Braintree_Framework\SV_WC_Payment_Gateway_Helper::CARD_TYPE_DINERSCLUB,
+			WC_Braintree_Framework\SV_WC_Payment_Gateway_Helper::CARD_TYPE_MASTERCARD,
+		), array(
+			'american-express',
+			'diners-club',
+			'master-card',
+		), $types );
+
+		return $types;
 	}
 
 

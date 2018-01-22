@@ -18,7 +18,7 @@
  *
  * @package   WC-Braintree/Gateway/Payment-Method
  * @author    WooCommerce
- * @copyright Copyright: (c) 2016-2017, Automattic, Inc.
+ * @copyright Copyright: (c) 2016-2018, Automattic, Inc.
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License v3.0
  */
 
@@ -110,13 +110,13 @@ class WC_Braintree_Frontend {
 		if ( $last_four ) {
 
 			/* translators: %s - last four digits of a card/account */
-			$title .= '&nbsp;' . sprintf( esc_html__( 'ending in %s', 'woocommerce-plugin-framework' ), $last_four );
+			$title .= '&nbsp;' . sprintf( esc_html__( 'ending in %s', 'woocommerce-gateway-paypal-powered-by-braintree' ), $last_four );
 		}
 
 		// add "(default)" if token is set as default
 		if ( $token->is_default() ) {
 
-			$title .= ' ' . esc_html__( '(default)', 'woocommerce-plugin-framework' );
+			$title .= ' ' . esc_html__( '(default)', 'woocommerce-gateway-paypal-powered-by-braintree' );
 		}
 
 		return $title;

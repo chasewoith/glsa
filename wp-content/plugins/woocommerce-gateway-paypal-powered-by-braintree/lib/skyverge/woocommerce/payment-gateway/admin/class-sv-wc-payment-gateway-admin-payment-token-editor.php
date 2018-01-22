@@ -84,7 +84,7 @@ class SV_WC_Payment_Gateway_Admin_Payment_Token_Editor {
 			'ajax_url' => admin_url( 'admin-ajax.php' ),
 			'actions'  => array(
 				'remove_token' => array(
-					'ays'   => __( 'Are you sure you want to remove this token?', 'woocommerce-plugin-framework' ),
+					'ays'   => __( 'Are you sure you want to remove this token?', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 					'nonce' => wp_create_nonce( 'wc_payment_gateway_admin_remove_payment_token' ),
 				),
 				'add_token' => array(
@@ -94,7 +94,7 @@ class SV_WC_Payment_Gateway_Admin_Payment_Token_Editor {
 					'nonce' => wp_create_nonce( 'wc_payment_gateway_admin_refresh_payment_tokens' ),
 				),
 				'save' => array(
-					'error' => __( 'Invalid token data', 'woocommerce-plugin-framework' ),
+					'error' => __( 'Invalid token data', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 				),
 			),
 		) );
@@ -412,7 +412,7 @@ class SV_WC_Payment_Gateway_Admin_Payment_Token_Editor {
 
 		// Append the environment name if there are multiple
 		if ( $this->get_gateway()->get_plugin()->get_admin_user_handler()->has_multiple_environments() ) {
-			$title .= ' ' . sprintf( __( '(%s)', 'woocommerce-plugin-framework' ), $this->get_gateway()->get_environment_name() );
+			$title .= ' ' . sprintf( __( '(%s)', 'woocommerce-gateway-paypal-powered-by-braintree' ), $this->get_gateway()->get_environment_name() );
 		}
 
 		/**
@@ -441,7 +441,7 @@ class SV_WC_Payment_Gateway_Admin_Payment_Token_Editor {
 			$columns[ $field_id ] = isset( $field['label'] ) ? $field['label'] : '';
 		}
 
-		$columns['default'] = __( 'Default', 'woocommerce-plugin-framework' );
+		$columns['default'] = __( 'Default', 'woocommerce-gateway-paypal-powered-by-braintree' );
 		$columns['actions'] = '';
 
 		/**
@@ -476,24 +476,24 @@ class SV_WC_Payment_Gateway_Admin_Payment_Token_Editor {
 				// Define the credit card fields
 				$fields = array(
 					'id' => array(
-						'label'    => __( 'Token ID', 'woocommerce-plugin-framework' ),
+						'label'    => __( 'Token ID', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 						'editable' => ! $this->get_gateway()->get_api()->supports_get_tokenized_payment_methods(),
 						'required' => true,
 					),
 					'card_type' => array(
-						'label'   => __( 'Card Type', 'woocommerce-plugin-framework' ),
+						'label'   => __( 'Card Type', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 						'type'    => 'select',
 						'options' => $this->get_card_type_options(),
 					),
 					'last_four' => array(
-						'label'   => __( 'Last Four', 'woocommerce-plugin-framework' ),
+						'label'   => __( 'Last Four', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 						'attributes' => array(
 							'pattern'   => '[0-9]{4}',
 							'maxlength' => 4,
 						),
 					),
 					'expiry'    => array(
-						'label' => __( 'Expiration (MM/YY)', 'woocommerce-plugin-framework' ),
+						'label' => __( 'Expiration (MM/YY)', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 						'attributes' => array(
 							'placeholder' => 'MM/YY',
 							'pattern'     => '(0[1-9]|1[012])[- /.]\d\d',
@@ -509,20 +509,20 @@ class SV_WC_Payment_Gateway_Admin_Payment_Token_Editor {
 				// Define the echeck fields
 				$fields = array(
 					'id' => array(
-						'label'    => __( 'Token ID', 'woocommerce-plugin-framework' ),
+						'label'    => __( 'Token ID', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 						'editable' => ! $this->get_gateway()->get_api()->supports_get_tokenized_payment_methods(),
 						'required' => true,
 					),
 					'account_type' => array(
-						'label'   => __( 'Account Type', 'woocommerce-plugin-framework' ),
+						'label'   => __( 'Account Type', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 						'type'    => 'select',
 						'options' => array(
-							'checking' => __( 'Checking', 'woocommerce-plugin-framework' ),
-							'savings'  => __( 'Savings', 'woocommerce-plugin-framework' ),
+							'checking' => __( 'Checking', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+							'savings'  => __( 'Savings', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 						),
 					),
 					'last_four' => array(
-						'label'   => __( 'Last Four', 'woocommerce-plugin-framework' ),
+						'label'   => __( 'Last Four', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 						'attributes' => array(
 							'pattern'   => '[0-9]{4}',
 							'maxlength' => 4,
@@ -618,12 +618,12 @@ class SV_WC_Payment_Gateway_Admin_Payment_Token_Editor {
 		$actions = array();
 
 		if ( $this->get_gateway()->get_api()->supports_get_tokenized_payment_methods() ) {
-			$actions['refresh'] = __( 'Refresh', 'woocommerce-plugin-framework' );
+			$actions['refresh'] = __( 'Refresh', 'woocommerce-gateway-paypal-powered-by-braintree' );
 		} else {
-			$actions['add-new'] = __( 'Add New', 'woocommerce-plugin-framework' );
+			$actions['add-new'] = __( 'Add New', 'woocommerce-gateway-paypal-powered-by-braintree' );
 		}
 
-		$actions['save'] = __( 'Save', 'woocommerce-plugin-framework' );
+		$actions['save'] = __( 'Save', 'woocommerce-gateway-paypal-powered-by-braintree' );
 
 		/**
 		 * Filter the payment token editor actions.
@@ -645,7 +645,7 @@ class SV_WC_Payment_Gateway_Admin_Payment_Token_Editor {
 	protected function get_token_actions() {
 
 		$actions = array(
-			'remove' => __( 'Remove', 'woocommerce-plugin-framework' ),
+			'remove' => __( 'Remove', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 		);
 
 		/**

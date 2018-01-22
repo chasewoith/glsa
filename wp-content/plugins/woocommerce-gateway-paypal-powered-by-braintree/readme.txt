@@ -2,8 +2,8 @@
 Contributors: automattic, akeda, allendav, royho, slash1andy, woosteve, spraveenitpro, mikedmoore, fernashes, shellbeezy, danieldudzic, dsmithweb, fullysupportedphil, corsonr, zandyring, skyverge
 Tags: ecommerce, e-commerce, commerce, woothemes, wordpress ecommerce, store, sales, sell, shop, shopping, cart, checkout, configurable, paypal, braintree
 Requires at least: 4.4
-Tested up to: 4.8
-Stable tag: 2.0.4
+Tested up to: 4.9.1
+Stable tag: 2.1.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -122,6 +122,18 @@ New feature requests and bugs reports can be made in the plugin forum.
 
 == Changelog ==
 
+= 2.1.0 =
+* Feature - Upgrade to the latest Braintree JavaScript SDK for improved customer experience, reliability, and error handling
+* Tweak - Add placeholder text for credit card inputs
+* Tweak - Add responsive sizing to the PayPal buttons and update to the recommended styling for the Cart and Checkout pages
+* Tweak - Add setting and filter to disable PayPal on the cart page
+* Tweak - Update all translatable strings to the same text domain
+* Tweak - Hide Kount as a fraud tool option for US-based stores as it's not currently supported
+* Tweak - Only load the Braintree scripts when required on payment pages
+* Fix - Ensure that new customers have their billing address stored in the vault on their first transaction
+* Fix - Prevent linked PayPal accounts from being cleared if there are address errors at checkout
+* Fix - Fix some deprecated function notices
+
 = 2.0.4 =
 * Fix - Prevent a fatal error when completing pre-orders
 * Fix - Prevent JavaScript errors when applying a 100%-off coupon at checkout
@@ -225,6 +237,9 @@ New feature requests and bugs reports can be made in the plugin forum.
 * Initial release
 
 == Upgrade Notice ==
+
+= 2.1.0 =
+* Feature - Upgrade to the latest Braintree JavaScript SDK for improved customer experience, reliability, and error handling
 
 = 2.0.4 =
 * Fix - Prevent a fatal error when completing pre-orders

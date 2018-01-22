@@ -56,7 +56,7 @@
 
 			<tbody class="meta">
 				<tr class="no-tokens">
-					<td colspan="<?php echo count( $columns ); ?>"><?php esc_html_e( 'No saved payment tokens', 'woocommerce-plugin-framework' ); ?></td>
+					<td colspan="<?php echo count( $columns ); ?>"><?php esc_html_e( 'No saved payment tokens', 'woocommerce-gateway-paypal-powered-by-braintree' ); ?></td>
 				</tr>
 			</tbody>
 

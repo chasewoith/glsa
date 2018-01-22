@@ -18,7 +18,7 @@
  *
  * @package   WC-Braintree/Gateway/Payment-Form/PayPal
  * @author    WooCommerce
- * @copyright Copyright: (c) 2016-2017, Automattic, Inc.
+ * @copyright Copyright: (c) 2016-2018, Automattic, Inc.
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License v3.0
  */
 
@@ -43,9 +43,35 @@ class WC_Braintree_PayPal_Payment_Form extends WC_Braintree_Payment_Form {
 	 */
 	protected function get_payment_form_handler_js_params() {
 
+		$default_button_styles = array(
+			'label' => 'pay',
+			'size'  => 'responsive',
+			'shape' => 'pill',
+			'color' => 'gold',
+		);
+
+		// tweak the styles a bit for better display on the Add Payment Method page
+		if ( is_add_payment_method_page() ) {
+			$default_button_styles['label'] = 'paypal';
+			$default_button_styles['size']  = 'medium';
+		}
+
+		/**
+		 * Filters the PayPal button style parameters.
+		 *
+		 * See https://developer.paypal.com/docs/integration/direct/express-checkout/integration-jsv4/customize-button/
+		 *
+		 * @since 2.1.0
+		 *
+		 * @param array $styles style parameters
+		 */
+		$button_styles = apply_filters( 'wc_' . $this->get_gateway()->get_id() . '_button_styles', $default_button_styles );
+
 		return array(
+			'is_test_environment'           => $this->get_gateway()->is_test_environment(),
 			'must_login_message'            => __( 'Please click the blue "PayPal" button below to log into your PayPal account before placing your order.', 'woocommerce-gateway-paypal-powered-by-braintree' ),
-			'must_login_add_method_message' => __( 'Please click the blue "PayPal" button below to log into your PayPal account before adding your payment method.', 'woocommerce-gateway-paypal-powered-by-braintree' )
+			'must_login_add_method_message' => __( 'Please click the blue "PayPal" button below to log into your PayPal account before adding your payment method.', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+			'button_styles'                 => wp_parse_args( $button_styles, $default_button_styles ), // ensure all expected parameters are present after filtering to avoid JS errors
 		);
 	}
 

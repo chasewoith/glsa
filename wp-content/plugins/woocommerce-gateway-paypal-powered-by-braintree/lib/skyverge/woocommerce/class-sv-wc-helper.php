@@ -436,23 +436,20 @@ if ( ! class_exists( '\SkyVerge\Plugin_Framework\SV_WC_Helper' ) ) :
 
 				$line_item = new \stdClass();
 
-				$product = $order->get_product_from_item( $item );
-
 				// TODO: remove when WC 3.0+ can be required
 				$name     = $item instanceof \WC_Order_Item_Product ? $item->get_name() : $item['name'];
 				$quantity = $item instanceof \WC_Order_Item_Product ? $item->get_quantity() : $item['qty'];
 
 				$item_desc = array();
 
+				$product = ( SV_WC_Plugin_Compatibility::is_wc_version_gte_3_1() ) ? $item->get_product() : $order->get_product_from_item( $item );
+
 				// add SKU to description if available
 				if ( is_callable( array( $product, 'get_sku' ) ) && $product->get_sku() ) {
 					$item_desc[] = sprintf( 'SKU: %s', $product->get_sku() );
 				}
 
-				// get meta + format it
-				$item_meta = new \WC_Order_Item_Meta( $item );
-
-				$item_meta = $item_meta->get_formatted();
+				$item_meta = SV_WC_Order_Compatibility::get_item_formatted_meta_data( $item, '_', true );
 
 				if ( ! empty( $item_meta ) ) {
 
@@ -493,10 +490,14 @@ if ( ! class_exists( '\SkyVerge\Plugin_Framework\SV_WC_Helper' ) ) :
 
 			foreach ( $order->get_items() as $item ) {
 
-				$product = $order->get_product_from_item( $item );
+				if ( SV_WC_Plugin_Compatibility::is_wc_version_gte_3_0() ) {
+					$product = $item->get_product();
+				} else {
+					$product = $order->get_product_from_item( $item );
+				}
 
 				// once we've found one non-virtual product we know we're done, break out of the loop
-				if ( ! $product->is_virtual() ) {
+				if ( $product && ! $product->is_virtual() ) {
 					$is_virtual = false;
 					break;
 				}
@@ -874,7 +875,7 @@ if ( ! class_exists( '\SkyVerge\Plugin_Framework\SV_WC_Helper' ) ) :
 		 */
 		public static function f__( $text ) {
 
-			return __( $text, 'woocommerce-plugin-framework' );
+			return __( $text, 'woocommerce-gateway-paypal-powered-by-braintree' );
 		}
 
 
@@ -891,7 +892,7 @@ if ( ! class_exists( '\SkyVerge\Plugin_Framework\SV_WC_Helper' ) ) :
 		 */
 		public static function f_e( $text ) {
 
-			_e( $text, 'woocommerce-plugin-framework' );
+			_e( $text, 'woocommerce-gateway-paypal-powered-by-braintree' );
 		}
 
 
@@ -909,7 +910,7 @@ if ( ! class_exists( '\SkyVerge\Plugin_Framework\SV_WC_Helper' ) ) :
 		 */
 		public static function f_x( $text, $context ) {
 
-			return _x( $text, $context, 'woocommerce-plugin-framework' );
+			return _x( $text, $context, 'woocommerce-gateway-paypal-powered-by-braintree' );
 		}
 
 

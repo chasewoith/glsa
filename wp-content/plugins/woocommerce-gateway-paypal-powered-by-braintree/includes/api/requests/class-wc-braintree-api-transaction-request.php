@@ -18,7 +18,7 @@
  *
  * @package   WC-Braintree/Gateway/API/Requests/Transaction
  * @author    WooCommerce
- * @copyright Copyright: (c) 2016-2017, Automattic, Inc.
+ * @copyright Copyright: (c) 2016-2018, Automattic, Inc.
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License v3.0
  */
 
@@ -297,7 +297,7 @@ class WC_Braintree_API_Transaction_Request extends WC_Braintree_API_Request {
 			}
 		}
 
-		// add recurring flag to PayPal transactions that are subscription renewals
+		// add recurring flag to transactions that are subscription renewals
 		if ( ! empty( $this->get_order()->payment->recurring ) ) {
 			$this->request_data['recurring'] = true;
 		}
@@ -344,6 +344,10 @@ class WC_Braintree_API_Transaction_Request extends WC_Braintree_API_Request {
 			'submitForSettlement'   => $settlement_type,
 			'storeInVaultOnSuccess' => $this->get_order()->payment->tokenize,
 		);
+
+		if ( $this->get_order()->payment->tokenize ) {
+			$options['addBillingAddressToPaymentMethod'] = true;
+		}
 
 		if ( ! empty( $this->get_order()->payment->is_3ds_required ) ) {
 			$options['three_d_secure'] = array( 'required' => true );

@@ -18,7 +18,7 @@
  *
  * @package   WC-Braintree/Gateway
  * @author    WooCommerce
- * @copyright Copyright: (c) 2016-2017, Automattic, Inc.
+ * @copyright Copyright: (c) 2016-2018, Automattic, Inc.
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License v3.0
  */
 
@@ -105,7 +105,7 @@ class WC_Gateway_Braintree extends WC_Braintree_Framework\SV_WC_Payment_Gateway_
 		if ( $this->is_available() ) {
 
 			// braintree.js library
-			wp_enqueue_script( 'braintree-js', 'https://js.braintreegateway.com/v2/braintree.js', array(), WC_Braintree::VERSION, true );
+			wp_enqueue_script( 'braintree-js-client', 'https://js.braintreegateway.com/web/3.26.0/js/client.min.js', array(), WC_Braintree::VERSION, true );
 
 			parent::enqueue_gateway_assets();
 		}
@@ -124,10 +124,10 @@ class WC_Gateway_Braintree extends WC_Braintree_Framework\SV_WC_Payment_Gateway_
 
 		if ( $this->is_payment_form_page() ) {
 
-			$params['generic_error_message'] = __( 'Oops, something went wrong. Please try a different payment method.', 'woocommerce-gateway-paypal-powered-by-braintree' );
+			$params['integration_error_message'] = __( 'Currently unavailable. Please try a different payment method.', 'woocommerce-gateway-paypal-powered-by-braintree' );
+			$params['payment_error_message']     = __( 'Oops, something went wrong. Please try a different payment method.', 'woocommerce-gateway-paypal-powered-by-braintree' );
 
-			// client token
-			$params['client_token'] = $this->generate_client_token();
+			$params['ajax_url'] = admin_url( 'admin-ajax.php' );
 		}
 
 		// add a cart payment nonce if available
@@ -140,25 +140,29 @@ class WC_Gateway_Braintree extends WC_Braintree_Framework\SV_WC_Payment_Gateway_
 
 
 	/**
-	 * Generates a new client token for the payment form JS.
+	 * Gets a client authorization token via AJAX.
 	 *
-	 * @since 2.0.3
+	 * @internal
 	 *
-	 * @return string
+	 * @since 2.1.0
 	 */
-	protected function generate_client_token() {
+	public function ajax_get_client_token() {
+
+		check_ajax_referer( 'wc_' . $this->get_id() . '_get_client_token', 'nonce' );
 
 		try {
 
 			$result = $this->get_api()->get_client_token( array( 'merchantAccountId' => $this->get_merchant_account_id() ) );
 
-			return $result->get_client_token();
+			wp_send_json_success( $result->get_client_token() );
 
 		} catch ( WC_Braintree_Framework\SV_WC_Plugin_Exception $e ) {
 
 			$this->add_debug_message( $e->getMessage(), 'error' );
 
-			return '';
+			wp_send_json_error( array(
+				'message' => $e->getMessage(),
+			) );
 		}
 	}
 
@@ -221,10 +225,32 @@ class WC_Gateway_Braintree extends WC_Braintree_Framework\SV_WC_Payment_Gateway_
 		}
 
 		// dynamic descriptors
-		$order->payment->dynamic_descriptors        = new stdClass();
-		$order->payment->dynamic_descriptors->name  = $this->get_name_dynamic_descriptor();
-		$order->payment->dynamic_descriptors->phone = $this->get_phone_dynamic_descriptor();
-		$order->payment->dynamic_descriptors->url   = $this->get_url_dynamic_descriptor();
+		$order->payment->dynamic_descriptors = new stdClass();
+
+		// only set the name descriptor if it is valid
+		if ( $this->get_name_dynamic_descriptor() && $this->is_name_dynamic_descriptor_valid() ) {
+			$order->payment->dynamic_descriptors->name = $this->get_name_dynamic_descriptor();
+		}
+
+		// only set the phone descriptor if it is valid
+		if ( $this->get_phone_dynamic_descriptor() && $this->is_phone_dynamic_descriptor_valid() ) {
+			$order->payment->dynamic_descriptors->phone = $this->get_phone_dynamic_descriptor();
+		}
+
+		// the URL descriptor doesn't have any specific validation, so just truncate it if needed
+		$order->payment->dynamic_descriptors->url = WC_Braintree_Framework\SV_WC_Helper::str_truncate( $this->get_url_dynamic_descriptor(), 13, '' );
+
+		// add the recurring flag to Subscriptions renewal orders
+		if ( $this->get_plugin()->is_subscriptions_active() ) {
+
+			$order_id = WC_Braintree_Framework\SV_WC_Order_Compatibility::get_prop( $order, 'id' );
+
+			$is_renewal = WC_Braintree_Framework\SV_WC_Plugin_Compatibility::is_wc_subscriptions_version_gte_2_0() ? wcs_order_contains_renewal( $order_id ) : \WC_Subscriptions_Order::order_contains_subscription( $order_id );
+
+			if ( $is_renewal ) {
+				$order->payment->recurring = true;
+			}
+		}
 
 		// test amount when in sandbox mode
 		if ( $this->is_test_environment() && ( $test_amount = WC_Braintree_Framework\SV_WC_Helper::get_post( 'wc-' . $this->get_id_dasherized() . '-test-amount' ) ) ) {
@@ -427,7 +453,7 @@ class WC_Gateway_Braintree extends WC_Braintree_Framework\SV_WC_Payment_Gateway_
 				'type' => 'text',
 				'class' => 'js-dynamic-descriptor-phone',
 				'desc_tip' => __( 'The value in the phone number field of a customer\'s statement. Phone must be exactly 10 characters and can only contain numbers, dashes, parentheses and periods.', 'woocommerce-gateway-paypal-powered-by-braintree' ),
-				'custom_attributes' => array( 'maxlength' => 10 ),
+				'custom_attributes' => array( 'maxlength' => 14 ),
 			),
 
 			'url_dynamic_descriptor' => array(
@@ -1365,6 +1391,48 @@ class WC_Gateway_Braintree extends WC_Braintree_Framework\SV_WC_Payment_Gateway_
 
 
 	/**
+	 * Determines if a dynamic descriptor name value is valid.
+	 *
+	 * @since 2.1.0
+	 *
+	 * @param string $value name to check. Defaults to the gateway's configured setting
+	 * @return bool
+	 */
+	public function is_name_dynamic_descriptor_valid( $value = '' ) {
+
+		if ( ! $value ) {
+			$value = $this->get_name_dynamic_descriptor();
+		}
+
+		// missing asterisk
+		if ( false === strpos( $value, '*' ) ) {
+			return false;
+		}
+
+		$parts = explode( '*', $value );
+
+		$company = $parts[0];
+		$product = $parts[1];
+
+		switch ( strlen( $company ) ) {
+
+			case 3:  $product_length = 18; break;
+			case 7:  $product_length = 14; break;
+			case 12: $product_length = 9;  break;
+
+			// if any other length, bail
+			default: return false;
+		}
+
+		if ( $product > $product_length ) {
+			return false;
+		}
+
+		return true;
+	}
+
+
+	/**
 	 * Return the name dynamic descriptor
 	 *
 	 * @link https://developers.braintreepayments.com/reference/request/transaction/sale/php#descriptor.name
@@ -1374,6 +1442,42 @@ class WC_Gateway_Braintree extends WC_Braintree_Framework\SV_WC_Payment_Gateway_
 	public function get_name_dynamic_descriptor() {
 
 		return $this->name_dynamic_descriptor;
+	}
+
+
+	/**
+	 * Determines if a phone dynamic descriptor value is valid.
+	 *
+	 * The value must be 14 characters or less, have exactly 10 digits, and
+	 * otherwise contain only numbers, dashes, parentheses, or periods.
+	 *
+	 * @since 2.1.0
+	 *
+	 * @param string $value value to check. Defaults to the gateway's configured setting
+	 * @return bool
+	 */
+	public function is_phone_dynamic_descriptor_valid( $value = '' ) {
+
+		if ( ! $value ) {
+			$value = $this->get_phone_dynamic_descriptor();
+		}
+
+		// max 14 total characters
+		if ( strlen( $value ) > 14 ) {
+			return false;
+		}
+
+		// check for invalid characters
+		if ( $invalid_characters = preg_replace( '/[\d-().]/', '', $value ) ) {
+			return false;
+		}
+
+		// must have exactly 10 numbers
+		if ( strlen( preg_replace( '/[^0-9]/', '', $value ) ) !== 10 ) {
+			return false;
+		}
+
+		return true;
 	}
 
 

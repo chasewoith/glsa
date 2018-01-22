@@ -235,7 +235,7 @@ class SV_WC_Admin_Notice_Handler {
 				/* translators: this is an action that dismisses a message */
 				$dismiss_link = sprintf(
 					'<a href="#" class="js-wc-plugin-framework-notice-dismiss" style="float: right;">%s</a>',
-					esc_html__( 'Dismiss', 'woocommerce-plugin-framework' )
+					esc_html__( 'Dismiss', 'woocommerce-gateway-paypal-powered-by-braintree' )
 				);
 
 				$message .= ' ' . $dismiss_link;

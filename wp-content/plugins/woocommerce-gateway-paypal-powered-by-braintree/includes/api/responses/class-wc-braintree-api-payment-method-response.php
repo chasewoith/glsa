@@ -18,7 +18,7 @@
  *
  * @package   WC-Braintree/Gateway/API/Responses/Payment-Method
  * @author    WooCommerce
- * @copyright Copyright: (c) 2016-2017, Automattic, Inc.
+ * @copyright Copyright: (c) 2016-2018, Automattic, Inc.
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License v3.0
  */
 
@@ -45,7 +45,7 @@ class WC_Braintree_API_Payment_Method_Response extends WC_Braintree_API_Vault_Re
 	 */
 	public function get_transaction_id() {
 
-		return $this->is_credit_card_response() && isset( $this->response->paymentMethod->verification ) ? $this->response->paymentMethod->verification->id : null;
+		return $this->is_credit_card_response() && isset( $this->response->paymentMethod, $this->response->paymentMethod->verification ) ? $this->response->paymentMethod->verification->id : null;
 	}
 
 

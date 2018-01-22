@@ -143,20 +143,20 @@ class SV_WC_Payment_Gateway_Payment_Tokens_Handler {
 
 			if ( $response->get_status_code() && $response->get_status_message() ) {
 				/* translators: Placeholders: %1$s - payment request response status code, %2$s - payment request response status message */
-				$message = sprintf( esc_html__( 'Status code %1$s: %2$s', 'woocommerce-plugin-framework' ), $response->get_status_code(), $response->get_status_message() );
+				$message = sprintf( esc_html__( 'Status code %1$s: %2$s', 'woocommerce-gateway-paypal-powered-by-braintree' ), $response->get_status_code(), $response->get_status_message() );
 			} elseif ( $response->get_status_code() ) {
 				/* translators: Placeholders: %s - payment request response status code */
-				$message = sprintf( esc_html__( 'Status code: %s', 'woocommerce-plugin-framework' ), $response->get_status_code() );
+				$message = sprintf( esc_html__( 'Status code: %s', 'woocommerce-gateway-paypal-powered-by-braintree' ), $response->get_status_code() );
 			} elseif ( $response->get_status_message() ) {
 				/* translators: Placeholders: %s - payment request response status message */
-				$message = sprintf( esc_html__( 'Status message: %s', 'woocommerce-plugin-framework' ), $response->get_status_message() );
+				$message = sprintf( esc_html__( 'Status message: %s', 'woocommerce-gateway-paypal-powered-by-braintree' ), $response->get_status_message() );
 			} else {
-				$message = esc_html__( 'Unknown Error', 'woocommerce-plugin-framework' );
+				$message = esc_html__( 'Unknown Error', 'woocommerce-gateway-paypal-powered-by-braintree' );
 			}
 
 			// add transaction id if there is one
 			if ( $response->get_transaction_id() ) {
-				$message .= ' ' . sprintf( esc_html__( 'Transaction ID %s', 'woocommerce-plugin-framework' ), $response->get_transaction_id() );
+				$message .= ' ' . sprintf( esc_html__( 'Transaction ID %s', 'woocommerce-gateway-paypal-powered-by-braintree' ), $response->get_transaction_id() );
 			}
 
 			throw new SV_WC_Payment_Gateway_Exception( $message );
@@ -745,7 +745,7 @@ class SV_WC_Payment_Gateway_Payment_Tokens_Handler {
 		if ( $gateway->is_credit_card_gateway() ) {
 
 			/* translators: Placeholders: %1$s - payment gateway title (such as Authorize.net, Braintree, etc), %2$s - payment method name (mastercard, bank account, etc), %3$s - last four digits of the card/account, %4$s - card/account expiry date */
-			$message = sprintf( __( '%1$s Payment Method Saved: %2$s ending in %3$s (expires %4$s)', 'woocommerce-plugin-framework' ),
+			$message = sprintf( __( '%1$s Payment Method Saved: %2$s ending in %3$s (expires %4$s)', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 				$gateway->get_method_title(),
 				$token->get_type_full(),
 				$token->get_last_four(),
@@ -756,7 +756,7 @@ class SV_WC_Payment_Gateway_Payment_Tokens_Handler {
 
 			// account type (checking/savings) may or may not be available, which is fine
 			/* translators: Placeholders: %1$s - payment gateway title (such as CyberSouce, NETbilling, etc), %2$s - account type (checking/savings - may or may not be available), %3$s - last four digits of the account */
-			$message = sprintf( __( '%1$s eCheck Payment Method Saved: %2$s account ending in %3$s', 'woocommerce-plugin-framework' ),
+			$message = sprintf( __( '%1$s eCheck Payment Method Saved: %2$s account ending in %3$s', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 				$gateway->get_method_title(),
 				$token->get_account_type(),
 				$token->get_last_four()

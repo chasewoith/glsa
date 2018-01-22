@@ -18,7 +18,7 @@
  *
  * @package   WC-Braintree/Gateway/PayPal
  * @author    WooCommerce
- * @copyright Copyright: (c) 2016-2017, Automattic, Inc.
+ * @copyright Copyright: (c) 2016-2018, Automattic, Inc.
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License v3.0
  */
 
@@ -36,6 +36,10 @@ class WC_Gateway_Braintree_PayPal extends WC_Gateway_Braintree {
 
 	/** PayPal payment type */
 	const PAYMENT_TYPE_PAYPAL = 'paypal';
+
+
+	/** @var bool whether cart checkout is enabled */
+	protected $enable_cart_checkout;
 
 
 	/**
@@ -84,6 +88,28 @@ class WC_Gateway_Braintree_PayPal extends WC_Gateway_Braintree {
 
 		// sanitize admin options before saving
 		add_filter( 'woocommerce_settings_api_sanitized_fields_braintree_paypal', array( $this, 'filter_admin_options' ) );
+
+		// get the client token via AJAX
+		add_filter( 'wp_ajax_wc_' . $this->get_id() . '_get_client_token',        array( $this, 'ajax_get_client_token' ) );
+		add_filter( 'wp_ajax_nopriv_wc_' . $this->get_id() . '_get_client_token', array( $this, 'ajax_get_client_token' ) );
+	}
+
+
+	/**
+	 * Enqueues the PayPal JS scripts
+	 *
+	 * @since 2.1.0
+	 * @see SV_WC_Payment_Gateway::enqueue_gateway_assets()
+	 */
+	public function enqueue_gateway_assets() {
+
+		if ( $this->is_available() && $this->is_payment_form_page() ) {
+
+			parent::enqueue_gateway_assets();
+
+			wp_enqueue_script( 'braintree-js-paypal', 'https://www.paypalobjects.com/api/checkout.js', array(), WC_Braintree::VERSION, true );
+			wp_enqueue_script( 'braintree-js-paypal-checkout', 'https://js.braintreegateway.com/web/3.26.0/js/paypal-checkout.min.js', array(), WC_Braintree::VERSION, true );
+		}
 	}
 
 
@@ -98,12 +124,23 @@ class WC_Gateway_Braintree_PayPal extends WC_Gateway_Braintree {
 		$params = parent::get_gateway_js_localized_script_params();
 
 		if ( is_cart() ) {
-			$params['client_token']     = $this->generate_client_token();
 			$params['cart_nonce']       = wp_create_nonce( 'wc_' . $this->get_id() . '_cart_set_payment_method' );
 			$params['cart_handler_url'] = add_query_arg( 'wc-api', get_class( $this ), home_url() );
 		}
 
 		return $params;
+	}
+
+
+	/**
+	 * Determines if the current page contains a payment form.
+	 *
+	 * @since 2.1.0
+	 * @return bool
+	 */
+	public function is_payment_form_page() {
+
+		return parent::is_payment_form_page() || is_cart();
 	}
 
 
@@ -117,7 +154,7 @@ class WC_Gateway_Braintree_PayPal extends WC_Gateway_Braintree {
 
 		$fields = array(
 			'id' => array(
-				'label'    => __( 'Token ID', 'woocommerce-plugin-framework' ),
+				'label'    => __( 'Token ID', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 				'editable' => false,
 				'required' => true,
 			),
@@ -157,7 +194,7 @@ class WC_Gateway_Braintree_PayPal extends WC_Gateway_Braintree {
 	 */
 	public function tweak_payment_methods_text( $translated_text, $raw_text, $text_domain ) {
 
-		if ( 'woocommerce-plugin-framework' === $text_domain ) {
+		if ( 'woocommerce-gateway-paypal-powered-by-braintree' === $text_domain ) {
 
 			if ( 'Use a new bank account' === $raw_text ) {
 
@@ -194,6 +231,30 @@ class WC_Gateway_Braintree_PayPal extends WC_Gateway_Braintree {
 
 
 	/**
+	 * Adds any credit card authorization/charge admin fields, allowing the
+	 * administrator to choose between performing authorizations or charges.
+	 *
+	 * Overridden to add the Cart Checkout setting in an appropriate spot.
+	 *
+	 * @since 2.1.0
+	 *
+	 * @param array $form_fields gateway form fields
+	 * @return array
+	 */
+	protected function add_authorization_charge_form_fields( $form_fields ) {
+
+		$form_fields['enable_cart_checkout'] = array(
+			'title'   => __( 'Enable Cart Checkout', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+			'type'    => 'checkbox',
+			'label'   => __( 'Allow customers to check out with PayPal from the Cart page', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+			'default' => 'yes',
+		);
+
+		return parent::add_authorization_charge_form_fields( $form_fields );
+	}
+
+
+	/**
 	 * Add PayPal method specific form fields, currently:
 	 *
 	 * + remove phone/URL dynamic descriptor (does not apply to PayPal)
@@ -223,32 +284,6 @@ class WC_Gateway_Braintree_PayPal extends WC_Gateway_Braintree {
 	protected function validate_paypal_fields( $is_valid ) {
 
 		return $this->validate_payment_nonce( $is_valid );
-	}
-
-
-	/**
-	 * Add PayPal specific data to the order, primarily for Subscriptions support
-	 *
-	 * @since 3.0.0
-	 * @param \WC_Order|int $order order
-	 * @return \WC_Order
-	 */
-	public function get_order( $order ) {
-
-		$order = parent::get_order( $order );
-
-		if ( $this->get_plugin()->is_subscriptions_active() ) {
-
-			$order_id = WC_Braintree_Framework\SV_WC_Order_Compatibility::get_prop( $order, 'id' );
-
-			$is_renewal = WC_Braintree_Framework\SV_WC_Plugin_Compatibility::is_wc_subscriptions_version_gte_2_0() ? wcs_order_contains_renewal( $order_id ) : WC_Subscriptions_Order::order_contains_subscription( $order_id );
-
-			if ( $is_renewal ) {
-				$order->payment->recurring = true;
-			}
-		}
-
-		return $order;
 	}
 
 
@@ -506,6 +541,27 @@ class WC_Gateway_Braintree_PayPal extends WC_Gateway_Braintree {
 	 */
 	public function supports_credit_card_charge() {
 		return $this->supports( self::FEATURE_CREDIT_CARD_CHARGE );
+	}
+
+
+	/**
+	 * Determines if cart checkout is enabled.
+	 *
+	 * @since 2.1.0
+	 *
+	 * @return bool
+	 */
+	public function cart_checkout_enabled() {
+
+		/**
+		 * Filters whether cart checkout is enabled.
+		 *
+		 * @since 2.1.0
+		 *
+		 * @param bool $enabled whether cart checkout is enabled in the settings
+		 * @param \WC_Gateway_Braintree_PayPal $gateway gateway object
+		 */
+		return (bool) apply_filters( 'wc_braintree_paypal_cart_checkout_enabled', 'no' !== $this->enable_cart_checkout, $this );
 	}
 
 

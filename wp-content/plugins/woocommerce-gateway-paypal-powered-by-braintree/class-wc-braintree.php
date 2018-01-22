@@ -18,7 +18,7 @@
  *
  * @package   WC-Braintree/Gateway
  * @author    WooCommerce
- * @copyright Copyright: (c) 2016-2017, Automattic, Inc.
+ * @copyright Copyright: (c) 2016-2018, Automattic, Inc.
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License v3.0
  */
 
@@ -88,7 +88,7 @@ class WC_Braintree extends WC_Braintree_Framework\SV_WC_Payment_Gateway_Plugin {
 
 
 	/** plugin version number */
-	const VERSION = '2.0.4';
+	const VERSION = '2.1.0';
 
 	/** @var WC_Braintree single instance of this plugin */
 	protected static $instance;
@@ -434,6 +434,50 @@ class WC_Braintree extends WC_Braintree_Framework\SV_WC_Payment_Gateway_Plugin {
 				if ( 'no' === get_option( 'woocommerce_force_ssl_checkout' ) && ! $this->get_admin_notice_handler()->is_notice_dismissed( 'ssl-recommended-notice' ) ) {
 
 					$this->get_admin_notice_handler()->add_admin_notice( __( 'WooCommerce is not being forced over SSL -- Using PayPal with Braintree requires that checkout to be forced over SSL.', 'woocommerce-gateway-paypal-powered-by-braintree' ), 'ssl-recommended-notice' );
+				}
+			}
+		}
+	}
+
+
+	/**
+	 * Adds delayed admin notices for invalid Dynamic Descriptor Name values.
+	 *
+	 * @since 2.1.0
+	 */
+	public function add_delayed_admin_notices() {
+
+		parent::add_delayed_admin_notices();
+
+		if ( $this->is_plugin_settings() ) {
+
+			foreach ( $this->get_gateways() as $gateway ) {
+
+				$settings = $this->get_gateway_settings( $gateway->get_id() );
+
+				if ( ! empty( $settings['inherit_settings'] ) && 'yes' === $settings['inherit_settings'] ) {
+					continue;
+				}
+
+				foreach ( array( 'name', 'phone', 'url' ) as $type ) {
+
+					$validation_method = "is_{$type}_dynamic_descriptor_valid";
+					$settings_key      = "{$type}_dynamic_descriptor";
+
+					if ( ! empty( $settings[ $settings_key ] ) && is_callable( array( $gateway, $validation_method ) ) && ! $gateway->$validation_method( $settings[ $settings_key ] ) ) {
+
+						$this->get_admin_notice_handler()->add_admin_notice(
+							/* translators: Placeholders: %1$s - payment gateway name tag, %2$s - <a> tag, %3$s - </a> tag */
+							sprintf( __( '%1$s: Heads up! Your %2$s dynamic descriptor is invalid and will not be used. Need help? See the %3$sdocumentation%4$s.', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+								'<strong>' . esc_html( $gateway->get_method_title() ) . '</strong>',
+								'<strong>' . esc_html( $type ) . '</strong>',
+								'<a target="_blank" href="https://docs.woocommerce.com/document/woocommerce-gateway-paypal-powered-by-braintree/#section-21">',
+								'</a>'
+							), $gateway->get_id() . '-' . $type . '-dynamic-descriptor-notice', array( 'notice_class' => 'error' )
+						);
+
+						break;
+					}
 				}
 			}
 		}

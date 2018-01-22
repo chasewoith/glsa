@@ -18,7 +18,7 @@
  *
  * @package   WC-Braintree/Gateway/Credit-Card
  * @author    WooCommerce
- * @copyright Copyright: (c) 2016-2017, Automattic, Inc.
+ * @copyright Copyright: (c) 2016-2018, Automattic, Inc.
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License v3.0
  */
 
@@ -93,6 +93,10 @@ class WC_Gateway_Braintree_Credit_Card extends WC_Gateway_Braintree {
 
 		// sanitize admin options before saving
 		add_filter( 'woocommerce_settings_api_sanitized_fields_braintree_credit_card', array( $this, 'filter_admin_options' ) );
+
+		// get the client token via AJAX
+		add_filter( 'wp_ajax_wc_' . $this->get_id() . '_get_client_token',        array( $this, 'ajax_get_client_token' ) );
+		add_filter( 'wp_ajax_nopriv_wc_' . $this->get_id() . '_get_client_token', array( $this, 'ajax_get_client_token' ) );
 	}
 
 
@@ -107,25 +111,28 @@ class WC_Gateway_Braintree_Credit_Card extends WC_Gateway_Braintree {
 	 */
 	public function enqueue_gateway_assets() {
 
-		// never enqueue the Credit Card assets on the Cart page
-		// this prevents them from overwriting the PayPal assets
-		if ( is_cart() ) {
-			return;
-		}
-
-		parent::enqueue_gateway_assets();
-
 		// advanced/kount fraud tool
-		if ( $this->is_payment_form_page() && $this->is_advanced_fraud_tool_enabled() ) {
+		if ( $this->is_advanced_fraud_tool_enabled() ) {
 
 			// enqueue braintree-data.js library
-			wp_enqueue_script( 'braintree-data', 'https://js.braintreegateway.com/v1/braintree-data.js', array( 'braintree-js' ), WC_Braintree::VERSION, true );
+			wp_enqueue_script( 'braintree-data', 'https://js.braintreegateway.com/v1/braintree-data.js', array( 'braintree-js-client' ), WC_Braintree::VERSION, true );
 
 			// adjust the script tag to add async attribute
 			add_filter( 'clean_url', array( $this, 'adjust_fraud_script_tag' ) );
 
 			// this script must be rendered to the page before the braintree-data.js library, hence priority 1
 			add_action( 'wp_print_footer_scripts', array( $this, 'render_fraud_js' ), 1 );
+		}
+
+		if ( $this->is_available() && $this->is_payment_form_page() ) {
+
+			parent::enqueue_gateway_assets();
+
+			wp_enqueue_script( 'braintree-js-hosted-fields', 'https://js.braintreegateway.com/web/3.26.0/js/hosted-fields.min.js', array(), WC_Braintree::VERSION, true );
+
+			if ( $this->is_3d_secure_enabled() ) {
+				wp_enqueue_script( 'braintree-js-3d-secure', 'https://js.braintreegateway.com/web/3.26.0/js/three-d-secure.min.js', array(), WC_Braintree::VERSION, true );
+			}
 		}
 	}
 
@@ -159,7 +166,7 @@ class WC_Gateway_Braintree_Credit_Card extends WC_Gateway_Braintree {
 		);
 
 		// Kount is only available for manual API connections
-		if ( $this->is_connected_manually() ) {
+		if ( $this->is_kount_supported() ) {
 			$fraud_tool_options['kount_direct'] = __( 'Kount Direct', 'woocommerce-gateway-paypal-powered-by-braintree' );
 		}
 
@@ -566,7 +573,7 @@ class WC_Gateway_Braintree_Credit_Card extends WC_Gateway_Braintree {
 	 */
 	public function is_kount_direct_enabled() {
 
-		return 'kount_direct' === $this->get_fraud_tool();
+		return $this->is_kount_supported() && 'kount_direct' === $this->get_fraud_tool();
 	}
 
 
@@ -580,6 +587,21 @@ class WC_Gateway_Braintree_Credit_Card extends WC_Gateway_Braintree {
 	public function get_kount_merchant_id() {
 
 		return $this->kount_merchant_id;
+	}
+
+
+	/**
+	 * Determines if Kount is supported.
+	 *
+	 * Currently limited to non-US shops who are not using Braintree Auth.
+	 *
+	 * @since 2.1.0
+	 *
+	 * @return bool
+	 */
+	public function is_kount_supported() {
+
+		return $this->is_connected_manually() && 'US' !== WC()->countries->get_base_country();
 	}
 
 

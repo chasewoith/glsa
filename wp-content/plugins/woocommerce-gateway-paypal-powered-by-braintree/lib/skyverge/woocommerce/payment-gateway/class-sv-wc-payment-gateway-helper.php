@@ -183,11 +183,11 @@ class SV_WC_Payment_Gateway_Helper {
 
 		// known payment type names, excluding credit cards
 		$payment_types = array(
-			'paypal'   => esc_html__( 'PayPal', 'woocommerce-plugin-framework' ),
-			'checking' => esc_html__( 'Checking Account', 'woocommerce-plugin-framework' ),
-			'savings'  => esc_html__( 'Savings Account', 'woocommerce-plugin-framework' ),
-			'card'     => esc_html__( 'Credit / Debit Card', 'woocommerce-plugin-framework' ),
-			'bank'     => esc_html__( 'Bank Account', 'woocommerce-plugin-framework' ),
+			'paypal'   => esc_html__( 'PayPal', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+			'checking' => esc_html__( 'Checking Account', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+			'savings'  => esc_html__( 'Savings Account', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+			'card'     => esc_html__( 'Credit / Debit Card', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+			'bank'     => esc_html__( 'Bank Account', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 		);
 
 		// add the credit card names
@@ -196,7 +196,7 @@ class SV_WC_Payment_Gateway_Helper {
 		if ( isset( $payment_types[ $type ] ) ) {
 			$name = $payment_types[ $type ];
 		} elseif ( '' === $type ) {
-			$name = esc_html_x( 'Account', 'payment method type', 'woocommerce-plugin-framework' );
+			$name = esc_html_x( 'Account', 'payment method type', 'woocommerce-gateway-paypal-powered-by-braintree' );
 		} else {
 			$name = ucwords( str_replace( '-', ' ', $type ) );
 		}
@@ -231,39 +231,39 @@ class SV_WC_Payment_Gateway_Helper {
 
 		return array(
 			self::CARD_TYPE_VISA => array(
-				'name'       => esc_html_x( 'Visa', 'credit card type', 'woocommerce-plugin-framework' ),
+				'name'       => esc_html_x( 'Visa', 'credit card type', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 				'variations' => array(),
 			),
 			self::CARD_TYPE_MASTERCARD => array(
-				'name'       => esc_html_x( 'MasterCard', 'credit card type', 'woocommerce-plugin-framework' ),
+				'name'       => esc_html_x( 'MasterCard', 'credit card type', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 				'variations' => array( 'mc' ),
 			),
 			self::CARD_TYPE_AMEX => array(
-				'name'       => esc_html_x( 'American Express', 'credit card type', 'woocommerce-plugin-framework' ),
+				'name'       => esc_html_x( 'American Express', 'credit card type', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 				'variations' => array(),
 			),
 			self::CARD_TYPE_DINERSCLUB => array(
-				'name'       => esc_html_x( 'Diners Club', 'credit card type', 'woocommerce-plugin-framework' ),
+				'name'       => esc_html_x( 'Diners Club', 'credit card type', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 				'variations' => array( 'diners' ),
 			),
 			self::CARD_TYPE_DISCOVER => array(
-				'name'       => esc_html_x( 'Discover', 'credit card type', 'woocommerce-plugin-framework' ),
+				'name'       => esc_html_x( 'Discover', 'credit card type', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 				'variations' => array( 'disc' ),
 			),
 			self::CARD_TYPE_JCB => array(
-				'name'       => esc_html_x( 'JCB', 'credit card type', 'woocommerce-plugin-framework' ),
+				'name'       => esc_html_x( 'JCB', 'credit card type', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 				'variations' => array(),
 			),
 			self::CARD_TYPE_CARTEBLEUE => array(
-				'name'       => esc_html_x( 'CarteBleue', 'credit card type', 'woocommerce-plugin-framework' ),
+				'name'       => esc_html_x( 'CarteBleue', 'credit card type', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 				'variations' => array(),
 			),
 			self::CARD_TYPE_MAESTRO => array(
-				'name'       => esc_html_x( 'Maestro', 'credit card type', 'woocommerce-plugin-framework' ),
+				'name'       => esc_html_x( 'Maestro', 'credit card type', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 				'variations' => array(),
 			),
 			self::CARD_TYPE_LASER => array(
-				'name'       => esc_html_x( 'Laser', 'credit card type', 'woocommerce-plugin-framework' ),
+				'name'       => esc_html_x( 'Laser', 'credit card type', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 				'variations' => array(),
 			),
 		);

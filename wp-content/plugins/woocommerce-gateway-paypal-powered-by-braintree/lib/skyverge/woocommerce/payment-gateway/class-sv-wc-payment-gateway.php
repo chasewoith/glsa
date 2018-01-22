@@ -402,25 +402,25 @@ abstract class SV_WC_Payment_Gateway extends \WC_Payment_Gateway {
 		 * @return array
 		 */
 		return apply_filters( 'sv_wc_payment_gateway_payment_form_js_localized_script_params', array(
-			'card_number_missing'            => esc_html__( 'Card number is missing', 'woocommerce-plugin-framework' ),
-			'card_number_invalid'            => esc_html__( 'Card number is invalid', 'woocommerce-plugin-framework' ),
-			'card_number_digits_invalid'     => esc_html__( 'Card number is invalid (only digits allowed)', 'woocommerce-plugin-framework' ),
-			'card_number_length_invalid'     => esc_html__( 'Card number is invalid (wrong length)', 'woocommerce-plugin-framework' ),
-			'cvv_missing'                    => esc_html__( 'Card security code is missing', 'woocommerce-plugin-framework' ),
-			'cvv_digits_invalid'             => esc_html__( 'Card security code is invalid (only digits are allowed)', 'woocommerce-plugin-framework' ),
-			'cvv_length_invalid'             => esc_html__( 'Card security code is invalid (must be 3 or 4 digits)', 'woocommerce-plugin-framework' ),
-			'card_exp_date_invalid'          => esc_html__( 'Card expiration date is invalid', 'woocommerce-plugin-framework' ),
-			'check_number_digits_invalid'    => esc_html__( 'Check Number is invalid (only digits are allowed)', 'woocommerce-plugin-framework' ),
-			'check_number_missing'           => esc_html__( 'Check Number is missing', 'woocommerce-plugin-framework' ),
-			'drivers_license_state_missing'  => esc_html__( 'Drivers license state is missing', 'woocommerce-plugin-framework' ),
-			'drivers_license_number_missing' => esc_html__( 'Drivers license number is missing', 'woocommerce-plugin-framework' ),
-			'drivers_license_number_invalid' => esc_html__( 'Drivers license number is invalid', 'woocommerce-plugin-framework' ),
-			'account_number_missing'         => esc_html__( 'Account Number is missing', 'woocommerce-plugin-framework' ),
-			'account_number_invalid'         => esc_html__( 'Account Number is invalid (only digits are allowed)', 'woocommerce-plugin-framework' ),
-			'account_number_length_invalid'  => esc_html__( 'Account number is invalid (must be between 5 and 17 digits)', 'woocommerce-plugin-framework' ),
-			'routing_number_missing'         => esc_html__( 'Routing Number is missing', 'woocommerce-plugin-framework' ),
-			'routing_number_digits_invalid'  => esc_html__( 'Routing Number is invalid (only digits are allowed)', 'woocommerce-plugin-framework' ),
-			'routing_number_length_invalid'  => esc_html__( 'Routing number is invalid (must be 9 digits)', 'woocommerce-plugin-framework' ),
+			'card_number_missing'            => esc_html__( 'Card number is missing', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+			'card_number_invalid'            => esc_html__( 'Card number is invalid', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+			'card_number_digits_invalid'     => esc_html__( 'Card number is invalid (only digits allowed)', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+			'card_number_length_invalid'     => esc_html__( 'Card number is invalid (wrong length)', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+			'cvv_missing'                    => esc_html__( 'Card security code is missing', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+			'cvv_digits_invalid'             => esc_html__( 'Card security code is invalid (only digits are allowed)', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+			'cvv_length_invalid'             => esc_html__( 'Card security code is invalid (must be 3 or 4 digits)', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+			'card_exp_date_invalid'          => esc_html__( 'Card expiration date is invalid', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+			'check_number_digits_invalid'    => esc_html__( 'Check Number is invalid (only digits are allowed)', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+			'check_number_missing'           => esc_html__( 'Check Number is missing', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+			'drivers_license_state_missing'  => esc_html__( 'Drivers license state is missing', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+			'drivers_license_number_missing' => esc_html__( 'Drivers license number is missing', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+			'drivers_license_number_invalid' => esc_html__( 'Drivers license number is invalid', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+			'account_number_missing'         => esc_html__( 'Account Number is missing', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+			'account_number_invalid'         => esc_html__( 'Account Number is invalid (only digits are allowed)', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+			'account_number_length_invalid'  => esc_html__( 'Account number is invalid (must be between 5 and 17 digits)', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+			'routing_number_missing'         => esc_html__( 'Routing Number is missing', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+			'routing_number_digits_invalid'  => esc_html__( 'Routing Number is invalid (only digits are allowed)', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+			'routing_number_length_invalid'  => esc_html__( 'Routing number is invalid (must be 9 digits)', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 		) );
 	}
 
@@ -490,7 +490,7 @@ abstract class SV_WC_Payment_Gateway extends \WC_Payment_Gateway {
 			 * @param $params array
 			 * @return array
 			 */
-			$params = apply_filters( 'wc_gateway_' . $this->get_plugin()->get_id() . '_js_localize_script_params', $this->get_gateway_js_localized_script_params() );
+			$params = apply_filters( 'wc_gateway_' . $this->get_plugin()->get_id() . '_js_localize_script_params', $params );
 
 			$this->localize_script( $handle, $params );
 		}
@@ -589,7 +589,7 @@ abstract class SV_WC_Payment_Gateway extends \WC_Payment_Gateway {
 	 */
 	protected function get_order_button_text() {
 
-		$text = $this->is_hosted_gateway() ? esc_html__( 'Continue', 'woocommerce-plugin-framework' ) : '';
+		$text = $this->is_hosted_gateway() ? esc_html__( 'Continue', 'woocommerce-gateway-paypal-powered-by-braintree' ) : '';
 
 		/**
 		 * Payment Gateway Place Order Button Text Filter.
@@ -621,7 +621,7 @@ abstract class SV_WC_Payment_Gateway extends \WC_Payment_Gateway {
 	 * @param int $order_id identifies the order
 	 */
 	public function payment_page( $order_id ) {
-		echo '<p>' . esc_html__( 'Thank you for your order.', 'woocommerce-plugin-framework' ) . '</p>';
+		echo '<p>' . esc_html__( 'Thank you for your order.', 'woocommerce-gateway-paypal-powered-by-braintree' ) . '</p>';
 	}
 
 
@@ -730,9 +730,9 @@ abstract class SV_WC_Payment_Gateway extends \WC_Payment_Gateway {
 
 		// defaults for credit card and echeck, override for others
 		if ( $this->is_credit_card_gateway() ) {
-			return esc_html__( 'Credit Card', 'woocommerce-plugin-framework' );
+			return esc_html__( 'Credit Card', 'woocommerce-gateway-paypal-powered-by-braintree' );
 		} elseif ( $this->is_echeck_gateway() ) {
-			return esc_html__( 'eCheck', 'woocommerce-plugin-framework' );
+			return esc_html__( 'eCheck', 'woocommerce-gateway-paypal-powered-by-braintree' );
 		}
 
 		return '';
@@ -750,9 +750,9 @@ abstract class SV_WC_Payment_Gateway extends \WC_Payment_Gateway {
 
 		// defaults for credit card and echeck, override for others
 		if ( $this->is_credit_card_gateway() ) {
-			return esc_html__( 'Pay securely using your credit card.', 'woocommerce-plugin-framework' );
+			return esc_html__( 'Pay securely using your credit card.', 'woocommerce-gateway-paypal-powered-by-braintree' );
 		} elseif ( $this->is_echeck_gateway() ) {
-			return esc_html__( 'Pay securely using your checking account.', 'woocommerce-plugin-framework' );
+			return esc_html__( 'Pay securely using your checking account.', 'woocommerce-gateway-paypal-powered-by-braintree' );
 		}
 
 		return '';
@@ -771,23 +771,23 @@ abstract class SV_WC_Payment_Gateway extends \WC_Payment_Gateway {
 		$this->form_fields = array(
 
 			'enabled' => array(
-				'title'   => esc_html__( 'Enable / Disable', 'woocommerce-plugin-framework' ),
-				'label'   => esc_html__( 'Enable this gateway', 'woocommerce-plugin-framework' ),
+				'title'   => esc_html__( 'Enable / Disable', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+				'label'   => esc_html__( 'Enable this gateway', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 				'type'    => 'checkbox',
 				'default' => 'no',
 			),
 
 			'title' => array(
-				'title'    => esc_html__( 'Title', 'woocommerce-plugin-framework' ),
+				'title'    => esc_html__( 'Title', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 				'type'     => 'text',
-				'desc_tip' => esc_html__( 'Payment method title that the customer will see during checkout.', 'woocommerce-plugin-framework' ),
+				'desc_tip' => esc_html__( 'Payment method title that the customer will see during checkout.', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 				'default'  => $this->get_default_title(),
 			),
 
 			'description' => array(
-				'title'    => esc_html__( 'Description', 'woocommerce-plugin-framework' ),
+				'title'    => esc_html__( 'Description', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 				'type'     => 'textarea',
-				'desc_tip' => esc_html__( 'Payment method description that the customer will see during checkout.', 'woocommerce-plugin-framework' ),
+				'desc_tip' => esc_html__( 'Payment method description that the customer will see during checkout.', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 				'default'  => $this->get_default_description(),
 			),
 
@@ -816,26 +816,26 @@ abstract class SV_WC_Payment_Gateway extends \WC_Payment_Gateway {
 		// add "detailed customer decline messages" option if the feature is supported
 		if ( $this->supports( self::FEATURE_DETAILED_CUSTOMER_DECLINE_MESSAGES ) ) {
 			$this->form_fields['enable_customer_decline_messages'] = array(
-				'title'   => esc_html__( 'Detailed Decline Messages', 'woocommerce-plugin-framework' ),
+				'title'   => esc_html__( 'Detailed Decline Messages', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 				'type'    => 'checkbox',
-				'label'   => esc_html__( 'Check to enable detailed decline messages to the customer during checkout when possible, rather than a generic decline message.', 'woocommerce-plugin-framework' ),
+				'label'   => esc_html__( 'Check to enable detailed decline messages to the customer during checkout when possible, rather than a generic decline message.', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 				'default' => 'no',
 			);
 		}
 
 		// debug mode
 		$this->form_fields['debug_mode'] = array(
-			'title'   => esc_html__( 'Debug Mode', 'woocommerce-plugin-framework' ),
+			'title'   => esc_html__( 'Debug Mode', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 			'type'    => 'select',
 			/* translators: Placeholders: %1$s - <a> tag, %2$s - </a> tag */
-			'desc'    => sprintf( esc_html__( 'Show Detailed Error Messages and API requests/responses on the checkout page and/or save them to the %1$sdebug log%2$s', 'woocommerce-plugin-framework' ), '<a href="' . SV_WC_Helper::get_wc_log_file_url( $this->get_id() ) . '">', '</a>' ),
+			'desc'    => sprintf( esc_html__( 'Show Detailed Error Messages and API requests/responses on the checkout page and/or save them to the %1$sdebug log%2$s', 'woocommerce-gateway-paypal-powered-by-braintree' ), '<a href="' . SV_WC_Helper::get_wc_log_file_url( $this->get_id() ) . '">', '</a>' ),
 			'default' => self::DEBUG_MODE_OFF,
 			'options' => array(
-				self::DEBUG_MODE_OFF      => esc_html__( 'Off', 'woocommerce-plugin-framework' ),
-				self::DEBUG_MODE_CHECKOUT => esc_html__( 'Show on Checkout Page', 'woocommerce-plugin-framework' ),
-				self::DEBUG_MODE_LOG      => esc_html__( 'Save to Log', 'woocommerce-plugin-framework' ),
+				self::DEBUG_MODE_OFF      => esc_html__( 'Off', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+				self::DEBUG_MODE_CHECKOUT => esc_html__( 'Show on Checkout Page', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+				self::DEBUG_MODE_LOG      => esc_html__( 'Save to Log', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 				/* translators: show debugging information on both checkout page and in the log */
-				self::DEBUG_MODE_BOTH     => esc_html__( 'Both', 'woocommerce-plugin-framework' )
+				self::DEBUG_MODE_BOTH     => esc_html__( 'Both', 'woocommerce-gateway-paypal-powered-by-braintree' )
 			),
 		);
 
@@ -895,10 +895,10 @@ abstract class SV_WC_Payment_Gateway extends \WC_Payment_Gateway {
 
 		$form_fields['environment'] = array(
 			/* translators: environment as in a software environment (test/production) */
-			'title'    => esc_html__( 'Environment', 'woocommerce-plugin-framework' ),
+			'title'    => esc_html__( 'Environment', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 			'type'     => 'select',
 			'default'  => key( $this->get_environments() ),  // default to first defined environment
-			'desc_tip' => esc_html__( 'Select the gateway environment to use for transactions.', 'woocommerce-plugin-framework' ),
+			'desc_tip' => esc_html__( 'Select the gateway environment to use for transactions.', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 			'options'  => $this->get_environments(),
 		);
 
@@ -946,18 +946,18 @@ abstract class SV_WC_Payment_Gateway extends \WC_Payment_Gateway {
 		}
 
 		$form_fields['connection_settings'] = array(
-			'title' => esc_html__( 'Connection Settings', 'woocommerce-plugin-framework' ),
+			'title' => esc_html__( 'Connection Settings', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 			'type'  => 'title',
 		);
 
 		// disable the field if the sibling gateway is already inheriting settings
 		$form_fields['inherit_settings'] = array(
-			'title'       => esc_html__( 'Share connection settings', 'woocommerce-plugin-framework' ),
+			'title'       => esc_html__( 'Share connection settings', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 			'type'        => 'checkbox',
-			'label'       => esc_html__( 'Use connection/authentication settings from other gateway', 'woocommerce-plugin-framework' ),
+			'label'       => esc_html__( 'Use connection/authentication settings from other gateway', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 			'default'     => count( $configured_other_gateway_ids ) > 0 ? 'yes' : 'no',
 			'disabled'    => count( $inherit_settings_other_gateway_ids ) > 0 ? true : false,
-			'description' => count( $inherit_settings_other_gateway_ids ) > 0 ? esc_html__( 'Disabled because the other gateway is using these settings', 'woocommerce-plugin-framework' ) : '',
+			'description' => count( $inherit_settings_other_gateway_ids ) > 0 ? esc_html__( 'Disabled because the other gateway is using these settings', 'woocommerce-gateway-paypal-powered-by-braintree' ) : '',
 		);
 
 		return $form_fields;
@@ -974,8 +974,8 @@ abstract class SV_WC_Payment_Gateway extends \WC_Payment_Gateway {
 	protected function add_csc_form_fields( $form_fields ) {
 
 		$form_fields['enable_csc'] = array(
-			'title'   => esc_html__( 'Card Verification (CSC)', 'woocommerce-plugin-framework' ),
-			'label'   => esc_html__( 'Display the Card Security Code (CV2) field on checkout', 'woocommerce-plugin-framework' ),
+			'title'   => esc_html__( 'Card Verification (CSC)', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+			'label'   => esc_html__( 'Display the Card Security Code (CV2) field on checkout', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 			'type'    => 'checkbox',
 			'default' => 'yes',
 		);
@@ -1115,8 +1115,13 @@ abstract class SV_WC_Payment_Gateway extends \WC_Payment_Gateway {
 		}
 
 		// any required countries?
-		if ( $this->countries && WC()->customer && WC()->customer->get_country() && ! in_array( WC()->customer->get_country(), $this->countries ) ) {
-			$is_available = false;
+		if ( $this->countries && WC()->customer ) {
+
+			$customer_country = ( SV_WC_Plugin_Compatibility::is_wc_version_gte_3_0() ) ? WC()->customer->get_billing_country() : WC()->customer->get_country();
+
+			if ( $customer_country && ! in_array( $customer_country, $this->countries, true ) ) {
+				$is_available = false;
+			}
 		}
 
 		/**
@@ -1275,7 +1280,7 @@ abstract class SV_WC_Payment_Gateway extends \WC_Payment_Gateway {
 		$order->payment->type = str_replace( '-', '_', $this->get_payment_type() );
 
 		/* translators: Placeholders: %1$s - site title, %2$s - order number */
-		$order->description = sprintf( esc_html__( '%1$s - Order %2$s', 'woocommerce-plugin-framework' ), wp_specialchars_decode( SV_WC_Helper::get_site_name(), ENT_QUOTES ), $order->get_order_number() );
+		$order->description = sprintf( esc_html__( '%1$s - Order %2$s', 'woocommerce-gateway-paypal-powered-by-braintree' ), wp_specialchars_decode( SV_WC_Helper::get_site_name(), ENT_QUOTES ), $order->get_order_number() );
 
 		$order = $this->get_order_with_unique_transaction_ref( $order );
 
@@ -1315,14 +1320,14 @@ abstract class SV_WC_Payment_Gateway extends \WC_Payment_Gateway {
 
 				$message = sprintf(
 					/* translators: Placeholders: %1$s - payment gateway title (such as Authorize.net, Braintree, etc), %2$s - transaction amount. Definitions: Capture, as in capture funds from a credit card. */
-					esc_html__( '%1$s Capture of %2$s Approved', 'woocommerce-plugin-framework' ),
+					esc_html__( '%1$s Capture of %2$s Approved', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 					$this->get_method_title(),
 					get_woocommerce_currency_symbol() . wc_format_decimal( $order->capture_total )
 				);
 
 				// adds the transaction id (if any) to the order note
 				if ( $response->get_transaction_id() ) {
-					$message .= ' ' . sprintf( esc_html__( '(Transaction ID %s)', 'woocommerce-plugin-framework' ), $response->get_transaction_id() );
+					$message .= ' ' . sprintf( esc_html__( '(Transaction ID %s)', 'woocommerce-gateway-paypal-powered-by-braintree' ), $response->get_transaction_id() );
 				}
 
 				$order->add_order_note( $message );
@@ -1343,7 +1348,7 @@ abstract class SV_WC_Payment_Gateway extends \WC_Payment_Gateway {
 
 				$message = sprintf(
 					/* translators: Placeholders: %1$s - payment gateway title (such as Authorize.net, Braintree, etc), %2$s - transaction amount, %3$s - transaction status message. Definitions: Capture, as in capture funds from a credit card. */
-					esc_html__( '%1$s Capture Failed: %2$s - %3$s', 'woocommerce-plugin-framework' ),
+					esc_html__( '%1$s Capture Failed: %2$s - %3$s', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 					$this->get_method_title(),
 					$response->get_status_code(),
 					$response->get_status_message()
@@ -1359,7 +1364,7 @@ abstract class SV_WC_Payment_Gateway extends \WC_Payment_Gateway {
 
 			$message = sprintf(
 				/* translators: Placeholders: %1$s - payment gateway title (such as Authorize.net, Braintree, etc), %2$s - failure message. Definitions: "capture" as in capturing funds from a credit card. */
-				esc_html__( '%1$s Capture Failed: %2$s', 'woocommerce-plugin-framework' ),
+				esc_html__( '%1$s Capture Failed: %2$s', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 				$this->get_method_title(),
 				$e->getMessage()
 			);
@@ -1398,7 +1403,7 @@ abstract class SV_WC_Payment_Gateway extends \WC_Payment_Gateway {
 		$order->capture = new \stdClass();
 		$order->capture->amount = SV_WC_Helper::number_format( $order->get_total() );
 		/* translators: Placeholders: %1$s - site title, %2$s - order number. Definitions: Capture as in capture funds from a credit card. */
-		$order->capture->description = sprintf( esc_html__( '%1$s - Capture for Order %2$s', 'woocommerce-plugin-framework' ), wp_specialchars_decode( SV_WC_Helper::get_site_name() ), $order->get_order_number() );
+		$order->capture->description = sprintf( esc_html__( '%1$s - Capture for Order %2$s', 'woocommerce-gateway-paypal-powered-by-braintree' ), wp_specialchars_decode( SV_WC_Helper::get_site_name() ), $order->get_order_number() );
 		$order->capture->trans_id = $this->get_order_meta( SV_WC_Order_Compatibility::get_prop( $order, 'id' ), 'trans_id' );
 
 		// backwards compat for 4.1 and earlier
@@ -1562,7 +1567,7 @@ abstract class SV_WC_Payment_Gateway extends \WC_Payment_Gateway {
 		$order->refund->amount = number_format( $amount, 2, '.', '' );
 
 		/* translators: Placeholders: %1$s - site title, %2$s - order number */
-		$order->refund->reason = $reason ? $reason : sprintf( esc_html__( '%1$s - Refund for Order %2$s', 'woocommerce-plugin-framework' ), esc_html( SV_WC_Helper::get_site_name() ), $order->get_order_number() );
+		$order->refund->reason = $reason ? $reason : sprintf( esc_html__( '%1$s - Refund for Order %2$s', 'woocommerce-gateway-paypal-powered-by-braintree' ), esc_html( SV_WC_Helper::get_site_name() ), $order->get_order_number() );
 
 		// almost all gateways require the original transaction ID, so include it by default
 		$order->refund->trans_id = $this->get_order_meta( SV_WC_Order_Compatibility::get_prop( $order, 'id' ), 'trans_id' );
@@ -1625,14 +1630,14 @@ abstract class SV_WC_Payment_Gateway extends \WC_Payment_Gateway {
 
 		$message = sprintf(
 			/* translators: Placeholders: %1$s - payment gateway title (such as Authorize.net, Braintree, etc), %2$s - a monetary amount */
-			esc_html__( '%1$s Refund in the amount of %2$s approved.', 'woocommerce-plugin-framework' ),
+			esc_html__( '%1$s Refund in the amount of %2$s approved.', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 			$this->get_method_title(),
 			wc_price( $order->refund->amount, array( 'currency' => SV_WC_Order_Compatibility::get_prop( $order, 'currency', 'view' ) ) )
 		);
 
 		// adds the transaction id (if any) to the order note
 		if ( $response->get_transaction_id() ) {
-			$message .= ' ' . sprintf( esc_html__( '(Transaction ID %s)', 'woocommerce-plugin-framework' ), $response->get_transaction_id() );
+			$message .= ' ' . sprintf( esc_html__( '(Transaction ID %s)', 'woocommerce-gateway-paypal-powered-by-braintree' ), $response->get_transaction_id() );
 		}
 
 		$order->add_order_note( $message );
@@ -1652,7 +1657,7 @@ abstract class SV_WC_Payment_Gateway extends \WC_Payment_Gateway {
 		if ( $error_code ) {
 			$message = sprintf(
 				/* translators: Placeholders: %1$s - payment gateway title (such as Authorize.net, Braintree, etc), %2$s - error code, %3$s - error message */
-				esc_html__( '%1$s Refund Failed: %2$s - %3$s', 'woocommerce-plugin-framework' ),
+				esc_html__( '%1$s Refund Failed: %2$s - %3$s', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 				$this->get_method_title(),
 				$error_code,
 				$error_message
@@ -1660,7 +1665,7 @@ abstract class SV_WC_Payment_Gateway extends \WC_Payment_Gateway {
 		} else {
 			$message = sprintf(
 				/* translators: Placeholders: %1$s - payment gateway title (such as Authorize.net, Braintree, etc), %2$s - error message */
-				esc_html__( '%1$s Refund Failed: %2$s', 'woocommerce-plugin-framework' ),
+				esc_html__( '%1$s Refund Failed: %2$s', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 				$this->get_method_title(),
 				$error_message
 			);
@@ -1680,7 +1685,7 @@ abstract class SV_WC_Payment_Gateway extends \WC_Payment_Gateway {
 	public function mark_order_as_refunded( $order ) {
 
 		/* translators: Placeholders: %s - payment gateway title (such as Authorize.net, Braintree, etc) */
-		$order_note = sprintf( esc_html__( '%s Order completely refunded.', 'woocommerce-plugin-framework' ), $this->get_method_title() );
+		$order_note = sprintf( esc_html__( '%s Order completely refunded.', 'woocommerce-gateway-paypal-powered-by-braintree' ), $this->get_method_title() );
 
 		// Mark order as refunded if not already set
 		if ( ! $order->has_status( 'refunded' ) ) {
@@ -1733,7 +1738,7 @@ abstract class SV_WC_Payment_Gateway extends \WC_Payment_Gateway {
 
 		// partial voids are not supported
 		if ( $order->refund->amount != $order->get_total() ) {
-			return new \WP_Error( 'wc_' . $this->get_id() . '_void_error', esc_html__( 'Oops, you cannot partially void this order. Please use the full order amount.', 'woocommerce-plugin-framework' ), 500 );
+			return new \WP_Error( 'wc_' . $this->get_id() . '_void_error', esc_html__( 'Oops, you cannot partially void this order. Please use the full order amount.', 'woocommerce-gateway-paypal-powered-by-braintree' ), 500 );
 		}
 
 		try {
@@ -1817,7 +1822,7 @@ abstract class SV_WC_Payment_Gateway extends \WC_Payment_Gateway {
 		if ( $error_code ) {
 			$message = sprintf(
 				/* translators: Placeholders: %1$s - payment gateway title, %2$s - error code, %3$s - error message. Void as in to void an order. */
-				esc_html__( '%1$s Void Failed: %2$s - %3$s', 'woocommerce-plugin-framework' ),
+				esc_html__( '%1$s Void Failed: %2$s - %3$s', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 				$this->get_method_title(),
 				$error_code,
 				$error_message
@@ -1825,7 +1830,7 @@ abstract class SV_WC_Payment_Gateway extends \WC_Payment_Gateway {
 		} else {
 			$message = sprintf(
 				/* translators: Placeholders: %1$s - payment gateway title, %2$s - error message. Void as in to void an order. */
-				esc_html__( '%1$s Void Failed: %2$s', 'woocommerce-plugin-framework' ),
+				esc_html__( '%1$s Void Failed: %2$s', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 				$this->get_method_title(),
 				$error_message
 			);
@@ -1846,14 +1851,14 @@ abstract class SV_WC_Payment_Gateway extends \WC_Payment_Gateway {
 
 		$message = sprintf(
 			/* translators: Placeholders: %1$s - payment gateway title, %2$s - a monetary amount. Void as in to void an order. */
-			esc_html__( '%1$s Void in the amount of %2$s approved.', 'woocommerce-plugin-framework' ),
+			esc_html__( '%1$s Void in the amount of %2$s approved.', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 			$this->get_method_title(),
 			wc_price( $order->refund->amount, array( 'currency' => SV_WC_Order_Compatibility::get_prop( $order, 'currency', 'view' ) ) )
 		);
 
 		// adds the transaction id (if any) to the order note
 		if ( $response->get_transaction_id() ) {
-			$message .= ' ' . sprintf( esc_html__( '(Transaction ID %s)', 'woocommerce-plugin-framework' ), $response->get_transaction_id() );
+			$message .= ' ' . sprintf( esc_html__( '(Transaction ID %s)', 'woocommerce-gateway-paypal-powered-by-braintree' ), $response->get_transaction_id() );
 		}
 
 		// mark order as cancelled, since no money was actually transferred
@@ -1920,7 +1925,7 @@ abstract class SV_WC_Payment_Gateway extends \WC_Payment_Gateway {
 		$this->update_order_meta( $order, 'retry_count', $retry_count );
 
 		// generate a unique transaction ref based on the order number and retry count, for gateways that require a unique identifier for every transaction request
-		$order->unique_transaction_ref = ltrim( $order->get_order_number(),  esc_html_x( '#', 'hash before order number', 'woocommerce-plugin-framework' ) ) . ( $retry_count > 0 ? '-' . $retry_count : '' );
+		$order->unique_transaction_ref = ltrim( $order->get_order_number(),  esc_html_x( '#', 'hash before order number', 'woocommerce-gateway-paypal-powered-by-braintree' ) ) . ( $retry_count > 0 ? '-' . $retry_count : '' );
 
 		return $order;
 	}
@@ -1941,18 +1946,18 @@ abstract class SV_WC_Payment_Gateway extends \WC_Payment_Gateway {
 		// build the order note with what data we have
 		if ( $response->get_status_code() && $response->get_status_message() ) {
 			/* translators: Placeholders: %1$s - status code, %2$s - status message */
-			$order_note = sprintf( esc_html__( 'Status code %1$s: %2$s', 'woocommerce-plugin-framework' ), $response->get_status_code(), $response->get_status_message() );
+			$order_note = sprintf( esc_html__( 'Status code %1$s: %2$s', 'woocommerce-gateway-paypal-powered-by-braintree' ), $response->get_status_code(), $response->get_status_message() );
 		} elseif ( $response->get_status_code() ) {
 			/* translators: Placeholders: %s - status code */
-			$order_note = sprintf( esc_html__( 'Status code: %s', 'woocommerce-plugin-framework' ), $response->get_status_code() );
+			$order_note = sprintf( esc_html__( 'Status code: %s', 'woocommerce-gateway-paypal-powered-by-braintree' ), $response->get_status_code() );
 		} elseif ( $response->get_status_message() ) {
 			/* translators: Placeholders; %s - status message */
-			$order_note = sprintf( esc_html__( 'Status message: %s', 'woocommerce-plugin-framework' ), $response->get_status_message() );
+			$order_note = sprintf( esc_html__( 'Status message: %s', 'woocommerce-gateway-paypal-powered-by-braintree' ), $response->get_status_message() );
 		}
 
 		// add transaction id if there is one
 		if ( $response->get_transaction_id() ) {
-			$order_note .= ' ' . sprintf( esc_html__( 'Transaction ID %s', 'woocommerce-plugin-framework' ), $response->get_transaction_id() );
+			$order_note .= ' ' . sprintf( esc_html__( 'Transaction ID %s', 'woocommerce-gateway-paypal-powered-by-braintree' ), $response->get_transaction_id() );
 		}
 
 		$this->mark_order_as_failed( $order, $order_note, $response );
@@ -2063,7 +2068,7 @@ abstract class SV_WC_Payment_Gateway extends \WC_Payment_Gateway {
 	public function mark_order_as_held( $order, $message, $response = null ) {
 
 		/* translators: Placeholders: %1$s - payment gateway title, %2$s - message (probably reason for the transaction being held for review) */
-		$order_note = sprintf( esc_html__( '%1$s Transaction Held for Review (%2$s)', 'woocommerce-plugin-framework' ), $this->get_method_title(), $message );
+		$order_note = sprintf( esc_html__( '%1$s Transaction Held for Review (%2$s)', 'woocommerce-gateway-paypal-powered-by-braintree' ), $this->get_method_title(), $message );
 
 		/**
 		 * Held Order Status Filter.
@@ -2094,7 +2099,7 @@ abstract class SV_WC_Payment_Gateway extends \WC_Payment_Gateway {
 		}
 
 		if ( ! $user_message || ( $this->supports_credit_card_authorization() && $this->perform_credit_card_authorization( $order ) ) ) {
-			$user_message = esc_html__( 'Your order has been received and is being reviewed. Thank you for your business.', 'woocommerce-plugin-framework' );
+			$user_message = esc_html__( 'Your order has been received and is being reviewed. Thank you for your business.', 'woocommerce-gateway-paypal-powered-by-braintree' );
 		}
 
 		if ( isset( WC()->session ) ) {
@@ -2139,7 +2144,7 @@ abstract class SV_WC_Payment_Gateway extends \WC_Payment_Gateway {
 	public function mark_order_as_failed( $order, $error_message, $response = null ) {
 
 		/* translators: Placeholders: %1$s - payment gateway title, %2$s - error message; e.g. Order Note: [Payment method] Payment failed [error] */
-		$order_note = sprintf( esc_html__( '%1$s Payment Failed (%2$s)', 'woocommerce-plugin-framework' ), $this->get_method_title(), $error_message );
+		$order_note = sprintf( esc_html__( '%1$s Payment Failed (%2$s)', 'woocommerce-gateway-paypal-powered-by-braintree' ), $this->get_method_title(), $error_message );
 
 		// Mark order as failed if not already set, otherwise, make sure we add the order note so we can detect when someone fails to check out multiple times
 		if ( ! $order->has_status( 'failed' ) ) {
@@ -2156,7 +2161,7 @@ abstract class SV_WC_Payment_Gateway extends \WC_Payment_Gateway {
 			$user_message = $response->get_user_message();
 		}
 		if ( ! $user_message ) {
-			$user_message = esc_html__( 'An error occurred, please try again or try an alternate form of payment.', 'woocommerce-plugin-framework' );
+			$user_message = esc_html__( 'An error occurred, please try again or try an alternate form of payment.', 'woocommerce-gateway-paypal-powered-by-braintree' );
 		}
 		SV_WC_Helper::wc_add_notice( $user_message, 'error' );
 	}
@@ -2173,7 +2178,7 @@ abstract class SV_WC_Payment_Gateway extends \WC_Payment_Gateway {
 	public function mark_order_as_cancelled( $order, $message, $response = null ) {
 
 		/* translators: Placeholders: %1$s - payment gateway title, %2$s - message/error */
-		$order_note = sprintf( esc_html__( '%1$s Transaction Cancelled (%2$s)', 'woocommerce-plugin-framework' ), $this->get_method_title(), $message );
+		$order_note = sprintf( esc_html__( '%1$s Transaction Cancelled (%2$s)', 'woocommerce-gateway-paypal-powered-by-braintree' ), $this->get_method_title(), $message );
 
 		// Mark order as cancelled if not already set
 		if ( ! $order->has_status( 'cancelled' ) ) {
@@ -2405,22 +2410,22 @@ abstract class SV_WC_Payment_Gateway extends \WC_Payment_Gateway {
 		assert( $this->supports_credit_card_authorization() && $this->supports_credit_card_charge() );
 
 		$form_fields['transaction_type'] = array(
-			'title'    => esc_html__( 'Transaction Type', 'woocommerce-plugin-framework' ),
+			'title'    => esc_html__( 'Transaction Type', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 			'type'     => 'select',
-			'desc_tip' => esc_html__( 'Select how transactions should be processed. Charge submits all transactions for settlement, Authorization simply authorizes the order total for capture later.', 'woocommerce-plugin-framework' ),
+			'desc_tip' => esc_html__( 'Select how transactions should be processed. Charge submits all transactions for settlement, Authorization simply authorizes the order total for capture later.', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 			'default'  => self::TRANSACTION_TYPE_CHARGE,
 			'options'  => array(
-				self::TRANSACTION_TYPE_CHARGE        => esc_html_x( 'Charge',  'noun, credit card transaction type', 'woocommerce-plugin-framework' ),
-				self::TRANSACTION_TYPE_AUTHORIZATION => esc_html_x( 'Authorization', 'credit card transaction type', 'woocommerce-plugin-framework' ),
+				self::TRANSACTION_TYPE_CHARGE        => esc_html_x( 'Charge',  'noun, credit card transaction type', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+				self::TRANSACTION_TYPE_AUTHORIZATION => esc_html_x( 'Authorization', 'credit card transaction type', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 			),
 		);
 
 		if ( $this->supports_credit_card_charge_virtual() ) {
 
 			$form_fields['charge_virtual_orders'] = array(
-				'label'       => esc_html__( 'Charge Virtual-Only Orders', 'woocommerce-plugin-framework' ),
+				'label'       => esc_html__( 'Charge Virtual-Only Orders', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 				'type'        => 'checkbox',
-				'description' => esc_html__( 'If the order contains exclusively virtual items, enable this to immediately charge, rather than authorize, the transaction.', 'woocommerce-plugin-framework' ),
+				'description' => esc_html__( 'If the order contains exclusively virtual items, enable this to immediately charge, rather than authorize, the transaction.', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 				'default'     => 'no',
 			);
 		}
@@ -2590,9 +2595,9 @@ abstract class SV_WC_Payment_Gateway extends \WC_Payment_Gateway {
 		assert( $this->supports_card_types() );
 
 		$form_fields['card_types'] = array(
-			'title'    => esc_html__( 'Accepted Card Types', 'woocommerce-plugin-framework' ),
+			'title'    => esc_html__( 'Accepted Card Types', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 			'type'     => 'multiselect',
-			'desc_tip' => esc_html__( 'Select which card types you accept.', 'woocommerce-plugin-framework' ),
+			'desc_tip' => esc_html__( 'Select which card types you accept.', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 			'default'  => array_keys( $this->get_available_card_types() ),
 			'class'    => 'wc-enhanced-select',
 			'css'      => 'width: 350px;',
@@ -2617,12 +2622,12 @@ abstract class SV_WC_Payment_Gateway extends \WC_Payment_Gateway {
 		if ( ! isset( $this->available_card_types ) ) {
 
 			$this->available_card_types = array(
-				'VISA'   => esc_html_x( 'Visa', 'credit card type', 'woocommerce-plugin-framework' ),
-				'MC'     => esc_html_x( 'MasterCard', 'credit card type', 'woocommerce-plugin-framework' ),
-				'AMEX'   => esc_html_x( 'American Express', 'credit card type', 'woocommerce-plugin-framework' ),
-				'DISC'   => esc_html_x( 'Discover', 'credit card type', 'woocommerce-plugin-framework' ),
-				'DINERS' => esc_html_x( 'Diners', 'credit card type', 'woocommerce-plugin-framework' ),
-				'JCB'    => esc_html_x( 'JCB', 'credit card type', 'woocommerce-plugin-framework' ),
+				'VISA'   => esc_html_x( 'Visa', 'credit card type', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+				'MC'     => esc_html_x( 'MasterCard', 'credit card type', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+				'AMEX'   => esc_html_x( 'American Express', 'credit card type', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+				'DISC'   => esc_html_x( 'Discover', 'credit card type', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+				'DINERS' => esc_html_x( 'Diners', 'credit card type', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+				'JCB'    => esc_html_x( 'JCB', 'credit card type', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 			);
 
 		}
@@ -2680,8 +2685,8 @@ abstract class SV_WC_Payment_Gateway extends \WC_Payment_Gateway {
 
 		$form_fields['tokenization'] = array(
 			/* translators: http://www.cybersource.com/products/payment_security/payment_tokenization/ and https://en.wikipedia.org/wiki/Tokenization_(data_security) */
-			'title'   => esc_html__( 'Tokenization', 'woocommerce-plugin-framework' ),
-			'label'   => esc_html__( 'Allow customers to securely save their payment details for future checkout.', 'woocommerce-plugin-framework' ),
+			'title'   => esc_html__( 'Tokenization', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+			'label'   => esc_html__( 'Allow customers to securely save their payment details for future checkout.', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 			'type'    => 'checkbox',
 			'default' => 'no',
 		);
@@ -2869,7 +2874,13 @@ abstract class SV_WC_Payment_Gateway extends \WC_Payment_Gateway {
 		foreach ( $order->get_items() as $item ) {
 			$product = $order->get_product_from_item( $item );
 
-			if ( $product->needs_shipping() ) {
+			if ( SV_WC_Plugin_Compatibility::is_wc_version_gte_3_0() ) {
+				$product = $item->get_product();
+			} else {
+				$product = $order->get_product_from_item( $item );
+			}
+
+			if ( $product && $product->needs_shipping() ) {
 				return true;
 			}
 		}
@@ -3201,7 +3212,7 @@ abstract class SV_WC_Payment_Gateway extends \WC_Payment_Gateway {
 		// default set of environments consists of 'production'
 		if ( ! isset( $this->environments ) ) {
 			/* translators: https://www.skyverge.com/for-translators-environments/  */
-			$this->environments = array( self::ENVIRONMENT_PRODUCTION => esc_html_x( 'Production', 'software environment', 'woocommerce-plugin-framework' ) );
+			$this->environments = array( self::ENVIRONMENT_PRODUCTION => esc_html_x( 'Production', 'software environment', 'woocommerce-gateway-paypal-powered-by-braintree' ) );
 		}
 
 		return $this->environments;
