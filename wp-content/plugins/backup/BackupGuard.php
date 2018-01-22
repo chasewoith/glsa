@@ -1,9 +1,20 @@
 <?php
+
+// hook to wordpres widget
+function backup_guard_register_widget()
+{
+	if (class_exists('SGWordPressWidget')) {
+		register_widget('SGWordPressWidget');
+	}
+}
+add_action('widgets_init', 'backup_guard_register_widget');
+
 //The code that runs during plugin activation.
 function activate_backup_guard() {
 	//check if database should be updated
 	if (backupGuardShouldUpdate()) {
 		SGBoot::install();
+		SGBoot::didInstallForFirstTime();
 	}
 }
 

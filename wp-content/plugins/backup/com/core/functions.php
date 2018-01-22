@@ -1,5 +1,33 @@
 <?php
 
+function backupGuardgetSealPopup()
+{
+	$currentDate = time();
+	$sgShouldShowPopup = SGConfig::get('SG_SHOULD_SHOW_POPUP') == null ? true : SGConfig::get('SG_SHOULD_SHOW_POPUP');
+	$sgPluginInstallUpdateDate = SGConfig::get('SG_PLUGIN_INSTALL_UPDATE_DATE') == null ? time() : SGConfig::get('SG_PLUGIN_INSTALL_UPDATE_DATE');
+
+	// check ig plugin is active for free days show poup
+	if (($currentDate - $sgPluginInstallUpdateDate >= SG_PLUGIN_ACTIVE_INTERVAL) && $sgShouldShowPopup) {
+		?>
+		<script>
+			window.SGPMPopupLoader=window.SGPMPopupLoader||{ids:[],popups:{},call:function(w,d,s,l,id){
+				w['sgp']=w['sgp']||function(){(w['sgp'].q=w['sgp'].q||[]).push(arguments[0]);};
+				var sg1=d.createElement(s),sg0=d.getElementsByTagName(s)[0];
+				if(SGPMPopupLoader && SGPMPopupLoader.ids && SGPMPopupLoader.ids.length > 0){SGPMPopupLoader.ids.push(id); return;}
+				SGPMPopupLoader.ids.push(id);
+				sg1.onload = function(){SGPMPopup.openSGPMPopup();}; sg1.async=true; sg1.src=l;
+				sg0.parentNode.insertBefore(sg1,sg0);
+				return {};
+			}};
+			SGPMPopupLoader.call(window,document,'script','https://popupmaker.com/assets/lib/SGPMPopup.min.js','7c685e17');
+		</script>
+		<?php
+		SGConfig::set('SG_SHOULD_SHOW_POPUP', 0);
+	}
+
+	return;
+}
+
 function backupGuardConvertDateTimezone($date, $dateFormat = "Y-m-d H:i:s", $timezone = "UTC")
 {
 	if (in_array($timezone, timezone_identifiers_list())) {

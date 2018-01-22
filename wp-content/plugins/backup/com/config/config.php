@@ -16,6 +16,15 @@ define('SG_LIB_PATH', SG_APP_PATH.'lib/');
 define('SG_MAIL_PATH', SG_CORE_PATH.'mail/');
 define('SG_NOTICE_PATH', SG_CORE_PATH.'notice/');
 define('SG_SCHEDULE_PATH', SG_CORE_PATH.'schedule/');
+define('SG_WIDGET_PATH', SG_CORE_PATH.'widget/');
+
+// Seal themes
+define('SG_SEAL_THEME_DARK', "dark");
+define('SG_SEAL_THEME_GREEN', "green");
+define('SG_SEAL_THEME_WHITE', "white");
+
+// Free days in seconds
+define('SG_PLUGIN_ACTIVE_INTERVAL', 259200);
 
 //Log
 define('SG_LOG_LEVEL_ALL', 0);

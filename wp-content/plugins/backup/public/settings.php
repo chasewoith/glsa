@@ -119,19 +119,22 @@ $sgBackgroundReloadMethod = SGConfig::get('SG_BACKGROUND_RELOAD_METHOD');
 									</label>
 								</div>
 							</div>
-                            <div class="form-group">
-                                <label class="col-md-8 sg-control-label">
-                                    <?php echo _backupGuardT('Disable ads'); ?>
-                                    <?php if (!SGBoot::isFeatureAvailable('HIDE_ADS')): ?>
-                                        &nbsp;&nbsp;<span data-toggle="tooltip" title="<?php echo SG_SILVER_TOOLTIP_TEXT?>" class="badge sg-badge-warning" target-url="<?php echo SG_BACKUP_SITE_PRICING_URL?>"><?php echo SG_BADGE_SILVER_PLUS_TEXT?></span>
-                                    <?php endif; ?>
-                                </label>
-                                <div class="col-md-3 pull-right text-right">
-                                    <label class="sg-switch-container">
-                                        <input type="checkbox" name="sg-hide-ads" sgFeatureName="HIDE_ADS" class="sg-switch" <?php echo $isDisabelAdsEnabled?'checked="checked"':''?>>
+
+                            <?php if (!SGBoot::isFeatureAvailable('MULTI_SCHEDULE')): ?>
+                                <div class="form-group">
+                                    <label class="col-md-8 sg-control-label">
+                                        <?php echo _backupGuardT('Disable ads'); ?>
+                                        <?php if (!SGBoot::isFeatureAvailable('HIDE_ADS')): ?>
+                                            &nbsp;&nbsp;<span data-toggle="tooltip" title="<?php echo SG_SILVER_TOOLTIP_TEXT?>" class="badge sg-badge-warning" target-url="<?php echo SG_BACKUP_SITE_PRICING_URL?>"><?php echo SG_BADGE_SILVER_PLUS_TEXT?></span>
+                                        <?php endif; ?>
                                     </label>
+                                    <div class="col-md-3 pull-right text-right">
+                                        <label class="sg-switch-container">
+                                            <input type="checkbox" name="sg-hide-ads" sgFeatureName="HIDE_ADS" class="sg-switch" <?php echo $isDisabelAdsEnabled?'checked="checked"':''?>>
+                                        </label>
+                                    </div>
                                 </div>
-                            </div>
+                            <?php endif; ?>
 
                             <div class="form-group">
                                 <label class="col-md-5 sg-control-label" for='sg-paths-to-exclude'><?php echo _backupGuardT("Exclude paths (separated by commas)")?></label>
@@ -167,7 +170,7 @@ $sgBackgroundReloadMethod = SGConfig::get('SG_BACKGROUND_RELOAD_METHOD');
                             </div>
 
                             <div class="form-group">
-                                <label class="col-md-5 sg-control-label" for='sg-background-reload-method'><?php echo _backupGuardT("Background reload method")?></label>
+                                <label class="col-md-5 sg-control-label" for='sg-background-reload-method'><?php echo _backupGuardT("Rreload method")?></label>
                                 <div class="col-md-5 pull-right text-right">
                                     <select class="form-control" id='sg-background-reload-method' name='sg-background-reload-method'>
                                         <option value="<?php echo SG_RELOAD_METHOD_CURL ?>" <?php echo $sgBackgroundReloadMethod == SG_RELOAD_METHOD_CURL ? "selected" : "" ?> >Curl</option>

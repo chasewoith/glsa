@@ -157,6 +157,14 @@ When you are facing an issue of any kind with any of our products, the first thi
 
 == Changelog ==
 
+= 1.1.57 =
+* UI improvements
+* BackupGuard seal widget added
+
+= 1.1.56 =
+* BackupGuard UI improvements
+* Minor bug fixes and improvements
+
 = 1.1.55 =
 * cURL & Stream supported for external restoration
 * Conflicts were resolved with update checker

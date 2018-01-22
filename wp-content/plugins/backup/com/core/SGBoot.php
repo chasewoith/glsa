@@ -15,6 +15,7 @@ require_once(SG_CORE_PATH.'SGConfig.php');
 require_once(SG_NOTICE_PATH.'SGNotice.php');
 require_once(SG_NOTICE_PATH.'SGNoticeHandler.php');
 @include_once(SG_BACKUP_PATH.'SGBackupSchedule.php');
+@include_once(SG_WIDGET_PATH.'SGWordPressWidget.php');
 
 class SGBoot
 {
@@ -51,6 +52,21 @@ class SGBoot
 		catch (SGException $exception) {
 			die($exception);
 		}
+	}
+
+	public static function didInstallForFirstTime()
+	{
+		self::setPluginInstallUpdateDate();
+	}
+
+	public static function didUpdatePluginVersion()
+	{
+		self::setPluginInstallUpdateDate();
+	}
+
+	public static function setPluginInstallUpdateDate()
+	{
+		SGConfig::set('SG_PLUGIN_INSTALL_UPDATE_DATE', time());
 	}
 
 	private static function installConfigTable($sgdb)

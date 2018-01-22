@@ -130,6 +130,9 @@ $downloadUrl = admin_url('admin-post.php?action=backup_guard_downloadBackup&');
             </div>
         </fieldset>
     </div>
-    <?php require_once(SG_PUBLIC_INCLUDE_PATH.'/footer.php'); ?>
+    <?php
+        require_once(SG_PUBLIC_INCLUDE_PATH.'/footer.php');
+        backupGuardgetSealPopup();
+    ?>
 </div>
 <div class="clearfix"></div>

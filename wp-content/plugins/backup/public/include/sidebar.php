@@ -29,9 +29,6 @@
         <ul>
             <li class="title">
                 <a class="sg-site-url" target="_blank" href="<?php echo SG_BACKUP_SITE_URL;?>"></a>
-                <div id="sg-product-name-div">
-                    Package: BackupGuard <?php echo backupGuardGetProductName(); ?>
-                </div>
             </li>
             <li class="<?php echo strpos($page,'backups')?'active':''?>">
                 <a href="<?php echo network_admin_url('admin.php?page=backup_guard_backups'); ?>">

@@ -16,6 +16,7 @@ sgBackup.initGeneralSettingsSwitchButtons = function() {
                     jQuery('.sg-general-settings').fadeToggle();
                 }
                 else {
+                    jQuery('.alert').remove();
                     var alert = sgBackup.alertGenerator(response.error, 'alert-warning');
                     jQuery('.sg-settings-container legend').after(alert);
                     jQuery('.sg-email-switch').bootstrapSwitch('state', false);
@@ -45,6 +46,7 @@ sgBackup.initGeneralSettingsSwitchButtons = function() {
             isFeatureAvailable.callback = function(response) {
                 if (state) {
                     if (typeof response.error !== 'undefined') {
+                        jQuery('.alert').remove();
                         var alert = sgBackup.alertGenerator(response.error, 'alert-warning');
                         jQuery('.sg-settings-container legend').after(alert);
                         jQuery(that).bootstrapSwitch('state', false);
