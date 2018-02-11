@@ -3,7 +3,7 @@
 Plugin Name: PDF Forms Filler for Contact Form 7
 Plugin URI: https://github.com/maximum-software/wpcf7-pdf-forms
 Description: Create Contact Form 7 forms from PDF forms.  Get <strong>PDF forms filled automatically</strong> and <strong>attached to email messages</strong> upon form submission on your website.  Uses <a href="https://pdf.ninja">Pdf.Ninja</a> API for working with PDF files.  See <a href="https://youtu.be/e4ur95rER6o">How-To Video</a> for a demo.
-Version: 0.3.3
+Version: 0.4.0
 Author: Maximum.Software
 Author URI: https://maximum.software/
 Text Domain: wpcf7-pdf-forms
@@ -17,7 +17,7 @@ if( ! class_exists( 'WPCF7_Pdf_Forms' ) )
 {
 	class WPCF7_Pdf_Forms
 	{
-		const VERSION = '0.3.3';
+		const VERSION = '0.4.0';
 		
 		private static $instance = null;
 		private $pdf_ninja_service = null;
@@ -309,7 +309,7 @@ if( ! class_exists( 'WPCF7_Pdf_Forms' ) )
 			$this->post_update_pdf( $post_id, $attachment_id, $options );
 		}
 		
-		private static $pdf_options = array('skip_empty' => false, 'attach_to_mail_1' => true, 'attach_to_mail_2' => false );
+		private static $pdf_options = array('skip_empty' => false, 'attach_to_mail_1' => true, 'attach_to_mail_2' => false, 'flatten' => false );
 		
 		/**
 		 * Updates post attachment options
@@ -519,6 +519,13 @@ if( ! class_exists( 'WPCF7_Pdf_Forms' ) )
 				if( !$mail && !$mail2 )
 					continue;
 				
+				$options = array();
+				
+				$options['flatten'] =
+					isset($attachment['options']) &&
+					isset($attachment['options']['flatten']) &&
+					$attachment['options']['flatten'] == true;
+				
 				$filepath = get_attached_file( $attachment_id );
 				$destfile = self::create_wpcf7_tmp_filepath( basename( $filepath ) );
 				
@@ -527,7 +534,7 @@ if( ! class_exists( 'WPCF7_Pdf_Forms' ) )
 					$service = $this->get_service();
 					$filled = false;
 					if( $service && count( $data ) > 0 )
-						$filled = $service->api_fill( $destfile, $attachment_id, $data );
+						$filled = $service->api_fill( $destfile, $attachment_id, $data, $options );
 					if( ! $filled )
 						copy( $filepath, $destfile );
 					$files[] = array( 'file' => $destfile, 'mail' => $mail, 'mail2' => $mail2 );
@@ -1160,6 +1167,7 @@ if( ! class_exists( 'WPCF7_Pdf_Forms' ) )
 					'skip-when-empty' => esc_html__( 'Skip when empty', 'wpcf7-pdf-forms' ),
 					'attach-to-mail-1' => esc_html__( 'Attach to primary email message', 'wpcf7-pdf-forms' ),
 					'attach-to-mail-2' => esc_html__( 'Attach to secondary email message', 'wpcf7-pdf-forms' ),
+					'flatten' => esc_html__( 'Flatten', 'wpcf7-pdf-forms' ),
 					'field-mapping' => esc_html__( 'Input Field Mapper Tool (simple)', 'wpcf7-pdf-forms' ),
 					'pdf-field' => esc_html__( 'PDF field', 'wpcf7-pdf-forms' ),
 					'cf7-field' => esc_html__( 'CF7 field', 'wpcf7-pdf-forms' ),
