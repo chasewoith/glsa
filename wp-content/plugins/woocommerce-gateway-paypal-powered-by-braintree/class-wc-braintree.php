@@ -88,7 +88,7 @@ class WC_Braintree extends WC_Braintree_Framework\SV_WC_Payment_Gateway_Plugin {
 
 
 	/** plugin version number */
-	const VERSION = '2.1.0';
+	const VERSION = '2.1.1';
 
 	/** @var WC_Braintree single instance of this plugin */
 	protected static $instance;

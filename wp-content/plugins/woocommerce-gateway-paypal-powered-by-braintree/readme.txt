@@ -2,8 +2,8 @@
 Contributors: automattic, akeda, allendav, royho, slash1andy, woosteve, spraveenitpro, mikedmoore, fernashes, shellbeezy, danieldudzic, dsmithweb, fullysupportedphil, corsonr, zandyring, skyverge
 Tags: ecommerce, e-commerce, commerce, woothemes, wordpress ecommerce, store, sales, sell, shop, shopping, cart, checkout, configurable, paypal, braintree
 Requires at least: 4.4
-Tested up to: 4.9.1
-Stable tag: 2.1.0
+Tested up to: 4.9.2
+Stable tag: 2.1.1
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -121,6 +121,9 @@ New feature requests and bugs reports can be made in the plugin forum.
 7. Checkout with PayPal or credit / debit cards.
 
 == Changelog ==
+
+= 2.1.1 =
+* Fix - Fix the payment form JavaScript compatibility with IE 11
 
 = 2.1.0 =
 * Feature - Upgrade to the latest Braintree JavaScript SDK for improved customer experience, reliability, and error handling
