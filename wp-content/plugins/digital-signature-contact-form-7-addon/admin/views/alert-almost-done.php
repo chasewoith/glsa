@@ -4,7 +4,7 @@
         	<div class="esig-alert">
             	<span class="icon-esig-alert"></span>
             </div>
-		   <h3><?php _e('Almost there... you\'re 50% complete','esig-nf'); ?></h3>
+		   <h3><?php _e('Almost there... you\'re 50% complete','esig-cf7'); ?></h3>
 		   
 		   <p class="esig-updater-text"><?php 
 		   
@@ -19,7 +19,7 @@
 		   
 		   
 		  <?php _e('Congrats on setting up your document! You\'ve got part 1 of 2 complete! Now you need to
-          head over to the "Form Settings" tab for the Cladera Form you are trying to connect it to.' ,'esig-nf'); ?> </p>
+          head over to the "Form Settings" tab for the Contact Form 7 you are trying to connect it to.' ,'esig-cf7'); ?> </p>
 		</div>
         
 
@@ -28,8 +28,8 @@
         
         <div class="esig-updater-button">
 
-		  <span> <a href="#" class="button esig-secondary-btn"  id="esig-cf7-setting-later"> <?php _e('I\'LL DO THIS LATER','esig-nf');?> </a></span>
-                  <span> <a href="?page=wpcf7&post=<?php echo $data['formid']; ?>&action=edit" class="button esig-dgr-btn" id="esig-cf7-lets-go"> <?php _e('LET\'S GO NOW!','esig-nf');?> </a></span>
+		  <span> <a href="#" class="button esig-secondary-btn"  id="esig-cf7-setting-later"> <?php _e('I\'LL DO THIS LATER','esig-cf7');?> </a></span>
+                  <span> <a href="?page=wpcf7&post=<?php echo $data['formid']; ?>&action=edit" class="button esig-dgr-btn" id="esig-cf7-lets-go"> <?php _e('LET\'S GO NOW!','esig-cf7');?> </a></span>
 
 		</div>
 

@@ -1,0 +1,6 @@
+Plugin Name -- contact-form-7-digital-signature
+Text domain -- cf7-wpesignature
+Function prefix -- cf7-wpesignature
+Class prefix - n/a
+Root namespace -- n/a
+Filter Prefix -- n/a

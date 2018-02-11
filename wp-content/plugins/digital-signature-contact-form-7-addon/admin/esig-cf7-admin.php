@@ -131,8 +131,17 @@ if (!class_exists('ESIG_CF7_Admin')) :
 
         public function confige_validte($contact_form) {
 
+            
             $content = ESIG_POST('wpcf7-form');
-            $signer_name = strpos($content, ESIG_POST('settings_signer_name'));
+            
+            list($firstName)= explode(" ",ESIG_POST('settings_signer_name'),2);
+            if(!empty($firstName)){
+            $signer_name = strpos($content,$firstName);
+            }
+            else {
+                $signer_name=false;
+            }
+            
             $signer_email = strpos($content, ESIG_POST('settings_signer_email_address'));
             $http_referer = ESIG_POST('_wp_http_referer');
             $enableEsignature = ESIG_POST('settings_enable_esignature');
@@ -204,27 +213,47 @@ if (!class_exists('ESIG_CF7_Admin')) :
             }
         }
 
+        /**
+         * Get full name from 
+         * @param type $legalName
+         * @return string
+         */
+        
+        private function getFullName($legalName) {
+            
+            $nameArray = explode(" ", $legalName);
+            $signerName = "";
+            foreach ($nameArray as $key => $name) {
+                if ($key == 0) {
+                    $signerName .= ESIG_POST($name);
+                } else {
+                    $signerName .= " " . ESIG_POST($name);
+                }
+            }
+            return $signerName;
+        }
+
         public function esig_cf7_processing($contact_form) {
 
-             if (!function_exists('WP_E_Sig')){
-                 return;
-             }
-                
+            if (!function_exists('WP_E_Sig')) {
+                return;
+            }
+
 
             $sad = new esig_sad_document();
             $form_id = $contact_form->id();
 
             $cf7_settings = self::get_cf7_settings($form_id);
 
-            $enableEsign = esigget('settings_enable_esignature',$cf7_settings);
-            if(!$enableEsign){
+            $enableEsign = esigget('settings_enable_esignature', $cf7_settings);
+            if (!$enableEsign) {
                 return;
             }
 
             $legalName = $cf7_settings['settings_signer_name'];
             $legalEmail = $cf7_settings['settings_signer_email_address'];
 
-            $signer_name = ESIG_POST($legalName);
+            $signer_name = $this->getFullName($legalName);
             $signer_email = ESIG_POST($legalEmail);
 
             $signing_logic = $cf7_settings['signing_logic'];
@@ -699,6 +728,8 @@ if (!class_exists('ESIG_CF7_Admin')) :
         }
 
     }
+
+    
 
     
 

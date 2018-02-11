@@ -22,7 +22,7 @@
                     </th>
                     <td>
                         <input name="settings_signer_name" type="text" id="settings-signer-name"  value="<?php echo $signer_name; ?>"  placeholder="<?php _e('Name or fields', 'esig'); ?>">
-                        <span class="howto">Select the name field from your Contact Form 7. This field is what the signers full name will be on their WP E-Signature contract.</span>
+                        <span class="howto">Select the name field from your Contact Form 7. This field is what the signers full name will be on their WP E-Signature contract. You can add first name and last name separated by space.</span>
                         <?php
                         if (ESIG_GET('signer_error') == "error") {
                             echo "<font color=red>Please input correct signer name field</font>";
