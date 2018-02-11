@@ -157,6 +157,10 @@ When you are facing an issue of any kind with any of our products, the first thi
 
 == Changelog ==
 
+= 1.1.58 =
+* Restore related bug was resolved
+* Minor bug fixes and improvements
+
 = 1.1.57 =
 * UI improvements
 * BackupGuard seal widget added

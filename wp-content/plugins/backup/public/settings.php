@@ -170,7 +170,7 @@ $sgBackgroundReloadMethod = SGConfig::get('SG_BACKGROUND_RELOAD_METHOD');
                             </div>
 
                             <div class="form-group">
-                                <label class="col-md-5 sg-control-label" for='sg-background-reload-method'><?php echo _backupGuardT("Rreload method")?></label>
+                                <label class="col-md-5 sg-control-label" for='sg-background-reload-method'><?php echo _backupGuardT("Reload method")?></label>
                                 <div class="col-md-5 pull-right text-right">
                                     <select class="form-control" id='sg-background-reload-method' name='sg-background-reload-method'>
                                         <option value="<?php echo SG_RELOAD_METHOD_CURL ?>" <?php echo $sgBackgroundReloadMethod == SG_RELOAD_METHOD_CURL ? "selected" : "" ?> >Curl</option>

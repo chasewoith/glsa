@@ -15,7 +15,6 @@ require_once(SG_CORE_PATH.'SGConfig.php');
 require_once(SG_NOTICE_PATH.'SGNotice.php');
 require_once(SG_NOTICE_PATH.'SGNoticeHandler.php');
 @include_once(SG_BACKUP_PATH.'SGBackupSchedule.php');
-@include_once(SG_WIDGET_PATH.'SGWordPressWidget.php');
 
 class SGBoot
 {

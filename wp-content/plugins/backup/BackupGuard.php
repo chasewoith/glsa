@@ -3,9 +3,11 @@
 // hook to wordpres widget
 function backup_guard_register_widget()
 {
-	if (class_exists('SGWordPressWidget')) {
-		register_widget('SGWordPressWidget');
+	if (!class_exists('SGWordPressWidget')) {
+		@include_once(SG_WIDGET_PATH.'SGWordPressWidget.php');
 	}
+
+	register_widget('SGWordPressWidget');
 }
 add_action('widgets_init', 'backup_guard_register_widget');
 
