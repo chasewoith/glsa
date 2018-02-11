@@ -43,9 +43,11 @@
             $('.esig-error-box').remove();
         }
 
+        
         // validation for same email address . 
-        if (typeof cc_users_email_duplicate !== 'undefined' && $.isFunction(cc_users_email_duplicate)) {
-            if ($.fn.cc_users_email_duplicate('#esig-signer-edit-wrapper', '#esig-signer-edit-wrapper .error12'))
+        //if (typeof cc_users_email_duplicate !== 'undefined' && $.isFunction(cc_users_email_duplicate)) {
+            
+            if (esign.ccValidate('#esig-signer-edit-wrapper', '#esig-signer-edit-wrapper .error12'))
             {
                 return false;
             } else
@@ -53,7 +55,7 @@
                 // saving removed any error msg 
                 $('.esig-error-box').remove();
             }
-        }
+       // }
 
 
 

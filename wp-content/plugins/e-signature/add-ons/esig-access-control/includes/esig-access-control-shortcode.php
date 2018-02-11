@@ -3,7 +3,7 @@
 /**
  *
  * @package ESIG_ACCESS_CONTROL_Shortcode 
- * @author  Abu Shoaib <abushoaib73@gmail.com>
+ * @author  Abu Shoaib 
  */
 if (!class_exists('ESIG_ACCESS_CONTROL_Shortcode')) :
 
@@ -13,8 +13,9 @@ if (!class_exists('ESIG_ACCESS_CONTROL_Shortcode')) :
 
             add_action('wp_enqueue_scripts', array($this, 'enqueue_admin_styles'));
             add_shortcode("esig-doc-dashboard", array($this, "esig_doc_dashboard"));
-            add_action('esig_document_complate', array($this, 'esig_sad_document_complate'), 9, 1);
-
+            //add_action('esig_document_complate', array($this, 'esig_sad_document_complate'), 9, 1);
+            add_action('esig_signature_saved', array($this, 'esig_sad_document_complate'), -99999, 1);
+            
             add_filter("esig_sad_legal_fname", array(__CLASS__, "sad_legal_fname"));
             add_filter("esig_sad_legal_email_address", array(__CLASS__, "sad_legal_email_address"));
         }
@@ -54,7 +55,10 @@ if (!class_exists('ESIG_ACCESS_CONTROL_Shortcode')) :
 
         public function esig_sad_document_complate($args) {
 
-            $old_document_id = $args['sad_doc_id'];
+            $old_document_id = esigget('sad_doc_id',$args); //$args['sad_doc_id'];
+            if(!$old_document_id){
+                return;
+            }
 
             $new_document_id = $args['invitation']->document_id;
 
@@ -197,7 +201,7 @@ if (!class_exists('ESIG_ACCESS_CONTROL_Shortcode')) :
 
         public static function esig_doc_dashboard11($document_id, $access_control) {
 
-            $api = new WP_E_Api();
+            $api = WP_E_Sig();
 
             $html = '<script type="text/javascript" src="' . ESIGN_AC_URL . '/assets/js/esig-access-control-shortcode.js" > </script> ';
 

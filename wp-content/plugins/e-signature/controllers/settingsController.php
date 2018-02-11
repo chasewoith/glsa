@@ -393,7 +393,7 @@ class WP_E_SettingsController extends WP_E_appController {
             
             // set this user as admin 
             $this->user->updateField($userID, 'is_admin', '1');
-            $this->view->setAlert(array('type' => 'e-sign-alert esig-updated', 'title' => '', 'message' => __('<strong>Well done sir</strong> :  Your E-Signature settings have been updated!', 'esig')));
+            $this->view->setAlert(array('type' => 'e-sign-alert esig-updated', 'title' => '', 'message' => __('<strong>Well done! </strong>   Your E-Signature settings have been updated!', 'esig')));
         }
 
         foreach ($userdata as $field => $value) {

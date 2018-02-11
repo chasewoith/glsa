@@ -40,7 +40,7 @@ class WP_E_Document extends WP_E_Model {
         // getting dcrypted document content. 
         $dcrypted_content = $this->signature->decrypt(ENCRYPTION_KEY, $document->document_content);
         $document_content = do_shortcode($dcrypted_content);
-
+        
 
         delete_option('esig_global_document_id');
         return apply_filters('esignature_content', $document_content, $document_id);
@@ -604,7 +604,7 @@ class WP_E_Document extends WP_E_Model {
         $document_checksum = sha1($new_doc_id . $document_content);
         $setting = new WP_E_Setting();
         $pageID = $setting->get('default_display_page');
-        $document_uri = get_site_url() . "/?page_id=" . $pageID . "&docid=" . $new_doc_id . "&csum=" . $document_checksum;
+        $document_uri = home_url() . "/?page_id=" . $pageID . "&docid=" . $new_doc_id . "&csum=" . $document_checksum;
 
         $affected = $this->wpdb->query(
                 $this->wpdb->prepare(
@@ -661,7 +661,7 @@ class WP_E_Document extends WP_E_Model {
         $notify = isset($post['notify']) ? 1 : 0;
         $add_signature = isset($post['add_signature']) ? 1 : 0;
 
-        $document_type = 'normal';
+        $document_type = isset($post['document_type']) ? $post['document_type'] : 'normal';
         $document_status = $post['document_action'] == 'save' ? 'draft' : 'pending';
         $document_hash = ""; // !- Hasing Algorithm needed
         $last_modified = $this->esig_date($post['document_id']);
@@ -669,7 +669,7 @@ class WP_E_Document extends WP_E_Model {
         
         $document_content_encrpt = esigStripTags(stripslashes($post['document_content']), 'form');  // Or shortcodes won't work
        
-        $documentContentFilter=apply_filters("esig_document_content",$document_content_encrpt);
+        $documentContentFilter= apply_filters("esig_document_content",$document_content_encrpt,$post['document_id']);
         
         $document_content = $this->signature->encrypt(ENCRYPTION_KEY, $documentContentFilter);
         
@@ -753,7 +753,7 @@ class WP_E_Document extends WP_E_Model {
         $setting = new WP_E_Setting();
         $pageID = $setting->get('default_display_page');
 
-        $document_uri = get_site_url() . "/?page_id=" . $pageID . "&docid=" . $doc_id . "&csum=" . $document_checksum;
+        $document_uri = home_url() . "/?page_id=" . $pageID . "&docid=" . $doc_id . "&csum=" . $document_checksum;
 
         $affected = $this->wpdb->query(
                 $this->wpdb->prepare(
@@ -855,6 +855,18 @@ class WP_E_Document extends WP_E_Model {
         return $this->wpdb->query(
                         $this->wpdb->prepare(
                                 "DELETE FROM " . $this->table . " WHERE document_status='trash' AND document_id=%d", $id
+                        )
+        );
+    }
+    /**
+     * Delete all events associated with a document id. 
+     * @param type $id
+     * @return type
+     */
+    public function deleteEvents($id) {
+        return $this->wpdb->query(
+                        $this->wpdb->prepare(
+                                "DELETE FROM " . $this->eventsTable . " WHERE document_id=%d", $id
                         )
         );
     }

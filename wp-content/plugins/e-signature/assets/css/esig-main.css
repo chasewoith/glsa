@@ -79,3 +79,8 @@ a:focus, a:hover {
 .bottomMargin {
     margin-bottom: 10px !important;
 }
+
+
+input[type=checkbox], input[type=radio] {
+   margin: 4px 7px !important;  
+}

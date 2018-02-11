@@ -183,8 +183,7 @@ function init_wp_e_signature() {
 }
 
 function esign_after_install() {
-    global $pagenow;
-
+    
     if (!is_admin())
         return;
 

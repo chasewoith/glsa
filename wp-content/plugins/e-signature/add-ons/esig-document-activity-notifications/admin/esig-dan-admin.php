@@ -3,7 +3,7 @@
 /**
  *
  * @package ESIG_DAN_Admin
- * @author  Abu Shoaib <abushoaib73@gmail.com>
+ * @author  Abu Shoaib
  */
 if (!class_exists('ESIG_DAN_Admin')) :
 
@@ -238,16 +238,9 @@ if (!class_exists('ESIG_DAN_Admin')) :
             );
 
 
-            $notify_template = dirname(__FILE__) . '/views/notify.php';
-            // $signed_message = WP_E_Sig()->view->renderPartial('', $template_data, false, '', $notify_template);
-
+           
             $subject = __("Document Viewed:","esig") . $document->document_title;
 
-            // send Email
-            //$email = new WP_E_Email();
-           
-            
-            // $mailsent = WP_E_Sig()->email->esig_mail($sender, $owner->user_email, $owner->user_email, $subject, $signed_message);
             $mailsent = WP_E_Sig()->email->send(array(
                 'from_name' => $sender, // Use 'posts' to get standard post objects
                 'from_email' => $owner->user_email,

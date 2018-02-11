@@ -7,11 +7,7 @@
  * URI:        https://approveme.com/wp-digital-e-signature
  * Description:       The second layer verification feature allows you (the document sender) to create a manual access code that you will provide to your signers.  The signer will manually enter the code when they get their email invite and will then create a unique password which will be required moving forward when they acccess their document.
  * mini-description  receive email notifications with document activity
-<<<<<<< HEAD
- * Version:           1.5.1
-=======
- * Version:           1.5.0.2
->>>>>>> 13d8cc50221f2cb8e86cd37efe6bc5066804ec09
+ * Version:           1.5.3.0
  * Author:            Approve Me
  * Author URI:      https://approveme.com/
  * Documentation:   http://aprv.me/1OlEsdV

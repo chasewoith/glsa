@@ -45,12 +45,25 @@ function esig_run_post_actions() {
 
 add_action('init', 'esig_run_post_actions');
 
-function esig_remove_shortcodes($content) {
+function esig_remove_shortcodes($content,$documentId) {
 
     return esig_strip_shortcodes($content);
 }
 
-add_filter("esig_document_content", "esig_remove_shortcodes", 10, 1);
+add_filter("esig_document_content", "esig_remove_shortcodes", 10, 2);
+
+function esig_remove_other_shortcodes($content,$documentId) {
+    
+    $documentType = WP_E_Sig()->document->getDocumenttype($documentId);
+    
+   /* if($documentType != "normal"){
+        return $content;
+    }*/
+    
+    return esig_strip_other_shortcodes($content);
+}
+
+add_filter("esig_document_content", "esig_remove_other_shortcodes", 9, 2);
 
 
 add_action('esig_footer', 'enqueue_expired_scripts');

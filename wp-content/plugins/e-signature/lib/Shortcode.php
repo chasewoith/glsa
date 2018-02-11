@@ -111,14 +111,14 @@ class WP_E_Shortcode {
 
             if (empty($invite_hash) || empty($checksum)) {
 
-                if (get_transient('esig_current_url')) {
+               /* if (get_transient('esig_current_url')) {
 
                     $current_url = get_transient('esig_current_url');
                     delete_transient('esig_current_url');
 
                     wp_redirect($current_url);
                     exit;
-                }
+                }*/
 
                 $esigPreview = esigget('esigpreview');
                 if ($esigPreview) {
@@ -187,7 +187,7 @@ class WP_E_Shortcode {
 
 
             // for pdmi bug added this tra
-            set_transient('esig_current_url', esc_url_raw($_SERVER['REQUEST_URI']));
+           // set_transient('esig_current_url', esc_url_raw($_SERVER['REQUEST_URI']));
             // increase execution time 
             @ini_set('max_execution_time', 300);
 
@@ -359,9 +359,7 @@ class WP_E_Shortcode {
         // $signed_message = $this->view->renderPartial('document_signed', $template_data, false, 'notifications/admin');
 
         $subject = sprintf(__("%s - Signed by %s %s", "esig"), $document->document_title, $this->user->get_esig_signer_name($recipient->user_id, $document->document_id), $recipient->user_email);
-        // $subject = "{$document->document_title} - Signed by {$recipient->first_name} ({$recipient->user_email})";
-        // send Email
-        // $mailsent = $this->email->esig_mail($sender, $owner->user_email, $owner->user_email, $subject, $signed_message, $attachments);
+       
 
         $mailsent = WP_E_Sig()->email->send(array(
             'from_name' => $sender, // Use 'posts' to get standard post objects
@@ -554,12 +552,16 @@ class WP_E_Shortcode {
                     'recipient' => $recipient,
                     'invitation' => $invitation,
                 ));
+                
+               // do_action('esig_agreement_signed_by_all_party',$document_id);
+                
+                $document = $this->document->getDocument($document_id);
+                 
                 // getting attachment 
                 $attachments = apply_filters('esig_email_pdf_attachment', array('document' => $document));
                 $audit_hash = $this->auditReport($document_id, $document, true);
 
                 if (is_array($attachments) || empty($attachments)) {
-
                     $attachments = false;
                 }
                 // Email all signers

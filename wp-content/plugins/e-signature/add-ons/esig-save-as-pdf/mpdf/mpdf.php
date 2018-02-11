@@ -11825,6 +11825,15 @@ class mPDF
 					$data = @file_get_contents($fullPath);
 					$type = $this->_imageTypeFromString($data);
 				}	
+				if (!$data && !$type){
+				$link_image = wp_make_link_relative($orig_srcpath);
+				$imagePath = "/home/djjoltco/public_html/".$link_image;
+	
+				if(file_exists($imagePath)){
+					$data = @file_get_contents($imagePath);
+					$type = $this->_imageTypeFromString($data);
+				}
+				}
 			}
 			// custome edit end here 
 			

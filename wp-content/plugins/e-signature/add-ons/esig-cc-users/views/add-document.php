@@ -78,16 +78,13 @@ if (Cc_Settings::is_cc_enabled($document_id)) {
                     <?php
                 }
 
-                /*  $html .='<div class="esig-cc-container">
-
-                  <a href="#" id="add-esig-cc">' . __('+ CC', 'esig') . '</a>
-                  </div>';
-
-                  echo $html; */
+              
                 ?>
                 </div>
             </div>   
-        </div>    
+        </div>
+        
+        <div id="error" style="display: none;"></div>
 
         <div class="row topMargin bottomMargin">
             <div class="col-sm-12">

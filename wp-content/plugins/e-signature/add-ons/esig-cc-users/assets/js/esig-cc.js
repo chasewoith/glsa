@@ -211,7 +211,7 @@
             {
 
                 $('.esig-error-box').remove();
-                $(esigError).append('<span class="esig-error-box">*A Full name including your first and last name is required.</span>');
+                $(esigError).append('<span class="esig-error-box">*A full name including your first and last name is required. (number and special character is not valid)</span>').show();
                 return true;
             }
         }
@@ -234,7 +234,7 @@
                 // remove previous error msg 
                 $('.esig-error-box').remove();
                 // add new error msg 
-                $(esigError).append('<span class="esig-error-box">*You must fill CC email address.</span>');
+                $(esigError).append('<span class="esig-error-box">*You must fill CC email address.</span>').show();
                 return true;
             }
         }
@@ -253,7 +253,7 @@
 
             $('.esig-error-box').remove();
 
-            $(esigError).append('<span class="esig-error-box"> *You can not use CC duplicate email address.</span>');
+            $(esigError).append('<span class="esig-error-box"> *You can not use CC duplicate email address.</span>').show();
 
             return true;
         }

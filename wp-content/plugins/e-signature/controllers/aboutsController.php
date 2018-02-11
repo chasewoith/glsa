@@ -45,8 +45,7 @@ class WP_E_aboutsController extends WP_E_appController {
     }
 
     public function systeminfo($data_return = false) {
-        global $wpdb;
-
+      
         $template_data = array();
 
         if (count($_POST) > 0) {
@@ -150,7 +149,7 @@ class WP_E_aboutsController extends WP_E_appController {
         }
         global $wpdb;
         $table = $wpdb->prefix . 'esign_documents_stand_alone_docs';
-        $default_page = array();
+        
         if ($wpdb->get_var("SHOW TABLES LIKE '$table'") == $table) {
             $sad_page_id = $wpdb->get_col("SELECT page_id FROM {$table}");
 

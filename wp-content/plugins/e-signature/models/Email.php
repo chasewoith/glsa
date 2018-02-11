@@ -107,8 +107,8 @@ class WP_E_Email extends WP_E_Model {
         if ($from_email == '') {
             $from_email = $esig_options['from_email_field'];
         }
-        
-        $newSubject='=?UTF-8?B?'.base64_encode($subject).'?=';
+
+        $newSubject = '=?UTF-8?B?' . base64_encode($subject) . '?=';
 
         if (empty($esig_options['enable']) || $esig_options['enable'] != 'yes') {
 
@@ -143,6 +143,8 @@ class WP_E_Email extends WP_E_Model {
         /* Set the SMTPSecure value, if set to none, leave this blank */
         if ($esig_options['smtp_settings']['type_encryption'] != 'none') {
             $mail->SMTPSecure = $esig_options['smtp_settings']['type_encryption'];
+            $options = array();
+            $mail->SMTPOptions = apply_filters("esig_smtp_connection_options", $options);
         }
 
         /* Set the other options */
@@ -150,7 +152,7 @@ class WP_E_Email extends WP_E_Model {
         $mail->Port = $esig_options['smtp_settings']['port'];
         $mail->SetFrom($from_email, $from_name);
         $mail->isHTML(true);
-        $mail->Subject =$newSubject;//utf8_decode($subject);
+        $mail->Subject = $newSubject; //utf8_decode($subject);
         $mail->MsgHTML($message);
         $mail->AddAddress($to_email);
 
@@ -215,6 +217,9 @@ class WP_E_Email extends WP_E_Model {
         if ($esig_options['smtp_settings']['type_encryption'] != 'none') {
 
             $mail->SMTPSecure = $esig_options['smtp_settings']['type_encryption'];
+
+            $options = array();
+            $mail->SMTPOptions = apply_filters("esig_smtp_connection_options", $options);
         }
 
         /* Set the other options */

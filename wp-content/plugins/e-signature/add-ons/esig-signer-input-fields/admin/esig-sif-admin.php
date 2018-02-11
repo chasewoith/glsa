@@ -306,6 +306,7 @@ if (!class_exists('ESIG_SIF_Admin')) :
          * @return    null    Return early if no settings page is registered.
          */
         public function enqueue_admin_scripts() {
+            
             $screen = get_current_screen();
             $current = $screen->id;
             // Show if we're adding or editing a document

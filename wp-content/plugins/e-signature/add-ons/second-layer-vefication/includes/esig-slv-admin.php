@@ -3,7 +3,7 @@
 /**
  *
  * @package ESIG_SLV_Admin
- * @author  Abu Shoaib <abushoaib73@gmail.com>
+ * @author  Abu Shoaib
  */
 if (!class_exists('ESIG_SLV_Admin')) :
 

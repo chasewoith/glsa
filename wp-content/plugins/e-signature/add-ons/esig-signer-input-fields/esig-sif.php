@@ -7,7 +7,7 @@
  * URI:        https://approveme.com/wp-digital-e-signature
  * Description:       This add-on makes it easy to add "initial here" text fields, address information, radio boxes, checkboxes, calendar dates or just about anything else on your documents.
  * mini-description insert text fields, radio buttons, checkboxes, calendars and more
- * Version:           1.5.1
+ * Version:           1.5.3.0
  * Author:            Approve Me
  * Documentation:     https://aprv.me/28xCm10
  * Author URI:        http://approveme.com/

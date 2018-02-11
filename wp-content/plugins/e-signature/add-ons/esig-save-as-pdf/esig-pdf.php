@@ -7,11 +7,7 @@
  * URI:        https://approveme.com/wp-digital-e-signature
  * Description:       This add-on gives you the ability to add a "Save Document" button to your signed documents which generates a downloadable PDF of your document.
  * mini-description save documents as a PDF
-<<<<<<< HEAD
- * Version:           1.5.1
-=======
- * Version:           1.5.0.2
->>>>>>> 13d8cc50221f2cb8e86cd37efe6bc5066804ec09
+ * Version:           1.5.3.0
  * Author:            Approve Me
  * Author URI:        https://approveme.com/
  * Documentation:     http://aprv.me/24Mh4rM

@@ -226,7 +226,7 @@ class WP_E_Signature extends WP_E_Model {
         $newdoc = new WP_E_Document();
         $date = $newdoc->esig_date();
 
-        $salt = hash('sha1', mcrypt_create_iv(32, MCRYPT_DEV_URANDOM)); // 40 chars
+        $salt = hash('sha1', openssl_random_pseudo_bytes(32,$this->cryptoStrong)); // 40 chars
 
         $signature_hash = hash('sha256', $signatureJSON);
 
@@ -412,6 +412,19 @@ class WP_E_Signature extends WP_E_Model {
         return $this->wpdb->get_results(
                         $this->wpdb->prepare(
                                 "SELECT * FROM " . $this->table . " s JOIN " . $this->joinTable . " j ON s.signature_id = j.signature_id AND document_id=%d", $documentID
+                        )
+        );
+    }
+    
+     /**
+     * Delete signature join with document id. 
+     * @param type $id
+     * @return type
+     */
+    public function deleteJoins($id) {
+        return $this->wpdb->query(
+                        $this->wpdb->prepare(
+                                "DELETE FROM " . $this->joinTable . " WHERE document_id=%d", $id
                         )
         );
     }

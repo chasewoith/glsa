@@ -296,7 +296,7 @@ class TCPDF2DBarcode {
 				if (!isset($mode[1]) OR (!in_array($mode[1],array('L','M','Q','H')))) {
 					$mode[1] = 'L'; // Ddefault: Low error correction
 				}
-				$qrcode = new QRcode($code, strtoupper($mode[1]));
+				$qrcode = new esigQRcode($code, strtoupper($mode[1]));
 				$this->barcode_array = $qrcode->getBarcodeArray();
 				$this->barcode_array['code'] = $code;
 				break;

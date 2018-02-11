@@ -6,7 +6,7 @@
  * Plugin Name:       WP E-Signature - CC Users
  * URI:        http://approveme.com/wp-digital-e-signature
  * Description:       This feature let's you easily CC (or carbon copy) recipients on a Document without requiring their legal signature.  Access is given to the cc'd user at the time the document is closed.
- * Version:           1.5.1
+ * Version:           1.5.3.0
  * Author:            Approve Me
  * Author URI:        http://approveme.com/
  * Documentation:     http://aprv.me/1Ymfe0F
@@ -18,7 +18,7 @@ if ( ! defined( 'WPINC' ) ) {
 }
 
 // define constants 
-define('ESIGN_CC_VERSION','1.5.1');
+define('ESIGN_CC_VERSION','1.5.3');
 define('ESIGN_CC_PATH',  dirname(__FILE__));
 define('ESIGN_CC_URL',  plugins_url("",__FILE__));
 

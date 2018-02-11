@@ -91,18 +91,18 @@ class Esign_core_load {
             $about->index();
         } elseif (!$user->checkEsigAdmin($wpid) && $user->getUserTotal() > 0) {
 
-            $admin_user_id = $setting->get_generic('esig_superadmin_user');
+           // $admin_user_id = $setting->get_generic('esig_superadmin_user');
 
-            $user_details = get_userdata($admin_user_id);
+           //$user_details = get_userdata($admin_user_id);
 
-            $esig_admin = '<div class="esig-updated" style="padding: 11px;width: 515px;margin-top: 17px;">' . __('Super admin is', 'esig') . ' : <span>' . esc_html($user_details->display_name) . '-<a href="mailto:' . $user_details->user_email . '">' . __('Send an email', 'esig') . '</a></span></div>';
+           // $esig_admin = '<div class="esig-updated" style="padding: 11px;width: 515px;margin-top: 17px;">' . __('Your Super admin is currently', 'esig') . ' : <span>' . esc_html($user_details->display_name) . '-<a href="mailto:' . $user_details->user_email . '">' . __('Send an email', 'esig') . '</a></span></div>';
 
             // Currently only administrators have access to this plugin
             $settings = new WP_E_SettingsController();
 
             $data = array(
                 "feature" => __('Multiple Users', 'esig'),
-                "esig_user_role" => $esig_admin,
+               // "esig_user_role" => $esig_admin,
             );
 
             if (current_user_can('manage_options')) {

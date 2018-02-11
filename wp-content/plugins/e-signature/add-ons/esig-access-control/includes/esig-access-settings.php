@@ -69,7 +69,7 @@ class Access_Control_Setting {
         if (self::this_document_signed($document_id)) {
             return;
         }
-
+     
         return ESIG_ACCESS_CONTROL_Shortcode::esig_doc_dashboard11($document_id, $meta);
     }
 
@@ -133,9 +133,7 @@ class Access_Control_Setting {
 
     public static function is_all_sad_signed($document_id) {
 
-        $api = new WP_E_Api();
-
-        $docutmet_status = $api->document->getStatus($document_id);
+        $docutmet_status = WP_E_Sig()->document->getStatus($document_id);
 
         if ($docutmet_status == "stand_alone") {
 

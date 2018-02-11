@@ -647,14 +647,14 @@ class WP_E_DocumentsController extends WP_E_appController {
 
 
             // If owner has signed, add their signature.
-           /* if ($doc->add_signature) {
-                try {
-                    $signature = $this->signature->getSignatureData($doc->user_id);
-                    $join_id = $this->signature->join($doc->document_id, $signature->signature_id);
-                } catch (Exception $e) {
-                    
-                }
-            }*/
+            /* if ($doc->add_signature) {
+              try {
+              $signature = $this->signature->getSignatureData($doc->user_id);
+              $join_id = $this->signature->join($doc->document_id, $signature->signature_id);
+              } catch (Exception $e) {
+
+              }
+              } */
 
             // all invitations sent, set status to awaiting from pending.
             if ($doc->document_status == "pending") {
@@ -1000,6 +1000,16 @@ class WP_E_DocumentsController extends WP_E_appController {
             $meta = new WP_E_Meta();
             $meta->delete_all($id);
             esignSifData::deleteValue($id);
+            // delete all invitation associated with this document. 
+            $this->invitation->deleteDocumentInvitations($id);
+            // delete all events associated with this document. 
+            $this->model->deleteEvents($id);
+            // delete all signers info associated with this document. 
+             $signer_obj = new WP_E_Signer();
+             $signer_obj->delete($id);
+            // Delete all signature join with document
+             $this->signature->deleteJoins($id);
+            
             wp_redirect("admin.php?page=esign-docs&document_status=trash&message=delete_success");
         } else {
             wp_redirect("admin.php?page=esign-docs&document_status=trash&message=delete_fail");
@@ -1066,7 +1076,14 @@ class WP_E_DocumentsController extends WP_E_appController {
             $result = $this->model->updateStatus($document_id, "awaiting");
             wp_redirect("admin.php?page=esign-docs&message=new_success");
         } else {
-            wp_redirect("admin.php?page=esign-docs");
+            $callBackUrl = esigget("callBackUrl");
+            if ($callBackUrl) {
+                wp_redirect($callBackUrl . "&action=edit&esig_s=success");
+                exit;
+            } else {
+                wp_redirect("admin.php?page=esign-docs");
+                exit;
+            }
         }
     }
 

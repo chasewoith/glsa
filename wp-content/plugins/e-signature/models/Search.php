@@ -72,10 +72,14 @@ class WP_E_Search extends WP_E_Model
                 if($this->is_sa_search())
                 {
                    
-                      $docs=$this->wpdb->get_results($this->wpdb->prepare("SELECT ". $this->table .".document_id,". $this->table .".user_id,".$this->table .".document_title,". $this->table .".document_status,". $this->table .".document_type,". $this->table .".date_created,". $this->table .".last_modified FROM " . $this->table . " LEFT JOIN ". $this->usertable ." ON ". $this->table .".document_id =". $this->usertable .".document_id "
+                      /*$docs=$this->wpdb->get_results($this->wpdb->prepare("SELECT ". $this->table .".document_id,". $this->table .".user_id,".$this->table .".document_title,". $this->table .".document_status,". $this->table .".document_type,". $this->table .".date_created,". $this->table .".last_modified FROM " . $this->table . " LEFT JOIN ". $this->usertable ." ON ". $this->table .".document_id =". $this->usertable .".document_id "
                               . "WHERE ". $this->usertable .".signer_name LIKE '%s' and ". $this->table .".document_status='%s' "
                               . "OR ". $this->table .".document_status ='%s' and ". $this->table .".document_title LIKE '%s' LIMIT %d,%d",$search,$document_status,$document_status,$search,$offset,$limit));
-                        
+                       */
+                      $docs=$this->wpdb->get_results($this->wpdb->prepare("SELECT ". $this->table .".document_id,". $this->table .".user_id,".$this->table .".document_title,". $this->table .".document_status,". $this->table .".document_type,". $this->table .".date_created,". $this->table .".last_modified FROM " . $this->table . " LEFT JOIN ". $this->usertable ." ON ". $this->table .".document_id =". $this->usertable .".document_id "
+                              . "WHERE ". $this->usertable .".signer_name LIKE '%s' and ". $this->table .".document_status='%s' "
+                              . "OR ". $this->table .".document_status ='%s' and ". $this->table .".document_title LIKE '%s' GROUP BY ". $this->table .".document_id LIMIT %d,%d",$search,$document_status,$document_status,$search,$offset,$limit));
+                     
                 }
                 else
                 {
@@ -108,7 +112,7 @@ class WP_E_Search extends WP_E_Model
                 {
                      $docs=$this->wpdb->get_results($this->wpdb->prepare("SELECT ". $this->table .".document_id,".$this->table .".document_title FROM " . $this->table . " LEFT JOIN ". $this->usertable ." ON ". $this->table .".document_id =". $this->usertable .".document_id "
                               . "WHERE ". $this->usertable .".signer_name LIKE %s and ". $this->table .".document_status=%s "
-                              . "OR ". $this->table .".document_status =%s and ". $this->table .".document_title LIKE %s",$search,$document_status,$document_status,$search));
+                              . "OR ". $this->table .".document_status =%s and ". $this->table .".document_title LIKE %s GROUP BY ". $this->table .".document_id",$search,$document_status,$document_status,$search));
                     
                 }
                 else

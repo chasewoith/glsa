@@ -214,9 +214,9 @@ class WP_E_General extends WP_E_Model {
     public function esig_requirement() {
 
         $msg = '';
-        if (!function_exists('mcrypt_create_iv')) {
+        /*if (!function_exists('mcrypt_create_iv')) {
             $msg .=__('Hey There! WP eSignature requires MCrypt to be installed on your server in order to work properly. MCrypt is often installed on most web hosts by default. For some reason your current hosting provider does not have MCrypt installed. Please contact your hosting provider and request they install MCrypt on your server so you can save a ton of time and money by signing documents using WordPress.-<a href="http://php.net/manual/en/mcrypt.requirements.php" target="_blank">Install Now</a>', 'esig');
-        }
+        }*/
         if (get_bloginfo('version') < 3.6) {
 
             $msg .=__('<strong>Wordpress Update Required:</strong> Your wordpress installation is currently out of date . Wp E-signature requires version 3.6 or greater to work properly.<a href="http://wordpress.org">Update Now</a>', 'esig');

@@ -81,6 +81,11 @@ class WP_E_AuditTrail {
         }
 
         $dfc = md5($sting_to_hash);
+        $string = filter_var($dfc, FILTER_SANITIZE_NUMBER_INT);
+        if (strlen($string) > 25) {
+            $sting_to_hash = $user_id . '+' . $document_id . '+' . $sig_data->signature_data;
+            $dfc = md5($sting_to_hash);
+        }
 
         if (strpos($dfc, "abc") !== false) {
 
