@@ -7,7 +7,7 @@
  * URI:        https://approveme.com/wp-digital-e-signature
  * Description:       Allows you to create stand alone documents which anyone can sign.
  * mini-description create a public facing document and automate the eSignature collection process
- * Version:           1.5.2.2
+ * Version:           1.5.3.0
  * Author:            Approve Me
  * Author URI:        https://approveme.com/
  * Documentation:     http://aprv.me/1OlEhPL
@@ -25,7 +25,7 @@ if ( ! defined( 'WPINC' ) ) {
 if(class_exists( 'WP_E_Addon' ))
 {
 	$esign_addons= new WP_E_Addon();
-	$esign_addons->esign_update_check('63','1.5.2.2');
+	$esign_addons->esign_update_check('63','1.5.3.0');
 }
 
 

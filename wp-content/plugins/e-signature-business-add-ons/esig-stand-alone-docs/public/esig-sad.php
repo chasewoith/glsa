@@ -62,7 +62,7 @@ class ESIG_SAD {
         add_filter('the_content', array($this, 'profile_data_on_sad_documents'), 10, 1);
         add_shortcode('wp_e_signature_sad', array($this, 'display_document'), 9);
 
-        add_action('esig_signature_saved', array($this, 'signature_saved'));
+
 
         add_action('esig_document_after_delete', array($this, 'sad_permanent_delete'), 20, 1);
 
@@ -271,7 +271,7 @@ class ESIG_SAD {
                 exit;
             }
             if (!$api->validation->esig_valid_fullName(ESIG_POST('recipient_first_name'))) {
-                $api->notice->set('e-sign-red-alert', 'A Full name including your first and last name is required to sign this document.');
+                $api->notice->set('e-sign-red-alert', 'A full name including your first and last name is required to sign this document.');
                 wp_redirect(esc_url($_SERVER['HTTP_HOST'] . $_SERVER["REQUEST_URI"]));
                 exit;
             }
@@ -294,10 +294,6 @@ class ESIG_SAD {
             }
 
             /* esignature validation */
-
-            global $wpdb;
-
-            $doc_table = $api->document->table_prefix . 'documents';
             $old_doc_id = $doc_id;
             $old_doc = $api->document->getDocument($old_doc_id);
 
@@ -307,6 +303,8 @@ class ESIG_SAD {
             $doc_id = $api->document->copy($old_doc_id);
 
             $old_doc_timezone = $api->document->esig_get_document_timezone($old_doc_id);
+
+           
 
             // save new doc timezone 
             $main_api->meta->add($doc_id, 'esig-timezone-document', $old_doc_timezone);
@@ -329,14 +327,6 @@ class ESIG_SAD {
 
             $doc = $api->document->getDocument($doc_id);
 
-            // trigger an action after document save .
-            do_action('esig_sad_document_after_save', array(
-                'document' => $doc,
-                'old_doc_id' => $old_doc_id,
-                'signer_id' => $recipient['id'],
-            ));
-
-
             // Get Owner
             $owner = $api->user->getUserByID($doc->user_id);
 
@@ -348,7 +338,7 @@ class ESIG_SAD {
                 "document_id" => $doc_id,
                 "document_title" => $doc->document_title,
                 "sender_name" => $owner->first_name . ' ' . $owner->last_name,
-                "sender_email" => $owner->user_email,
+                "sender_email" => esigget("user_email", $owner),
                 "sender_id" => 'stand alone',
                 "document_checksum" => $doc->document_checksum,
                 "sad_doc_id" => $old_doc_id,
@@ -356,6 +346,17 @@ class ESIG_SAD {
             $invite_controller = new WP_E_invitationsController;
             $invitation_id = $invite_controller->save($invitation);
             $invite_hash = $api->invite->getInviteHash($invitation_id);
+            
+            
+
+           
+
+            // trigger an action after document save .
+            do_action('esig_sad_document_after_save', array(
+                'document' => $doc,
+                'old_doc_id' => $old_doc_id,
+                'signer_id' => $recipient['id'],
+            ));
 
             // Create the signature
             //$signature_id = $api->signature->add(
@@ -392,29 +393,11 @@ class ESIG_SAD {
             $event_text = sprintf(__("Document signed by %s - %s IP %s", 'esig'), $recipient['first_name'], $recipient['user_email'], esig_get_ip());
             $api->document->recordEvent($doc_id, 'document_signed', $event_text);
 
-            // Update the recipient's first and last name
-            /*if (!empty($_POST['recipient_first_name'])) {
-                $f_name = $_POST['recipient_first_name'];
-            } else {
-                $f_name = "";
-            }
-            if (!empty($_POST['recipient_last_name'])) {
-                $l_name = $_POST['recipient_last_name'];
-            } else {
-                $l_name = "";
-            }*/
-            // updating recipient first and last name
-            //$api->user->updateField($recipient['id'], "first_name", trim($f_name));
-            //$api->user->updateField($recipient['id'], "last_name", trim($l_name));
-
 
             $recipient_obj = $api->user->getUserByID($recipient['id']);
 
 
-
             $invitation = $api->invite->getInviteBy('invite_hash', $invite_hash);
-
-
 
             // sad print option settings 
 
@@ -430,12 +413,16 @@ class ESIG_SAD {
                 'post_fields' => $_POST,
                 'sad_doc_id' => $old_doc_id
             ));
+            
+             //Fire this action on end of the all signing operation to render all shortcode
+            do_action('esig_agreement_cloned_from_stand_alone', $doc_id);
 
             $allSigned = WP_E_Sig()->document->getSignedresult($doc_id);
             // close this document . 	
             //$api->document->recordEvent($doc_id, 'all_signed', null, null);
             // Update the document's status to signed
             if ($allSigned) {
+
                 $api->document->updateStatus($doc_id, "signed");
                 $event_text = __("The document has been signed by all parties and is now closed.", 'esig');
                 $api->document->recordEvent($doc_id, 'all_signed', $event_text, null);
@@ -451,6 +438,10 @@ class ESIG_SAD {
                 'post_fields' => $_POST,
                 'sad_doc_id' => $old_doc_id
             ));
+
+
+            //grab doc again after singing 
+         //   $doc = $api->document->getDocument($doc_id);
 
 
             $attachments = apply_filters('esig_email_pdf_attachment', array('document' => $doc));
@@ -585,11 +576,6 @@ class ESIG_SAD {
             }
         }
         return $template_data;
-    }
-
-    public function signature_saved($args) {
-
-        global $wpdb;
     }
 
     /**

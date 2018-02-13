@@ -7,7 +7,7 @@
  * URI:        https://approveme.com/wp-digital-e-signature
  * Description:       Automatically attach a PDF of the completed document to email that gets sent to all signing parties.  
  * mini-description  attach the completed and signed PDF to your emails
- * Version:           1.5.2.2
+ * Version:           1.5.3.0
  * Author:            Approve Me
  * Author URI:        https://approveme.com/
  * License/Terms & Conditions: https://www.approveme.com/terms-conditions/
@@ -22,7 +22,7 @@ if (!defined('WPINC')) {
 
 if (class_exists('WP_E_Addon')) {
     $esign_addons = new WP_E_Addon();
-    $esign_addons->esign_update_check('6170', '1.5.2.2');
+    $esign_addons->esign_update_check('6170', '1.5.3.0');
 }
 
 define("ESIG_ATTACH_PDF_PATH",  dirname(__FILE__));

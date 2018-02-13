@@ -7,7 +7,7 @@
  * Plugin URI:        https://approveme.com/wp-digital-e-signature
  * Description:       Allows you to add Signer order (or an approval signer) to your documents and contracts.
  * mini-description  assign the signer order for your documents 
- * Version:           1.5.2.2
+ * Version:           1.5.3.0
  * Author:            Approve Me
  * Author URI:        https://approveme.com/
  * Documentation:     http://aprv.me/235bv8I
@@ -25,7 +25,7 @@ define('ESIGN_SIGNER_ORDER_PATH', dirname(__FILE__));
 
 if (class_exists('WP_E_Addon')) {
     $esign_addons = new WP_E_Addon();
-    $esign_addons->esign_update_check('7881', '1.5.2.2');
+    $esign_addons->esign_update_check('7881', '1.5.3.0');
 }
 
 

@@ -145,7 +145,7 @@
         if (!esign.isFullName(name)) {
             $('input[name="name"]').focus().css('border', '1px solid red');
             if (!$("#legal-name-validation").hasClass('validation')) {
-                $("#sad-invite-name").parent().after("<div id='legal-name-validation' class='validation' style='color:red;margin-bottom:10px'>A Full name including your first and last name is required to send this contract.</div>");
+                $("#sad-invite-name").parent().after("<div id='legal-name-validation' class='validation' style='color:red;margin-bottom:10px'>A full name including your first and last name is required to send this contract.</div>");
             }
             return false;
         }

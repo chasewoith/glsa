@@ -3,7 +3,7 @@
 /**
  *
  * @package ESIG_APS_Admin
- * @author  Abu Shoaib <abushoaib73@gmail.com>
+ * @author  Abu Shoaib 
  */
 if (!class_exists('ESIG_ASSIGN_APPROVAL_SIGNER_Admin')) :
 

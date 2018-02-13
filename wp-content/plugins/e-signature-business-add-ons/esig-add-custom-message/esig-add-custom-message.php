@@ -8,7 +8,7 @@
  * Plugin URI:        https://approveme.com/wp-digital-e-signature
  * Description:       Add Custom Message to Signature invitation email .
  * mini-description:  add custom message to your email
- * Version:           1.5.2.2
+ * Version:           1.5.3.0
  * Author:            Approve Me
  * Author URI:        https://approveme.com/
  */
@@ -22,7 +22,7 @@ if ( ! defined( 'WPINC' ) ) {
 if(class_exists( 'WP_E_Addon' ))
 {
 	$esign_addons= new WP_E_Addon();
-	$esign_addons->esign_update_check('7878','1.5.2.2');
+	$esign_addons->esign_update_check('7878','1.5.3.0');
 }
 
 require_once( dirname( __FILE__ ) . '/admin/esig-add-custom-message.php' );

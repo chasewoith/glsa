@@ -8,7 +8,7 @@
  * URI:        https://approveme.com/wp-digital-e-signature
  * Description:       This automation add-on sends signing reminder emails to your signers if they have not signed your agreement in the timeframe you define. You can set it to expire after a specific number of days. 
  * mini-description send signing reminder emails
- * Version:           1.5.2.2
+ * Version:           1.5.3.0
  * Author:            Approve Me
  * Author URI:        https://approveme.com/
  * Documentation:     http://aprv.me/1U4hWmH
@@ -24,7 +24,7 @@ if(class_exists( 'WP_E_Addon' ))
 {
 	$esign_addons= new WP_E_Addon();
 
-	$esign_addons->esign_update_check('4326','1.5.2.2');
+	$esign_addons->esign_update_check('4326','1.5.3.0');
 }   
 
 /*----------------------------------------------------------------------------*

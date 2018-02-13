@@ -3,7 +3,7 @@
 /**
  *
  * @package ESIG_ASO_Admin
- * @author  Abu Shoaib <abushoaib73@gmail.com>
+ * @author  Abu Shoaib 
  */
 if (!class_exists('ESIG_ASSIGN_ORDER_Admin')) :
 
@@ -331,7 +331,7 @@ if (!class_exists('ESIG_ASSIGN_ORDER_Admin')) :
             }
             
              
-            $protected_documents = '<span id="esign-signer-order-temp" ' . $display . '><input type="checkbox" id="esign-assign-signer-order-temp" name="esign-assign-signer-order-temp"  value="1">' . __('Assign signer order', 'esig_order') . '</span>';
+            $protected_documents = '<div class="checkbox leftPadding" id="esign-signer-order-temp" ' . $display . '><label ><input type="checkbox" id="esign-assign-signer-order-temp" name="esign-assign-signer-order-temp"  value="1">' . __('Assign signer order', 'esig_order') . '</label></div>';
             return $protected_documents;
         }
 

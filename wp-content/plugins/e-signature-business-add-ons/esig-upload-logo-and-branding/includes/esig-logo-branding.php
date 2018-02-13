@@ -2,7 +2,7 @@
 /**
  * 
  * @package ESIG_AAMS
- * @author  Approve me <abushoaib73@gmail.com>
+ * @author  Approve me
  */
 if (!class_exists('ESIG_LOGO_BRANDING')) :
 class ESIG_LOGO_BRANDING {

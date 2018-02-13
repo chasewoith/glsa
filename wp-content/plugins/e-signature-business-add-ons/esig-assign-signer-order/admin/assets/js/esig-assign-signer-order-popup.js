@@ -208,7 +208,7 @@
             if (blank)
             {
                 $('.esig-error-box').remove();
-                $('#recipient_approval_signer').closest('div').parent().parent().after('<div class="row esig-error-box">*A Full name including your first and last name is required to send this contract.</div>');
+                $('#recipient_approval_signer').closest('div').parent().parent().after('<div class="row esig-error-box">*A full name including your first and last name is required to send this contract.</div>');
                 return true;
             }
         }

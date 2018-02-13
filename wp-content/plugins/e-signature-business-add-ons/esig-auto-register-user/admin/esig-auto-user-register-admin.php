@@ -3,7 +3,7 @@
 /**
  *
  * @package ESIG_AUTO_REGISTER_Admin
- * @author  Abu Shoaib <abushoaib73@gmail.com>
+ * @author  Abu Shoaib 
  */
 if (!class_exists('ESIG_AUTO_REGISTER_Admin')) :
 

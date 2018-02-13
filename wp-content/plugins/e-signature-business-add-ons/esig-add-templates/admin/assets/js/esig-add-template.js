@@ -29,7 +29,7 @@
         }
 
         var html = '<div class="row topPadding bottomPadding" id="signer_main_temp">' +
-                '<div class="col-sm-5 noPadding"><input class="form-control esig-input" type="text" name="recipient_fnames[]"  placeholder="Signers Name"  /></div>' +
+                '<div class="col-sm-5 leftPadding"><input class="form-control esig-input" type="text" name="recipient_fnames[]"  placeholder="Signers Name"  /></div>' +
                 '<div class="col-sm-5 noPadding leftPadding-5"><input class="form-control esig-input" type="text" name="recipient_emails[]"  placeholder="email@address.com" value="" /></div>' +
                 '<div class="col-sm-2 noPadding text-left">' + slv + '<span id="esig-del-signer" class="deleteIcon"></span></div></div>';
 
@@ -319,7 +319,7 @@
             if (blank)
             {
                 $('#standard_view_popup_bottom .invitations-container .esig-error-box').remove();
-                $('#standard_view_popup_bottom .invitations-container').after('<div class="row esig-error-box"><div class="col-md-12">*A Full name including your first and last name is required.</span></div></div>');
+                $('#standard_view_popup_bottom .invitations-container').after('<div class="row esig-error-box"><div class="col-md-12">*A full name including your first and last name is required.</span></div></div>');
                 return true;
             }
         }

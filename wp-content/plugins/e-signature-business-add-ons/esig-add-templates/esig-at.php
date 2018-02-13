@@ -7,7 +7,7 @@
  * Plugin URI:        https://approveme.com/wp-digital-e-signature
  * Description:       This powerful add-on makes it possible to create a new document based on a re-usable document template. Gone are the days of creating a new document every single time for a similar contract.
  * mini-description  create reusable templates
- * Version:           1.5.2.2
+ * Version:           1.5.3.0
  * Author:            Approve Me
  * Author URI:        https://approveme.com/
  * Documentation:     http://aprv.me/1OlEp1D
@@ -28,7 +28,7 @@ define('ESIGN_TEMP_BASE_URL', plugins_url("/", __FILE__));
 if(class_exists( 'WP_E_Addon' ))
 {
 	$esign_addons= new WP_E_Addon();
-	$esign_addons->esign_update_check('3912','1.5.2.2');
+	$esign_addons->esign_update_check('3912','1.5.3.0');
 
 }
 

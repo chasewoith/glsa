@@ -7,7 +7,7 @@
  * Plugin URI:        https://www.approveme.com/wp-digital-e-signature
  * Description:       This add-on automatically subscribes (and tags) your signers to this powerful email marketing software which lets your create custom email sequences for your signers.
  * mini-description:  connect with your Active Campaign CRM
- * Version:           1.5.2.2
+ * Version:           1.5.3.0
  * Author:            Approve Me
  * AuthorURI:        https://approveme.com/
  * Documentation:   http://aprv.me/1NE59p3
@@ -24,7 +24,7 @@ if ( ! defined( 'WPINC' ) ) {
 if(class_exists( 'WP_E_Addon' ))
 {
 	$esign_addons= new WP_E_Addon();
-	$esign_addons->esign_update_check('3491','1.5.2.2');
+	$esign_addons->esign_update_check('3491','1.5.3.0');
 }
 
 

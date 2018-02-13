@@ -30,7 +30,8 @@ $WPuser = $user->getUserByWPID($wp_user_id);
             <div align="center" class="row auto-signature-pad" style="max-width: 700px;">
                                 <div class="col-sm-12">
                                     <?php
-                                    $sig_data = $signature->getSignatureData($WPuser->user_id);
+                                    $signatureId = $settings->get('esig-admin-signature-id-'.$wp_user_id);
+                                    $sig_data = $signature->signatureData($signatureId);
 
                                     $signature_type = $sig_data->signature_type;
 

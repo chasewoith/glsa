@@ -3,7 +3,7 @@
 /*
   Plugin Name: WP E-Signature Business add-ons
   Description: Legally sign and collect signatures on documents, contracts, proposals, estimates and more using WP E-Signature.
-  Version: 1.5.2.2
+  Version: 1.5.3.0
   Author: Approve Me
   Author URI: https://www.approveme.com
   Contributors: Kevin Michael Gray, Micah Blu, Michael Medaglia, Abu Shoaib, Earl Red, Pippin Williamson

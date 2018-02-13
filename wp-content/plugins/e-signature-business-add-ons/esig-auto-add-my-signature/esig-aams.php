@@ -7,7 +7,7 @@
  * URI:        https://approveme.com/wp-digital-e-signature
  * Description:       This add-on makes it possible to automatically add your saved legal signature to any document you create with a simple tick of a button.
  * mini-description auto attach your signature to a document
- * Version:           1.5.2.2
+ * Version:           1.5.3.0
  * Author:            Approve Me
  * Author URI:        https://approveme.com/
  * Documentation:     http://aprv.me/1XSqWlx
@@ -23,7 +23,7 @@ if (!defined('WPINC')) {
 
 if (class_exists('WP_E_Addon')) {
     $esign_addons = new WP_E_Addon();
-    $esign_addons->esign_update_check('4073', '1.5.2.2');
+    $esign_addons->esign_update_check('4073', '1.5.3.0');
 }
 
 

@@ -117,11 +117,7 @@ style="color:#cccccc;background-color:#cccccc;min-height:1px;border:none">
   <![if !mso]>
   <table cellspacing="0" cellpadding="0"> <tr> 
   <td align="center" width="150" height="50" bgcolor="<?php echo $background_color ;  ?>" style="color: #ffffff; display: block;">
-    <a href="<?php echo $data['invite_url']; ?>" style="font-size:14px; font-weight: bold; font-family:sans-serif; text-decoration: none; line-height:40px; width:100%; display:inline-block">
-    <span style="color: #ffffff;">
-      <?php _e('Review &amp; Sign', 'esig' );?>
-    </span>
-    </a>
+    <a href="<?php echo $data['invite_url']; ?>" style="font-size:14px; font-weight: bold; font-family:sans-serif; text-decoration: none; line-height:40px; width:100%; display:inline-block"><span style="color: #ffffff;"><?php _e('Review &amp; Sign', 'esig' );?></span></a>
   </td> 
   </tr> </table> 
   <![endif]>

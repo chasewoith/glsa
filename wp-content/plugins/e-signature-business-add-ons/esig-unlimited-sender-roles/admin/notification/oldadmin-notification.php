@@ -26,7 +26,7 @@ style="background-color:#efefef;margin:0;padding:0;font-family:'HelveticaNeue',A
                     <td style="font-family:'HelveticaNeue',Arial,Helvetica,sans-serif;font-size:14px;line-height:1.4em;border-collapse:collapse"
                       align="left" width="100%">
                       <div style="margin:0 0 20px 0">
-                        <div style="text-align:left">
+                        <div style="text-align:center">
                           <?php echo $data['esig_logo']; ?>
                         </div>
                         <p style="margin:5px 0 0 0;color:#666">
@@ -81,13 +81,13 @@ Neue',Arial,Helvetica,sans-serif;font-size:14px;line-height:1.4em;border-collaps
                     <td style="padding:0px 12px 0px
                       0px;vertical-align:top;font-family:'Helvetica
 Neue',Arial,Helvetica,sans-serif;font-size:12px;line-height:1.4em;border-collapse:collapse;color:#555"
-                      align="left"> <br>
+                      align="center"> <br>
                     </td>
                     <td style="padding:0px 0px 0px
                       0px;vertical-align:top;font-family:'Helvetica
 Neue',Arial,Helvetica,sans-serif;font-size:12px;line-height:1.4em;border-collapse:collapse;color:#555"
                       align="left"> <a href="https://approveme.com" target="_blank"><img
-src="<?php echo ESIGN_ASSETS_DIR_URI; ?>/images/approveme-badge.png"
+src="<?php echo ESIGN_ASSETS_DIR_URI; ?>/images/verified-email.jpg"
                               alt="WP E-Signature" border="0" style="width: 175px;margin-top: -8px;" class="emailClass"
                               height="49" width="154"></a><br>
                     </td>

@@ -8,7 +8,7 @@
  * URI:        https://approveme.com/wp-digital-e-signature
  * Description:       This add-on let's you redirect signers to a url of your choice after they successfully sign your agreement. 
  * mini-description redirect a signer to a specific url after signing
- * Version:           1.5.2.2
+ * Version:           1.5.3.0
  * Author:            Approve Me
  * Author URI:        https://approveme.com/
  * Documentation:     http://aprv.me/1rlXfKN
@@ -23,7 +23,7 @@ if (!defined('WPINC')) {
 
 if (class_exists('WP_E_Addon')) {
     $esign_addons = new WP_E_Addon();
-    $esign_addons->esign_update_check('65', '1.5.2.2');
+    $esign_addons->esign_update_check('65', '1.5.3.0');
 }
 
 /* ----------------------------------------------------------------------------*

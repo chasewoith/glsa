@@ -7,7 +7,7 @@
  * URI:        https://approveme.com/wp-digital-e-signature
  * Description:       This powerful add-on generates in real-time a PDF of your signed document and automatically (some might say magically) syncs the signed document with your Dropbox account.
  * mini-description sync PDF's of your signed documents in your Dropbox account
- * Version:           1.5.2.2
+ * Version:           1.5.3.0
  * Author:            Approve Me
  * Author URI:        http://approveme.com/
  * Documentation:     https://aprv.me/1tmwxTB
@@ -28,7 +28,7 @@ if (!defined('ESIGN_DS_PLUGIN_PATH'))
 
 if (class_exists('WP_E_Addon')) {
     $esign_addons = new WP_E_Addon();
-    $esign_addons->esign_update_check('69', '1.5.2.2');
+    $esign_addons->esign_update_check('69', '1.5.3.0');
 }
 
 /* ----------------------------------------------------------------------------*
