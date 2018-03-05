@@ -7,6 +7,7 @@ class SGReloadHandler
 	private $scheme;
 	private $port;
 	private $reloadMethod;
+	private $selectedReloadMethod;
 
 	public function __construct($url)
 	{
@@ -14,6 +15,8 @@ class SGReloadHandler
 		$this->url = $url;
 		$this->port = @$_SERVER['SERVER_PORT'];
 		$this->scheme = backupGuardGetCurrentUrlScheme();
+
+		$this->selectedReloadMethod = SGConfig::get('SG_BACKGROUND_RELOAD_METHOD');
 
 		if (!$this->port) {
 			$this->port = 80;
@@ -48,23 +51,56 @@ class SGReloadHandler
 	public function setBestReloadMethod()
 	{
 		$method = SG_RELOAD_METHOD_NONE;
-		if (function_exists('curl_version')) {
-			$method = SG_RELOAD_METHOD_CURL;
+		if ($this->selectedReloadMethod) {
+			if ($this->selectedReloadMethod == SG_RELOAD_METHOD_CURL) {
+				if (function_exists('curl_version')) {
+					$method = SG_RELOAD_METHOD_CURL;
+				}
+				else {
+					$method = $this->getBestAvailableMethod();
+				}
+			}
+			elseif ($this->selectedReloadMethod == SG_RELOAD_METHOD_STREAM) {
+				if ($this->testStreamConnection()) {
+					$method = SG_RELOAD_METHOD_STREAM;
+				}
+				else {
+					$method = $this->getBestAvailableMethod();
+				}
+			}
+			elseif ($this->selectedReloadMethod == SG_RELOAD_METHOD_SOCKET && $this->testSocketConnection()) {
+				if ($this->testSocketConnection()) {
+					$method = SG_RELOAD_METHOD_SOCKET;
+				}
+				else {
+					$method = $this->getBestAvailableMethod();
+				}
+			}
 		}
-		else if ($this->testStreamConnection()) {
-			$method = SG_RELOAD_METHOD_STREAM;
-		}
-		else if ($this->testSocketConnection()) {
-			$method = SG_RELOAD_METHOD_SOCKET;
+		else {
+			$method = $this->getBestAvailableMethod();
 		}
 
 		$this->reloadMethod = $method;
 	}
 
+	private function getBestAvailableMethod()
+	{
+		if (function_exists('curl_version')) {
+			return SG_RELOAD_METHOD_CURL;
+		}
+		elseif ($this->testStreamConnection()) {
+			return SG_RELOAD_METHOD_STREAM;
+		}
+		elseif ($this->testSocketConnection()) {
+			return SG_RELOAD_METHOD_SOCKET;
+		}
+
+		return SG_RELOAD_METHOD_NONE;
+	}
+
 	private function reloadUsingStream()
 	{
-		//$this->reloadUsingSocket();
-		//return;
 		$transport = $this->scheme=='http'?'tcp':'ssl';
 		$addr = $this->host;
 
@@ -94,23 +130,13 @@ class SGReloadHandler
 
 	private function reloadUsingCurl()
 	{
-		// $this->reloadUsingStream();
-		// return;
-
 		$url = $this->scheme.'://'.$this->host.$this->url."&method=".SG_RELOAD_METHOD_CURL;
-		// if (strpos($url, '?action=backup_guard_manualBackup')===FALSE) {
-		// 	$url .= '?action=backup_guard_manualBackup';
-		// }
 
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $url);
-		//curl_setopt($ch, CURLOPT_HEADER, TRUE);
-		//curl_setopt($ch, CURLOPT_FOLLOWLOCATION, TRUE);
+		curl_setopt($ch, CURLOPT_HTTPGET, true);
 		curl_setopt($ch, CURLOPT_WRITEFUNCTION, 'doNothing');
-		//curl_setopt($ch, CURLOPT_TIMEOUT_MS, 10);
-		//curl_setopt($ch, CURLOPT_NOSIGNAL, 1);
-		//curl_setopt($ch, CURLOPT_POST, TRUE);
-		//curl_setopt($ch, CURLOPT_POSTFIELDS, 'action=backup_guard_manualBackup');
+		curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/602.4.8 (KHTML, like Gecko) Version/10.0.3 Safari/602.4.8');
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
 		curl_exec($ch);
 		curl_close($ch);

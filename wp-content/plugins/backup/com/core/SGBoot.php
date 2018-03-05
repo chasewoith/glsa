@@ -53,6 +53,21 @@ class SGBoot
 		}
 	}
 
+	public static function didInstallForFirstTime()
+	{
+		self::setPluginInstallUpdateDate();
+	}
+
+	public static function didUpdatePluginVersion()
+	{
+		self::setPluginInstallUpdateDate();
+	}
+
+	public static function setPluginInstallUpdateDate()
+	{
+		SGConfig::set('SG_PLUGIN_INSTALL_UPDATE_DATE', time());
+	}
+
 	private static function installConfigTable($sgdb)
 	{
 		//drop config table
@@ -80,6 +95,7 @@ class SGBoot
 			('SG_BACKUP_WITH_RELOADINGS', '1'),
 			('SG_BACKUP_SYNCHRONOUS_STORAGE_UPLOAD','1'),
 			('SG_NOTIFICATIONS_ENABLED','0'),
+			('SG_SHOW_STATISTICS_WIDGET','1'),
 			('SG_NOTIFICATIONS_EMAIL_ADDRESS',''),
 			('SG_STORAGE_BACKUPS_FOLDER_NAME','sg_backups');"
 		);

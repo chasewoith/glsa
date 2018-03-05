@@ -29,6 +29,14 @@
 	<script src="<?php echo get_template_directory_uri(); ?>/js/html5.js"></script>
 	<![endif]-->
 	<?php wp_head(); ?>
+	<script type='text/javascript'>
+(function (d, t) {
+  var bh = d.createElement(t), s = d.getElementsByTagName(t)[0];
+  bh.type = 'text/javascript';
+  bh.src = 'https://www.bugherd.com/sidebarv2.js?apikey=2kifkhezb6yqs1ue6jbobg';
+  s.parentNode.insertBefore(bh, s);
+  })(document, 'script');
+</script>
 </head>
 
 <body <?php body_class(); ?>>

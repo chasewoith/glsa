@@ -188,6 +188,7 @@ function backupGuardShouldUpdate()
 
     if ($currentVersion !== $oldVersion) {
         SGConfig::set('SG_BACKUP_GUARD_VERSION', $currentVersion, true);
+        SGBoot::didUpdatePluginVersion();
         return SG_FORCE_DB_TABLES_RESET;
     }
 
@@ -211,7 +212,8 @@ function backupGuardLoggedMessage()
     }
 
     $html = '<span class="bg-logged-msg-container">';
-    $html .= 'Welcome, <b>'.$user['firstname'].'</b>! ';
+    $html .= 'Package: '.backupGuardGetProductName();
+    $html .= ' | Welcome, <b>'.$user['firstname'].'</b>! ';
     $html .= '(<a href="javascript:void(0)" onclick="sgBackup.logout()">Log Out</a>)</span>';
     return $html;
 }

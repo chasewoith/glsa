@@ -5,6 +5,7 @@ jQuery(document).ready( function() {
 
 sgBackup.initGeneralSettingsSwitchButtons = function() {
     jQuery('.sg-switch').bootstrapSwitch();
+
     jQuery('.sg-email-switch').on('switchChange.bootstrapSwitch', function (event, state) {
         var url = jQuery(this).attr('data-remote');
         if (state) {
@@ -15,6 +16,7 @@ sgBackup.initGeneralSettingsSwitchButtons = function() {
                     jQuery('.sg-general-settings').fadeToggle();
                 }
                 else {
+                    jQuery('.alert').remove();
                     var alert = sgBackup.alertGenerator(response.error, 'alert-warning');
                     jQuery('.sg-settings-container legend').after(alert);
                     jQuery('.sg-email-switch').bootstrapSwitch('state', false);
@@ -39,11 +41,12 @@ sgBackup.initGeneralSettingsSwitchButtons = function() {
     jQuery('.sg-switch').on('switchChange.bootstrapSwitch', function (event, state) {
         that = this;
         var feature = jQuery(this).attr('sgFeatureName');
-        if (feature == 'DELETE_LOCAL_BACKUP_AFTER_UPLOAD' || feature == 'ALERT_BEFORE_UPDATE' || feature == 'BACKUP_DELETION_WILL_ALSO_DELETE_FROM_CLOUD') {
+        if (feature && feature != 'NOTIFICATIONS') {
             var isFeatureAvailable = new sgRequestHandler('isFeatureAvailable', {sgFeature: feature});
             isFeatureAvailable.callback = function(response) {
                 if (state) {
                     if (typeof response.error !== 'undefined') {
+                        jQuery('.alert').remove();
                         var alert = sgBackup.alertGenerator(response.error, 'alert-warning');
                         jQuery('.sg-settings-container legend').after(alert);
                         jQuery(that).bootstrapSwitch('state', false);

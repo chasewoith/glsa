@@ -1,7 +1,9 @@
 <?php
 
-	$banner = backupGuardGetBanner(SG_ENV_ADAPTER, "plugin", SG_PRODUCT_IDENTIFIER);
-	if (!(SGBoot::isFeatureAvailable('MULTI_SCHEDULE') && !$banner)) {
+	$isAdsEnabled = SGConfig::get('SG_DISABLE_ADS');
+	$isPlatinumPackage = SGBoot::isFeatureAvailable('MULTI_SCHEDULE');
+
+	if (!$isPlatinumPackage && !$isAdsEnabled) {
 		include_once(SG_NOTICE_TEMPLATES_PATH.'banner.php');
 	}
 

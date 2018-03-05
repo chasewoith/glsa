@@ -565,33 +565,37 @@ class SGArchive
 		}
 		else {
 			$inprogress = $this->state->getInprogress();
-
 			$this->cdrFilesCount = $this->state->getCdrSize();
 			$this->cdrOffset = $this->state->getCdrCursor();
 		}
+
 		$sqlFileEnding = $this->state->getBackupFileName().'/'.$this->state->getBackupFileName().'.sql';
 		$restoreMode = $this->state->getRestoreMode();
 		$restoreFiles = $this->state->getRestoreFiles();
+
 		while ($this->cdrFilesCount) {
 
 			$warningFoundDuringExtract = false;
+
 			if ($inprogress) {
 				$row = $this->state->getCdr();
 			}
 			else {
 				$row = $this->getNextCdrElement($this->cdrOffset);
-				$this->cdrFilesCount--;
+
 				fseek($this->fileHandle, $this->fileOffset);
 
 				//read extra (not used in this version)
 				$this->read(4);
 			}
+
 			$path = $destinationPath . $row[0];
 			$path = str_replace('\\', '/', $path);
 			$restoreCurrentFile = false;
-			if($restoreMode == SG_RESTORE_MODE_FILES && $restoreFiles != NULL && count($restoreFiles) > 0) {
-				for($j = 0; $j < count($restoreFiles); $j++){
-					if($restoreFiles[$j] == "/" || backupGuardStringStartsWith($row[0], $restoreFiles[$j])) {
+
+			if ($restoreMode == SG_RESTORE_MODE_FILES && $restoreFiles != NULL && count($restoreFiles) > 0) {
+				for ($j = 0; $j < count($restoreFiles); $j++) {
+					if ($restoreFiles[$j] == "/" || backupGuardStringStartsWith($row[0], $restoreFiles[$j])) {
 						$restoreCurrentFile = true;
 						break;
 					}
@@ -633,7 +637,8 @@ class SGArchive
 
 				if (!$inprogress) {
 					$tmpFp = @fopen($tmpPath, 'wb');
-				} else {
+				}
+				else {
 					$tmpFp = @fopen($tmpPath, 'ab');
 				}
 
@@ -643,7 +648,8 @@ class SGArchive
 
 				if ($inprogress) {
 					$this->rangeCursor = $this->state->getRangeCursor();
-				} else {
+				}
+				else {
 					$this->rangeCursor = 0;
 				}
 
@@ -673,7 +679,8 @@ class SGArchive
 						SGPing::update();
 
 						break;
-					} else {
+					}
+					else {
 						$inprogress = true;
 						if (($i + 1) == count($ranges)) {
 							$inprogress = false;
@@ -691,6 +698,10 @@ class SGArchive
 
 							//restore with reloads will only work in external mode
 							if ($shouldReload && SGExternalRestore::isEnabled()) {
+
+								if (!$inprogress) {
+									$this->cdrFilesCount--;
+								}
 
 								$token = $this->delegate->getToken();
 								$progress = $this->delegate->getProgress();
@@ -728,12 +739,15 @@ class SGArchive
 
 				if (!$warningFoundDuringExtract) {
 					@rename($tmpPath, $path);
-				} else {
+				}
+				else {
 					@unlink($tmpPath);
 				}
+
 				$this->delegate->didExtractFile($path);
 				$this->fileOffset = ftell($this->fileHandle);
-			} else {
+			}
+			else {
 				//if file should not be restored skip it and go to the next file
 				$ranges = $row[2];
 
@@ -744,11 +758,9 @@ class SGArchive
 					fseek($this->fileHandle, $size, SEEK_CUR);
 				}
 				$this->fileOffset = ftell($this->fileHandle);
-
-
 			}
 
-
+			$this->cdrFilesCount--;
 		}
 	}
 

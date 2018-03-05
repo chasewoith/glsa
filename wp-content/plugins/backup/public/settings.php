@@ -5,7 +5,9 @@ $isNotificationEnabled = SGConfig::get('SG_NOTIFICATIONS_ENABLED');
 $userEmail = SGConfig::get('SG_NOTIFICATIONS_EMAIL_ADDRESS');
 $isDeleteBackupAfterUploadEnabled = SGConfig::get('SG_DELETE_BACKUP_AFTER_UPLOAD');
 $isDeleteBackupFromCloudEnabled = SGConfig::get('SG_DELETE_BACKUP_FROM_CLOUD');
+$isDisabelAdsEnabled = SGConfig::get('SG_DISABLE_ADS');
 $isAlertBeforeUpdateEnabled = SGConfig::get('SG_ALERT_BEFORE_UPDATE');
+$isShowStatisticsWidgetEnabled = SGConfig::get('SG_SHOW_STATISTICS_WIDGET');
 $isReloadingsEnabled = SGConfig::get('SG_BACKUP_WITH_RELOADINGS');
 $intervalSelectElement = array(
                             '1000'=>'1 second',
@@ -19,6 +21,7 @@ $selectedInterval = (int)SGConfig::get('SG_AJAX_REQUEST_FREQUENCY')?(int)SGConfi
 $backupFileNamePrefix = SGConfig::get('SG_BACKUP_FILE_NAME_PREFIX')?SGConfig::get('SG_BACKUP_FILE_NAME_PREFIX'):SG_BACKUP_FILE_NAME_DEFAULT_PREFIX;
 $backupFileNamePrefix = esc_html($backupFileNamePrefix);
 
+$sgBackgroundReloadMethod = SGConfig::get('SG_BACKGROUND_RELOAD_METHOD');
 ?>
 <?php require_once(SG_PUBLIC_INCLUDE_PATH . 'sidebar.php'); ?>
     <div id="sg-content-wrapper">
@@ -106,7 +109,32 @@ $backupFileNamePrefix = esc_html($backupFileNamePrefix);
                                     </label>
                                 </div>
                             </div>
+							<div class="form-group">
+								<label class="col-md-8 sg-control-label">
+									<?php echo _backupGuardT('Show statistics'); ?>
+								</label>
+								<div class="col-md-3 pull-right text-right">
+									<label class="sg-switch-container">
+										<input type="checkbox" name="show-statistics-widget" class="sg-switch" <?php echo $isShowStatisticsWidgetEnabled?'checked="checked"':''?>>
+									</label>
+								</div>
+							</div>
 
+                            <?php if (!SGBoot::isFeatureAvailable('MULTI_SCHEDULE')): ?>
+                                <div class="form-group">
+                                    <label class="col-md-8 sg-control-label">
+                                        <?php echo _backupGuardT('Disable ads'); ?>
+                                        <?php if (!SGBoot::isFeatureAvailable('HIDE_ADS')): ?>
+                                            &nbsp;&nbsp;<span data-toggle="tooltip" title="<?php echo SG_SILVER_TOOLTIP_TEXT?>" class="badge sg-badge-warning" target-url="<?php echo SG_BACKUP_SITE_PRICING_URL?>"><?php echo SG_BADGE_SILVER_PLUS_TEXT?></span>
+                                        <?php endif; ?>
+                                    </label>
+                                    <div class="col-md-3 pull-right text-right">
+                                        <label class="sg-switch-container">
+                                            <input type="checkbox" name="sg-hide-ads" sgFeatureName="HIDE_ADS" class="sg-switch" <?php echo $isDisabelAdsEnabled?'checked="checked"':''?>>
+                                        </label>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
 
                             <div class="form-group">
                                 <label class="col-md-5 sg-control-label" for='sg-paths-to-exclude'><?php echo _backupGuardT("Exclude paths (separated by commas)")?></label>
@@ -138,6 +166,17 @@ $backupFileNamePrefix = esc_html($backupFileNamePrefix);
                                 <label class="col-md-5 sg-control-label" for='sg-number-of-rows-to-backup'><?php echo _backupGuardT("Number of rows to backup at once")?></label>
                                 <div class="col-md-5 pull-right text-right">
                                     <input class="form-control" id='sg-number-of-rows-to-backup' name='sg-number-of-rows-to-backup' type="text" value="<?php echo (int)SGConfig::get('SG_BACKUP_DATABASE_INSERT_LIMIT')?(int)SGConfig::get('SG_BACKUP_DATABASE_INSERT_LIMIT'):SG_BACKUP_DATABASE_INSERT_LIMIT?>">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="col-md-5 sg-control-label" for='sg-background-reload-method'><?php echo _backupGuardT("Reload method")?></label>
+                                <div class="col-md-5 pull-right text-right">
+                                    <select class="form-control" id='sg-background-reload-method' name='sg-background-reload-method'>
+                                        <option value="<?php echo SG_RELOAD_METHOD_CURL ?>" <?php echo $sgBackgroundReloadMethod == SG_RELOAD_METHOD_CURL ? "selected" : "" ?> >Curl</option>
+                                        <option value="<?php echo SG_RELOAD_METHOD_STREAM ?>" <?php echo $sgBackgroundReloadMethod == SG_RELOAD_METHOD_STREAM ? "selected" : "" ?> >Stream</option>
+                                        <option value="<?php echo SG_RELOAD_METHOD_SOCKET ?>" <?php echo $sgBackgroundReloadMethod == SG_RELOAD_METHOD_SOCKET ? "selected" : "" ?> >Socket</option>
+                                    </select>
                                 </div>
                             </div>
 

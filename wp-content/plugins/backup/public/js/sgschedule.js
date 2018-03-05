@@ -143,6 +143,7 @@ sgBackup.initScheduleSwitchButtons = function() {
         if(state) {
             var isFeatureAvailable = new sgRequestHandler('isFeatureAvailable', {sgFeature: "SCHEDULE"});
             isFeatureAvailable.callback = function(response) {
+                jQuery('.alert').remove();
                 if (typeof response.success !== 'undefined') {
                     //Show or Hide settings panel
                     jQuery('.sg-schedule-settings').fadeIn();

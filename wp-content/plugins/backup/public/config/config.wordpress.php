@@ -10,6 +10,7 @@ define('SG_PUBLIC_AJAX_URL', SG_PUBLIC_URL.'ajax/');
 define('SG_PUBLIC_BACKUPS_URL', network_admin_url('admin.php?page=backup_guard_backups'));
 define('SG_PUBLIC_CLOUD_URL', network_admin_url('admin.php?page=backup_guard_cloud'));
 define('SG_BACKUP_GUARD_REVIEW_URL', 'https://wordpress.org/support/view/plugin-reviews/backup?filter=5');
+define('SG_IMAGE_URL', SG_PUBLIC_URL.'img/');
 
 //BackupGuard Site URL
 define('SG_BACKUP_SITE_URL', 'https://backup-guard.com/products/backup-wordpress');
