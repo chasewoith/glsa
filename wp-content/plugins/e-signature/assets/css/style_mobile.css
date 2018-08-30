@@ -142,7 +142,7 @@ and (max-device-width : 640px)
 
 }
 
-/* */
+/* ipad  */
 @media only screen 
 and (min-device-width : 768px) 
 and (max-device-width : 1024px) 
@@ -156,7 +156,7 @@ and (max-device-width : 1024px)
         background: url('../images/sign-here.jpg') no-repeat;
         background-size: 425px 100px;
         border-width:1px;
-        border-radius:0;	       
+        border-radius:0;
     }
 
 
@@ -172,7 +172,10 @@ and (max-device-width : 1024px)
 
     }
 
-
+    #signatureCanvas{
+        height:175px !important;
+        width:100% !important;
+    }
 }
 
 /* */
@@ -248,7 +251,6 @@ and (max-device-width :900px)
     background-repeat:no-repeat;
     background-size: 100% 100px;
     background-position: bottom;
-    height:100px !important;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     -khtml-user-select: none;
@@ -1470,8 +1472,7 @@ span.deleteicon input
 label.esig-error 
 { 
     color: #FFFFFF; 
-    max-width:150px; 
-    height:25px; 
+    max-width:100%; 
     background-color:#CB3B3B; 
 }
 
@@ -2301,4 +2302,17 @@ table
 
 /* textbox display for small devices  */
 
+.modal-body{
+    height: 250px;
+    overflow-y: auto;
+   
+}
+
+@media (min-height: 500px) {
+    .modal-body { height: 480px; }
+}
+
+@media (min-height: 800px) {
+    .modal-body { height: 600px; }
+}
 

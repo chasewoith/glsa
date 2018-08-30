@@ -5,8 +5,8 @@
 	$buttonText = "$19.95* | BUY NOW";
 	$banerText = "You're running the Free version of the plugin.<br>If you're interested in website migration, backup to cloud, scheduled backups, mail notifications, then don't wait to buy BackupGuard Pro <b>NOW!</b>";
 
-	$isProVersion = SGBoot::isFeatureAvailable('STORAGE');
-	if ($isProVersion) {
+	$pluginCapabilities = backupGuardGetCapabilities();
+	if ($pluginCapabilities != BACKUP_GUARD_CAPABILITIES_FREE) {
 		$buttonText = "UPGRADE NOW";
 		$banerText = "Your’e running the ".backupGuardGetProductName()." version of the plugin. If you’re interested in more options included in other versions, then don’t wait to upgrade your license by paying only difference between plans.";
 	}
@@ -46,7 +46,7 @@
 					<img class="sg-img-class" src="<?php echo SG_PUBLIC_URL; ?>img/cart.png">
 					&nbsp;<span id="sg-buy-now-text"><?php echo $buttonText; ?></span>
 				</a><br>
-				<?php if (!$isProVersion): ?>
+				<?php if ($pluginCapabilities == BACKUP_GUARD_CAPABILITIES_FREE): ?>
 					<span id="sg-banner-clarification">*Silver package | Lifetime license</span>
 				<?php endif; ?>
 			</p>

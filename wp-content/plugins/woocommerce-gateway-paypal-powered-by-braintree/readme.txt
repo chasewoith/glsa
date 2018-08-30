@@ -2,8 +2,9 @@
 Contributors: automattic, akeda, allendav, royho, slash1andy, woosteve, spraveenitpro, mikedmoore, fernashes, shellbeezy, danieldudzic, dsmithweb, fullysupportedphil, corsonr, zandyring, skyverge
 Tags: ecommerce, e-commerce, commerce, woothemes, wordpress ecommerce, store, sales, sell, shop, shopping, cart, checkout, configurable, paypal, braintree
 Requires at least: 4.4
-Tested up to: 4.9.2
-Stable tag: 2.1.1
+Tested up to: 4.9.7
+Requires PHP: 5.4
+Stable tag: 2.1.3
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -121,6 +122,18 @@ New feature requests and bugs reports can be made in the plugin forum.
 7. Checkout with PayPal or credit / debit cards.
 
 == Changelog ==
+
+= 2018.08.01 - version 2.1.3 =
+* Tweak - Generalize the PayPal link error to allow for different PayPal button colors
+* Fix - Ensure PayPal charges can still be captured when the Credit Card gateway is disabled
+* Fix - Prevent stalled checkout when PayPal is cancelled or closed
+* Fix - Prevent duplicate PayPal buttons when checkout is refreshed
+* Fix - Don't reset the "Create Account" form when the checkout is refreshed
+
+= 2.1.2 =
+* Tweak - Add payment details to the customer data export and remove it for erasure requests
+* Tweak - Remove payment tokens for customer data erasure requests
+* Misc - Add support for WooCommerce 3.4
 
 = 2.1.1 =
 * Fix - Fix the payment form JavaScript compatibility with IE 11

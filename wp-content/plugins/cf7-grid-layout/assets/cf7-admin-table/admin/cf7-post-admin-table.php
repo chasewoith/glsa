@@ -168,7 +168,7 @@ if(!class_exists('Cf7_WP_Post_Table')){
       if(null === self::$forms_key_ids){
         self::$forms_key_ids = array();
       }
-      if(false !== ($key = array_search($id, self::$forms_key_ids))) return self::$forms_key_ids[$key];
+      if(false !== ($key = array_search($id, self::$forms_key_ids))) return $key;
       else{
         $key = null;
         $form = get_post($id);
@@ -450,6 +450,9 @@ if(!class_exists('Cf7_WP_Post_Table')){
      * @since 1.0.0
     **/
     public function register_cf7_taxonomy(){
+      if(!class_exists('WPCF7_ContactForm')){
+        return;
+      }
       $plural = 'Form Types';
       $name = 'Form Type';
       $is_hierarchical = true;

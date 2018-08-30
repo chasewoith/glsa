@@ -1,13 +1,13 @@
 <?php
 /**
  *  Signature to Image: A supplemental script for Signature Pad that
- *  generates an image of the signature’s JSON output server-side using PHP.
+ *  generates an image of the signatureï¿½s JSON output server-side using PHP.
  *
  *  @project ca.thomasjbradley.applications.signaturetoimage
  *  @author Thomas J Bradley <hey@thomasjbradley.ca>
  *  @link http://thomasjbradley.ca/lab/signature-to-image
  *  @link http://github.com/thomasjbradley/signature-to-image
- *  @copyright Copyright MMXI–, Thomas J Bradley
+ *  @copyright Copyright MMXIï¿½, Thomas J Bradley
  *  @license New BSD License
  *  @version 1.1.0
  */
@@ -40,7 +40,7 @@ function sigJsonToImage ($json, $options = array()) {
 //print_r($json);
 //echo "Trace";
   $defaultOptions = array(
-	'imageSize' => array(500,100)
+    'imageSize' => array(900,100)
     ,'bgColour' =>'transparent'
     ,'penWidth' => 2
     ,'penColour' => array(0x00, 0x00, 0x00)

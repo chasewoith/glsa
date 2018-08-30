@@ -34,13 +34,17 @@ class WP_E_Document extends WP_E_Model {
      */
     public function esig_do_shortcode($document_id) {
         // get the document 
-        $document = $this->getDocumentById($document_id);
+        global $document;
+        if (is_null($document)) {
+            $document = $this->getDocumentById($document_id);
+        }
+
         update_option('esig_global_document_id', $document_id, false);
 
         // getting dcrypted document content. 
         $dcrypted_content = $this->signature->decrypt(ENCRYPTION_KEY, $document->document_content);
         $document_content = do_shortcode($dcrypted_content);
-        
+
 
         delete_option('esig_global_document_id');
         return apply_filters('esignature_content', $document_content, $document_id);
@@ -54,7 +58,7 @@ class WP_E_Document extends WP_E_Model {
      * @return Object
      */
     public function getDocument($id) {
-
+        
         $document = $this->wpdb->get_row(
                 $this->wpdb->prepare(
                         "SELECT * FROM " . $this->table . " WHERE document_id=%s LIMIT 1", $id
@@ -121,11 +125,13 @@ class WP_E_Document extends WP_E_Model {
      */
     public function getStatus($id) {
 
-        return $this->wpdb->get_var(
-                        $this->wpdb->prepare(
-                                "SELECT document_status FROM " . $this->table . " WHERE document_id=%s LIMIT 1", $id
-                        )
+        $docStatus = $this->wpdb->get_var(
+                $this->wpdb->prepare(
+                        "SELECT document_status FROM " . $this->table . " WHERE document_id=%s LIMIT 1", $id
+                )
         );
+
+        return $docStatus;
     }
 
     /**
@@ -136,13 +142,16 @@ class WP_E_Document extends WP_E_Model {
      * @return Array
      */
     public function get_site_url($id) {
-
-        $document_uri = $this->wpdb->get_var(
-                $this->wpdb->prepare(
-                        "SELECT document_uri FROM " . $this->table . " WHERE document_id=%s LIMIT 1", $id
-                )
-        );
-
+        global $document;
+        if (is_null($document)) {
+            $document_uri = $this->wpdb->get_var(
+                    $this->wpdb->prepare(
+                            "SELECT document_uri FROM " . $this->table . " WHERE document_id=%s LIMIT 1", $id
+                    )
+            );
+        } else {
+            $document_uri = $document->document_uri;
+        }
         $url_arr = parse_url($document_uri);
 
         return $url_arr["scheme"] . "://" . $url_arr["host"] . $url_arr['path'];
@@ -312,28 +321,47 @@ class WP_E_Document extends WP_E_Model {
      */
     public function getSignedresult($id) {
 
-        $events = $this->getEvents($id);
-        foreach ($events as $event) {
+        global $document, $docSignatureStatus;
 
-            // Views
-            if ($event->event == 'all_signed') {
+        /* $events = $this->getEvents($id);
 
-                return 1;
-            }
+          foreach ($events as $event) {
+
+          // Views
+          if ($event->event == 'all_signed') {
+
+          return 1;
+          }
+          } */
+        $event_var = $this->wpdb->get_var(
+                $this->wpdb->prepare(
+                        "SELECT id FROM " . $this->eventsTable . " WHERE document_id=%s and event=%s LIMIT 1", $id, 'all_signed'
+                )
+        );
+
+        if ($event_var > 0) {
+            return 1;
         }
-        
-        $docType = $this->getDocumenttype($id);
+
+        if (is_null($document)) {
+
+            $docType = $this->getDocumenttype($id);
+        } else {
+            $docType = $document->document_type;
+        }
+
         $esigPreview = esigget('esigpreview');
-        if($esigPreview && $docType =='stand_alone'){
-           return 0; 
-        }
-        elseif($esigPreview && $docType =='esig_template'){
+        if ($esigPreview && $docType == 'stand_alone') {
+            return 0;
+        } elseif ($esigPreview && $docType == 'esig_template') {
             return 0;
         }
-        
-        $doc_status = $this->getSignatureStatus($id);
-        
-        if (is_array($doc_status['signatures_needed']) && (count($doc_status['signatures_needed']) == 0)) {
+
+        if (is_null($docSignatureStatus)) {
+            $docSignatureStatus = $this->getSignatureStatus($id);
+        }
+
+        if (is_array($docSignatureStatus['signatures_needed']) && (count($docSignatureStatus['signatures_needed']) == 0)) {
             return 1;
         }
 
@@ -585,13 +613,16 @@ class WP_E_Document extends WP_E_Model {
     }
 
     // Given the document id, make a copy and return the id of the new document
-    public function copy($doc_id) {
+    public function copy($doc_id, $args = array()) {
 
         // Get doc as associative array
         $doc = $this->wpdb->get_row($this->wpdb->prepare(
                         "SELECT * FROM {$this->table} WHERE document_id = %d", $doc_id), ARRAY_A);
 
+        $documentContentToClone = $doc['document_content'];
+
         unset($doc['document_id']);
+        unset($doc['document_content']);
 
         $doc['date_created'] = $this->esig_date($doc_id);
 
@@ -600,15 +631,20 @@ class WP_E_Document extends WP_E_Model {
         $new_doc_id = $this->wpdb->insert_id;
 
         // Update checksum, etc
-        $document_content = $this->signature->decrypt(ENCRYPTION_KEY, $doc['document_content']);
-        $document_checksum = sha1($new_doc_id . $document_content);
+        $document_content = $this->signature->decrypt(ENCRYPTION_KEY, $documentContentToClone);
+
+        $newDocumentContentRender = apply_filters("esig_document_clone_content", $document_content, $new_doc_id, $doc['document_type']);
+
+        $newDocumentContent = apply_filters("esig_document_clone_render_content", $newDocumentContentRender, $new_doc_id, $doc['document_type'], $args);
+
+        $document_checksum = sha1($new_doc_id . $newDocumentContent);
         $setting = new WP_E_Setting();
         $pageID = $setting->get('default_display_page');
         $document_uri = home_url() . "/?page_id=" . $pageID . "&docid=" . $new_doc_id . "&csum=" . $document_checksum;
-
+        $document_content = $this->signature->encrypt(ENCRYPTION_KEY, $newDocumentContent);
         $affected = $this->wpdb->query(
                 $this->wpdb->prepare(
-                        "UPDATE " . $this->table . " SET document_checksum='%s', document_uri='%s' WHERE document_id=%d", $document_checksum, $document_uri, $new_doc_id
+                        "UPDATE " . $this->table . " SET document_content='%s',document_checksum='%s', document_uri='%s' WHERE document_id=%d", $document_content, $document_checksum, $document_uri, $new_doc_id
                 )
         );
 
@@ -666,14 +702,15 @@ class WP_E_Document extends WP_E_Model {
         $document_hash = ""; // !- Hasing Algorithm needed
         $last_modified = $this->esig_date($post['document_id']);
         $document_title = stripslashes($post['document_title']);
-        
+
         $document_content_encrpt = esigStripTags(stripslashes($post['document_content']), 'form');  // Or shortcodes won't work
-       
-        $documentContentFilter= apply_filters("esig_document_content",$document_content_encrpt,$post['document_id']);
-        
+
+        $documentImageContent = apply_filters("esig_document_image_content", $document_content_encrpt, $post['document_id']);
+        $documentContentFilter = apply_filters("esig_document_content", $documentImageContent, $post['document_id'], $document_type);
+
         $document_content = $this->signature->encrypt(ENCRYPTION_KEY, $documentContentFilter);
-        
-        
+
+
         $result = $this->wpdb->query(
                 $this->wpdb->prepare(
                         "UPDATE " . $this->table . " SET 
@@ -858,6 +895,15 @@ class WP_E_Document extends WP_E_Model {
                         )
         );
     }
+    
+     public function requestDelete($id) {
+        return $this->wpdb->query(
+                        $this->wpdb->prepare(
+                                "DELETE FROM " . $this->table . " WHERE document_id=%d", $id
+                        )
+        );
+    }
+
     /**
      * Delete all events associated with a document id. 
      * @param type $id
@@ -875,14 +921,14 @@ class WP_E_Document extends WP_E_Model {
         return $this->wpdb->get_results("SELECT * FROM " . $this->table . " WHERE document_status != 'trash' && document_status !='archive'");
     }
 
-    public function fetchAllOnStatus($status, $super_admin_result = false) {
+    public function fetchAllOnStatus($status, $super_admin_result = false,$pagenum=1,$limit=false) {
         // get super admin 
         $admin_user_id = $this->user->esig_get_super_admin_id();
         $wp_user_id = get_current_user_id(); // getting current wp user id
         //pagination settings 
-        $pagenum = isset($_GET['pagenum']) ? absint($_GET['pagenum']) : 1;
+        $pagenum = isset($_GET['pagenum']) ? absint($_GET['pagenum']) : $pagenum;
 
-        $limit = 20;
+        $limit = ($limit)?$limit:20;
         $offset = ( $pagenum - 1 ) * $limit;
 
         if ($status == 'all') {
@@ -934,6 +980,8 @@ class WP_E_Document extends WP_E_Model {
      * @return array
      */
     public function auditReport($id, &$document) {
+
+        global $auditReport;
         // setting timezone here 
         /* $doc_timezone = $this->esig_get_document_timezone($id);
           if (!empty($doc_timezone))
@@ -945,6 +993,9 @@ class WP_E_Document extends WP_E_Model {
 
           } */
         // timezone settings end here 
+        if (!is_null($auditReport)) {
+            return $auditReport;
+        }
 
         $invitations = $this->invite->getInvitations($id);
 
@@ -1040,12 +1091,22 @@ class WP_E_Document extends WP_E_Model {
                 );
             }
         }
-
-        return $timeline;
+        $auditReport = $timeline;
+        return $auditReport;
     }
 
+     
+    
+    
     public function new_auditTrail($id) {
+        global $timeline;
+
+       /* if (!is_null($timeline)) {
+            return $timeline;
+        }*/
+
         $events = $this->getEvents($id);
+       
         $timeline = array();
 
 
@@ -1348,14 +1409,12 @@ EOL;
 
         $signer_name = $this->user->get_esig_signer_name($user_id, $id);
 
-
-
         //$event_data = array('user'=>$user_id,'fname'=> $signer_name, 'ip'=>$_SERVER['REMOTE_ADDR']);
         $event_text = sprintf(__("Document viewed by %s - %s IP %s", 'esig'), $signer_name, $this->user->getUserEmail($user_id), esig_get_ip());
 
         $this->wpdb->query(
                 $this->wpdb->prepare(
-                        "INSERT INTO " . $this->eventsTable . " (id, document_id, event, event_data, date) VALUES (null, %d,%s,%s,%s)", $id, 'viewed', $event_text, $date
+                        "INSERT INTO " . $this->eventsTable . " (id, document_id, event, event_data, date,ip_address) VALUES (null, %d,%s,%s,%s,%s)", $id, 'viewed', $event_text, $date, esig_get_ip()
                 )
         );
 
@@ -1565,7 +1624,7 @@ EOL;
 
         // last try, guess timezone string manually
         $is_dst = date('I');
-        $utc_offset *=3600;
+        $utc_offset *= 3600;
         foreach (timezone_abbreviations_list() as $abbr) {
             foreach ($abbr as $city) {
                 if ($city['dst'] == $is_dst && $city['offset'] == $utc_offset)

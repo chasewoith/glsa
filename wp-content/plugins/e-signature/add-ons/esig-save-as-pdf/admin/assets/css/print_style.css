@@ -188,6 +188,7 @@ input:focus
      position: relative ;
      display : block ; 
      width:100% ;
+     
 }
 
 .footer-left 
@@ -196,6 +197,7 @@ input:focus
       display : block ;
       float:left ;
       width:48% ;
+      border:1px solid red;
 }
 
 .footer-right 

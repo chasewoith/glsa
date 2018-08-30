@@ -62,16 +62,16 @@ a:link
 {
     display:inline-block ;
     float:left ; 
-   
+
 }
 
 .doclogo-right 
 {
     padding: 10px;
     float:right ; 
-   
+
     display:inline ;
-   
+
 }
 
 .document-sign-page
@@ -507,20 +507,57 @@ a:link
 
 .dont-break-out {
 
-  /* These are technically the same, but use both */
-  overflow-wrap: break-word;
-  word-wrap: break-word;
+    /* These are technically the same, but use both */
+    overflow-wrap: break-word;
+    word-wrap: break-word;
 
-  -ms-word-break: break-all;
-  /* This is the dangerous one in WebKit, as it breaks things wherever */
-  word-break: break-all;
-  /* Instead use this non-standard one: */
-  word-break: break-word;
+    -ms-word-break: break-all;
+    /* This is the dangerous one in WebKit, as it breaks things wherever */
+    word-break: break-all;
+    /* Instead use this non-standard one: */
+    word-break: break-word;
 
-  /* Adds a hyphen where the word breaks, if supported (No Blink) */
-  -ms-hyphens: auto;
-  -moz-hyphens: auto;
-  -webkit-hyphens: auto;
-  hyphens: auto;
+    /* Adds a hyphen where the word breaks, if supported (No Blink) */
+    -ms-hyphens: auto;
+    -moz-hyphens: auto;
+    -webkit-hyphens: auto;
+    hyphens: auto;
 
 }
+
+/*#esig-checkbox-tick ul{list-style: none;} #esig-checkbox-tick ul:first-child  li:before { content:"\2713\0020"; }*/
+
+/* E-signature tick mark has been added. */
+/*
+.esig-checkbox-tick, .esig-checkbox-tick ul {
+    margin-top: 0;
+    padding-left: 2em;
+    list-style-type: none;
+}
+.esig-checkbox-tick li:before {
+    position: absolute;
+    margin-left: -1.3em;
+    font-weight: bold;
+}
+.esig-checkbox-tick li.tick:before {
+    content: "\2713";
+    color: darkgreen;
+}
+.esig-checkbox-tick li.cross:before {
+    content: "\2717";
+    color: crimson;
+}
+*/
+.esig-checkbox-tick, .esig-checkbox-tick .tick{
+    
+   
+    list-style-type: none;
+    
+}
+
+/* used to remove bootstrap table border */
+.noborder td, .noborder th {
+    border: none !important;
+}
+
+/* e-signature tick mark code here  */

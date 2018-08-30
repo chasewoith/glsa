@@ -74,15 +74,14 @@ var esig_sif_admin_controls = null;
 
                 $('.esig-sif-panel-textfield .sif_text_placeholder_Text').append(htmltext1);
                 return false;
-            }
-            else {
+            } else {
 
                 $(this).css('border', '0px solid red');
             }
             var label = $(".esig-sif-panel-textfield input[name='textbox']").val();
 
             var htmltext = 'Enter your placeholder text <br> <input type="text" name="textbox" style="width:' + maxsize + 'px;" value="' + label + '" placeholder="' + label + '"><input type="hidden" name="maxsize" value="' + maxsize + '">';
-           
+
             $('.esig-sif-panel-textfield .sif_text_placeholder_Text').html(htmltext);
             $('.esig-sif-panel-textfield #esign-sif-size-msg').hide();
         });
@@ -193,10 +192,33 @@ var esig_sif_admin_controls = null;
                 $('.esig-sif-panel-datepicker #esign-sif-signer-msg').show();
                 return false;
             }
+
+            var startDate = $("input[name='datepickerstartdate']").val();
+            var endDate = $("input[name='datepickerenddate']").val();
+
+            var pattern = /^([0-9]{2})\/([0-9]{2})\/([0-9]{4})$/;
+
+            if (startDate != "" && !pattern.test(startDate) || endDate != "" && !pattern.test(endDate)) {
+
+                BootstrapDialog.alert({
+                    title: 'WARNING',
+                    message: 'Date format is not correct. Please insert date as correct format. Allowed format is mm/dd/yyyy.',
+                    type: BootstrapDialog.TYPE_WARNING, // <-- Default value is BootstrapDialog.TYPE_PRIMARY
+                    closable: true, // <-- Default value is false
+                    buttonLabel: 'Ok', // <-- Default value is 'OK',
+
+                });
+
+                return  false;
+            }
+
+
             var required = $('.esig-sif-panel-datepicker input.required').prop('checked') ? ' required="1"' : '';
+             var dtreadonly = $('.esig-sif-panel-datepicker input.esig-picker-readonly').prop('checked') ? ' readonly="1"' : 'readonly="0"';
+             
             var display_type = $("#datepicker_display_type option:selected").val();
 
-            var return_text = '[esigdatepicker name="' + name + '" label="' + picker_label + '" verifysigner="' + verifysigner_picker + '" displaytype="' + display_type + '"  ' + required + ']';
+            var return_text = '[esigdatepicker name="' + name + '" label="' + picker_label + '" verifysigner="' + verifysigner_picker + '" mindate="' + startDate + '" maxdate="' + endDate + '" displaytype="' + display_type + '"  ' + dtreadonly + '   ' + required + ']';
             esig_sif_admin_controls.insertContent(return_text);
 
             tb_remove();
@@ -213,18 +235,52 @@ var esig_sif_admin_controls = null;
 
         /********************************** date picker action end here ***************************************************/
 
+        /* ################################# today date actions start here ###############################3############### */
+
+        // date picket
+        $('body').on('click', '.esig-sif-panel-todaydate .insert-todaydate', function () {
+
+            var name = 'esig-sif-today-' + Date.now();
+
+            // var picker_label = $("input[name='datepickerlabel']").val();
+
+            var verifysigner_picker = $(".sif_popup_main_todaydate #sif_invite_select option:selected").val();
+
+            if (verifysigner_picker == 'undefined')
+            {
+                $('.esig-sif-panel-todaydate #esign-sif-signer-msg').show();
+                return false;
+            }
+            var required = $('.esig-sif-panel-todaydate input.required').prop('checked') ? ' required="1"' : '';
+            var display_type = $("#todaydate_display_type option:selected").val();
+
+            var return_text = '[esigtodaydate name="' + name + '" verifysigner="' + verifysigner_picker + '" displaytype="' + display_type + '"]';
+            esig_sif_admin_controls.insertContent(return_text);
+
+            tb_remove();
+
+            return false;
+        });
+
+        $('body').on('change', '.esig-sif-panel-todaydate #sif_invite_select', function () {
+
+            $('.esig-sif-panel-datepicker #esign-sif-signer-msg').hide();
+
+        });
+
+        /********************************** Today date  action end here ***************************************************/
 
         /* ################################## file action start here ####################################################### */
 
         // files
         $('body').on('click', '.esig-sif-panel-file .insert-file', function () {
-            
+
             var name = 'esig-sif-file-' + Date.now();
 
             var file_label = $("input[name='filelabel']").val();
 
             var file_extension = $("input[name='file_extension']").val();
-            var file_size= $("input[name='max_file_size']").val();
+            var file_size = $("input[name='max_file_size']").val();
             if (typeof (file_size) != "undefined" && !$.isNumeric(file_size))
             {
                 $('.esig-sif-panel-textfield #esign-sif-size-msg').show();
@@ -246,7 +302,7 @@ var esig_sif_admin_controls = null;
 
 
             var return_text = '[esigfile name="' + name + '" label="' + file_label + '"  verifysigner="' + verifysigner_file + '" extensions="' + file_extension + '" filesize="' + file_size + '"   ' + required + ']';
-            
+
             esig_sif_admin_controls.insertContent(return_text);
 
             $('.esig-sif-panel-file #esign-sif-extension-msg').hide();
@@ -278,7 +334,7 @@ var esig_sif_admin_controls = null;
         });
 
         /* changing file popover content */
-        $('body').on('click', '.popover .close', function ()
+        $('#sif-file-advanced-button').on('click', '.popover .close', function ()
         {
 
             var content = $('#max-file-size').val();
@@ -298,8 +354,7 @@ var esig_sif_admin_controls = null;
             {
                 $(this).css('border', '1px solid red');
                 return false;
-            }
-            else {
+            } else {
 
                 $(this).css('border', '0px solid red');
             }
@@ -310,7 +365,7 @@ var esig_sif_admin_controls = null;
 
 
         /* ################################### radio action start here #################################################### */
-
+        var sif_radio_display = 'vertical';
         // Radios
         $('body').on('click', '.esig-sif-panel-radio .insert-btn', function ()
         {
@@ -318,15 +373,15 @@ var esig_sif_admin_controls = null;
 
             var radio_label = $(".esig-sif-panel-radio input[name='radiolabel']").val();
 
-            var sif_display = '';
+
 
             if ($('#radio_vertical').is(':checked'))
             {
-                sif_display = 'vertical';
+                sif_radio_display = 'vertical';
             }
-            else
+            if ($('#radio_horizontal').is(':checked'))
             {
-                sif_display = 'horizontal';
+                sif_radio_display = 'horizontal';
             }
 
             var verifysigner_radio = $(".sif_radio_signer_info #sif_invite_select option:selected").val();
@@ -340,10 +395,10 @@ var esig_sif_admin_controls = null;
             var required = $('.esig-sif-panel-radio input.required').prop('checked') ? 'required="1"' : '';
             var radios = $('.esig-sif-panel-radio .hidden_radio').serialize();
             //var display_type = $("#radio_display_type").val();
-            var return_text = ' [esigradio name="' + name + '" label="' + radio_label + '" display="' + sif_display + '" verifysigner="' + verifysigner_radio + '" labels="' + radios + '"  ' + required + ' ] ';
+            var return_text = ' [esigradio name="' + name + '" label="' + radio_label + '" display="' + sif_radio_display + '" verifysigner="' + verifysigner_radio + '" labels="' + radios + '"  ' + required + ' ] ';
             esig_sif_admin_controls.insertContent(return_text);
             //sif advanced radio pophover hide
-            $('#radio_vertical').attr("checked", "checked");
+            //$('#radio_vertical').attr("checked", "checked");
             $("#sif_radio_advanced_button").popover('hide');
             tb_remove();
             // clear radio  sif input . 
@@ -415,9 +470,41 @@ var esig_sif_admin_controls = null;
                     template: '<div class="popover" role="tooltip"><h3 class="popover-title"></h3><div class="popover-content"></div></div>'
                 });
 
-        $('body').on('click', '.popover .close', function ()
+
+        $('#sif_radio_advanced_button').on('shown.bs.popover', function () {
+            if (sif_radio_display == "vertical") {
+                $("#radio_vertical").prop("checked", true);
+            } else if (sif_radio_display == "horizontal") {
+                $("#radio_horizontal").prop("checked", true);
+            }
+
+        });
+
+        $('#sif_radio_advanced_button').on('hide.bs.popover', function () {
+            
+            if ($('#radio_vertical').is(':checked'))
+            {
+                sif_radio_display = 'vertical';
+            }
+            if ($('#radio_horizontal').is(':checked'))
+            {
+                sif_radio_display = 'horizontal';
+            }
+
+        });
+
+        $('.sif_advanced_button_area').on('click', '.popover .close', function ()
         {
-            $("#sif_radio_advanced_button").popover('hide');
+
+            if ($('#radio_vertical').is(':checked'))
+            {
+                sif_radio_display = 'vertical';
+            }
+            if ($('#radio_horizontal').is(':checked'))
+            {
+                sif_radio_display = 'horizontal';
+            }
+            $("#sif_radio_advanced_button").popover('toggle');
         });
 
         /************************************** radio action end here ******************************************************/
@@ -425,21 +512,25 @@ var esig_sif_admin_controls = null;
 
         /* ###################################### checkbox action start here ############################################## */
 
+        var sif_display = 'vertical';
         // Checkboxes
         $('body').on('click', '.esig-sif-panel-checkbox .insert-btn', function ()
         {
             var name = 'esig-sif-' + Date.now();
             var checkbox_label = $("input[name='checkboxlabel']").val();
-            var sif_display = '';
+
+
 
             if ($('#box-vertical').is(':checked'))
             {
                 sif_display = 'vertical';
             }
-            else
+
+            if ($('#box-horizontal').is(':checked'))
             {
                 sif_display = 'horizontal';
             }
+
             var verifysigner_check = $(".sif_checkbox_signer_info #sif_invite_select option:selected").val();
             // showing message not signer select
             if (verifysigner_check == 'undefined')
@@ -455,7 +546,7 @@ var esig_sif_admin_controls = null;
 
             esig_sif_admin_controls.insertContent(return_text);
             //pophover is hide 
-            $('#box-vertical').attr("checked", "checked");
+            // $('#box-vertical').attr("checked", "checked");
             $("#sif_radio_advanced_button").popover('hide');
             tb_remove();
             // clear checkbox  sif input . 
@@ -519,14 +610,52 @@ var esig_sif_admin_controls = null;
             html: 'true',
             title: '<span><strong>Advanced Settings</strong></span>' +
                     '<span class="close">&times;</span>',
-            content: $('.sif_checkbox_advanced_content').html(),
+            content: function () {
+                return $('.sif_checkbox_advanced_content').html();
+            },
             template: '<div class="popover" role="tooltip"><h3 class="popover-title"></h3><div class="popover-content"></div></div>'
         });
 
-        $('body').on('click', '.popover .close', function ()
-        {
 
-            $("#sif_checkbox_advanced_button").popover('hide');
+
+        $('#sif_checkbox_advanced_button').on('shown.bs.popover', function () {
+            if (sif_display == "vertical") {
+                $("#box-vertical").prop("checked", true);
+            } else if (sif_display == "horizontal") {
+                $("#box-horizontal").prop("checked", true);
+            }
+
+        });
+        
+        $('#sif-checkbox-advanced-button').on('hide.bs.popover', function () {
+            
+            if ($('#box-vertical').is(':checked'))
+            {
+                sif_display = 'vertical';
+            }
+
+            if ($('#box-horizontal').is(':checked'))
+            {
+                sif_display = 'horizontal';
+            }
+
+
+        });
+        
+        /* changing checkbox popover content */
+        $('#sif-checkbox-advanced-button').on('click', '.popover .close', function ()
+        {
+            if ($('#box-vertical').is(':checked'))
+            {
+                sif_display = 'vertical';
+            }
+
+            if ($('#box-horizontal').is(':checked'))
+            {
+                sif_display = 'horizontal';
+            }
+
+            $("#sif_checkbox_advanced_button").popover('toggle');
         });
 
 
@@ -636,7 +765,7 @@ var esig_sif_admin_controls = null;
 
             var buttons = '';
             $.each(commands, function (key, command) {
-                buttons = buttons + '<li class="esigbtn" data-label="'+ command.label +'" data-cmd="' + key + '">' + command.label + "</li>\n";
+                buttons = buttons + '<li class="esigbtn" data-label="' + command.label + '" data-cmd="' + key + '">' + command.label + "</li>\n";
             });
             var ul = '<ul style="display:none;" class="' + self.menu_class + '">' + buttons + '</ul>';
             $('.mceIcon.mce_esig_sif').append(ul); // Add menu html to mce
@@ -662,58 +791,49 @@ var esig_sif_admin_controls = null;
 
                 var cmd = $(this).data('cmd');
                 var label = $(this).data('label');
-                   
+
                 if (cmd == 'textfield') {
 
                     self.popupMenuShow(cmd);
 
                 } else if (cmd == 'todaydate') {
+                    self.popupMenuShow(cmd);
+                    //self.insertContent('[esigtodaydate]');
 
-                    self.insertContent('[esigtodaydate]');
-
-                } 
-                else if (cmd == 'page_break') {
+                } else if (cmd == 'page_break') {
 
                     self.insertContent('[esig-page-break]');
 
-                }
-                else if (cmd == 'radio') {
+                } else if (cmd == 'radio') {
 
                     self.popupMenuShow(cmd);
 
-                }
-                else if (cmd == 'checkbox') {
+                } else if (cmd == 'checkbox') {
 
                     self.popupMenuShow(cmd);
 
-                }
-                else if (cmd == 'dropdown') {
+                } else if (cmd == 'dropdown') {
 
                     self.popupMenuShow(cmd);
 
-                }
-                else if (cmd == 'textarea') {
+                } else if (cmd == 'textarea') {
 
                     self.popupMenuShow(cmd);
 
-                }
-                else if (cmd == 'datepicker') {
+                } else if (cmd == 'datepicker') {
 
                     self.popupMenuShow(cmd);
 
-                }
-                else if (cmd == 'file') {
+                } else if (cmd == 'file') {
 
                     self.popupMenuShow(cmd);
 
-                }
-                else if (cmd == 'Contact') {
+                } else if (cmd == 'Contact') {
                     $(".chosen-container").css("min-width", "250px");
                     tb_show("+ Contact form 7 option", "#TB_inline?width=450&height=300&inlineId=esig-contact-option");
-                }
-                else {
+                } else {
                     $(".chosen-container").css("min-width", "250px");
-                    tb_show("+ "+ label + "", "#TB_inline?width=450&height=300&inlineId=esig-" + cmd.toLowerCase() + "-option");
+                    tb_show("+ " + label + "", "#TB_inline?width=450&height=300&inlineId=esig-" + cmd.toLowerCase() + "-option");
                 }
 
             });
@@ -746,30 +866,28 @@ var esig_sif_admin_controls = null;
                         if (cmd == 'textfield') {
                             $("#sif_text_advanced_button").show();
                             jQuery(".sif_text_signer_info").html(data);
-                        }
-                        else if (cmd == 'textarea') {
+                        } else if (cmd == 'textarea') {
                             //$("#sif_text_advanced_button").show();
                             jQuery(".sif_textarea_signer_info").html(data);
-                        }
-                        else if (cmd == 'radio')
+                        } else if (cmd == 'radio')
                         {
                             $("#sif_radio_advanced_button").show();
                             jQuery(".sif_radio_signer_info").html(data);
-                        }
-                        else if (cmd == 'checkbox')
+                        } else if (cmd == 'checkbox')
                         {
                             jQuery(".sif_checkbox_signer_info").html(data);
-                        }
-                        else if (cmd == 'dropdown')
+                        } else if (cmd == 'dropdown')
                         {
                             jQuery(".sif_dropdown_signer_info").html(data);
-                        }
-                        else if (cmd == 'datepicker')
+                        } else if (cmd == 'datepicker')
                         {
                             // jQuery(".sif_popup_main_datepicker").
                             jQuery(".sif_popup_main_datepicker").html(data);
-                        }
-                        else if (cmd == 'file')
+                        } else if (cmd == 'todaydate')
+                        {
+                            // jQuery(".sif_popup_main_todaydate").
+                            jQuery(".sif_popup_main_todaydate").html(data);
+                        } else if (cmd == 'file')
                         {
                             // jQuery(".sif_popup_main_datepicker").
                             jQuery(".sif_file_signer_info").html(data);
@@ -784,12 +902,12 @@ var esig_sif_admin_controls = null;
 
             }
 
-            if (cmd == 'todaydate')
-            {
-                esig_sif_admin_controls.insertContent('[esigtodaydate]');
-                return;
-            }
-             if (cmd == 'page_break')
+            /* if (cmd == 'todaydate')
+             {
+             esig_sif_admin_controls.insertContent('[esigtodaydate]');
+             return;
+             }*/
+            if (cmd == 'page_break')
             {
                 esig_sif_admin_controls.insertContent('[esig-page-break]');
                 return;
@@ -801,6 +919,8 @@ var esig_sif_admin_controls = null;
             $('#esign-sif-extension-msg').hide();
 
             $('.esig-sif-panel-' + cmd).show();
+
+
 
 
             tb_show('+ Signer input fields', '#TB_inline?&inlineId=esig-sif-admin-panel');

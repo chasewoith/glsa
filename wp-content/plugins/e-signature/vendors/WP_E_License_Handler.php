@@ -162,7 +162,7 @@ if (!class_exists('ESIG_License')) :
                 'license' => $license,
                 //'item_name' => urlencode($this->item_name),
                 'item_id'=> $this->item_id,
-                'url' => site_url('', 'http')
+                'url' => home_url()
             );
 
             $response = Esign_licenses::wpRemoteRequest(array('timeout' => 15,'body' => $api_params,'sslverify' => false));
@@ -225,7 +225,7 @@ if (!class_exists('ESIG_License')) :
                     'license' => Esign_licenses::get_license_key(),
                     //'item_name' => urlencode($this->item_name),
                     'item_id'=> $this->item_id,
-                    'url' => site_url('', 'http')
+                    'url' => home_url()
                 );
 
                 // Call the API
@@ -271,7 +271,7 @@ if (!class_exists('ESIG_License')) :
                                 printf(
                                     __( 'Your license expired %s ago. To re-enable automatic updates <a href="%s" target="_blank">renew it now</a>.', 'esig' ),
                                     human_time_diff( strtotime( $license_data->expires ) ),
-                                    $this->api_url . 'checkout/?download_id=2660&edd_license_key=' . Esign_licenses::get_license_key()
+                                    $this->api_url . 'checkout/?download_id=2660&edd_license_key=' . Esign_licenses::get_license_key() . '&utm_campaign=admin&utm_source=plugin_row&utm_medium=plugins'
                                 );
                             ?>
                         </span>

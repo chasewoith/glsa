@@ -80,7 +80,9 @@ a:focus, a:hover {
     margin-bottom: 10px !important;
 }
 
-
-input[type=checkbox], input[type=radio] {
-   margin: 4px 7px !important;  
+#wpfooter {
+  position: absolute !important ;
 }
+/*input[type=checkbox], input[type=radio] {
+   margin: 4px 7px !important;  
+}*/

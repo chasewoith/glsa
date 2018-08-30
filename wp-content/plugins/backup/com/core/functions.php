@@ -1,5 +1,22 @@
 <?php
 
+function backupGuardGetCapabilities()
+{
+	switch (SG_PRODUCT_IDENTIFIER) {
+		case 'backup-guard-en':
+		case 'backup-guard-wp-platinum':
+		case 'backup-guard-en-regular':
+		case 'backup-guard-en-extended':
+			return BACKUP_GUARD_CAPABILITIES_PLATINUM;
+		case 'backup-guard-wp-gold':
+			return BACKUP_GUARD_CAPABILITIES_GOLD;
+		case 'backup-guard-wp-silver':
+			return BACKUP_GUARD_CAPABILITIES_SILVER;
+		case 'backup-guard-wp-free':
+			return BACKUP_GUARD_CAPABILITIES_FREE;
+	}
+}
+
 function backupGuardgetSealPopup()
 {
 	$currentDate = time();
@@ -475,7 +492,8 @@ function backupGuardGetCurrentUrlScheme()
 
 function backupGuardValidateLicense()
 {
-	if (!SGBoot::isFeatureAvailable('SCHEDULE')) {
+	$pluginCapabilities = backupGuardGetCapabilities();
+	if ($pluginCapabilities == BACKUP_GUARD_CAPABILITIES_FREE) {
 		return true;
 	}
 
@@ -563,7 +581,7 @@ function backupGuardGetBackupTablesHTML($defaultChecked = false){
 		<div class="col-md-12 sg-checkbox sg-backup-db-options">
 			<div class="checkbox">
 				<label for="custombackupdbfull-radio" class="sg-backup-db-mode" title="Backup all tables found in the database">
-					<input type="radio" name="backupDBType" id="custombackupdbfull-radio" value="0">
+					<input type="radio" name="backupDBType" id="custombackupdbfull-radio" value="0" checked>
 					<?php _backupGuardT('Full'); ?>
 				</label>
 				<label for="custombackupdbcurent-radio" class="sg-backup-db-mode" title="Backup tables related to the current WordPress installation. Only tables with <?php echo SG_ENV_DB_PREFIX ?> will be backed up">
@@ -610,10 +628,14 @@ function backupGuardGetProductName()
 			$name = 'Silver';
 			break;
 		case 'backup-guard-wp-platinum':
-		case 'backup-guard-en-regular':
-		case 'backup-guard-en':
-		case 'backup-guard-en-extended':
 			$name = 'Platinum';
+			break;
+		case 'backup-guard-en':
+		case 'backup-guard-en-regular':
+			$name = 'Regular';
+			break;
+		case 'backup-guard-en-extended':
+			$name = 'Extended';
 			break;
 		case 'backup-guard-wp-gold':
 			$name = 'Gold';

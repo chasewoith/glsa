@@ -27,7 +27,7 @@ if (isset($_GET['source']) && wfPage::isValidPage($_GET['source'])) {
 
 			//Hash-based option block linking
 			if (window.location.hash) {
-				var hashes = window.location.hash.split('#');
+				var hashes = WFAD.parseHashes();
 				var hash = hashes[hashes.length - 1];
 				var block = $('.wf-block[data-persistence-key="' + hash + '"]');
 				if (block.length) {
@@ -66,9 +66,9 @@ if (isset($_GET['source']) && wfPage::isValidPage($_GET['source'])) {
 			<?php
 			$indexOptions = array(
 				'wf-option-apiKey' => __('License Key', 'wordfence'),
-				'wf-option-displayTopLevelOptions' => __('Display All Options menu option', 'wordfence'),
-				'wf-option-displayTopLevelBlocking' => __('Display Blocking menu option', 'wordfence'),
-				'wf-option-displayTopLevelLiveTraffic' => __('Display Live Traffic menu option', 'wordfence'),
+				'wf-option-displayTopLevelOptions' => __('Display All Options menu item', 'wordfence'),
+				'wf-option-displayTopLevelBlocking' => __('Display Blocking menu item', 'wordfence'),
+				'wf-option-displayTopLevelLiveTraffic' => __('Display Live Traffic menu item', 'wordfence'),
 				'wf-option-autoUpdate' => __('Update Wordfence automatically when a new version is released?', 'wordfence'),
 				'wf-option-alertEmails' => __('Where to email alerts', 'wordfence'),
 				'wf-option-howGetIPs' => __('How does Wordfence get IPs', 'wordfence'),
@@ -120,12 +120,14 @@ if (isset($_GET['source']) && wfPage::isValidPage($_GET['source'])) {
 				'wf-option-loginSec-lockInvalidUsers' => __('Immediately lock out invalid usernames', 'wordfence'),
 				'wf-option-loginSec-userBlacklist' => __('Immediately block the IP of users who try to sign in as these usernames', 'wordfence'),
 				'wf-option-loginSec-strongPasswds-enabled' => __('Enforce strong passwords', 'wordfence'),
+				'wf-option-loginSec-breachPasswds-enabled' => __('Prevent the use of passwords leaked in data breaches', 'wordfence'),
 				'wf-option-loginSec-maskLoginErrors' => __('Don\'t let WordPress reveal valid users in login errors', 'wordfence'),
 				'wf-option-loginSec-blockAdminReg' => __('Prevent users registering "admin" username if it doesn\'t exist', 'wordfence'),
 				'wf-option-loginSec-disableAuthorScan' => __('Prevent discovery of usernames through "/?author=N" scans, the oEmbed API, and the WordPress REST API', 'wordfence'),
 				'wf-option-other-blockBadPOST' => __('Block IPs who send POST requests with blank User-Agent and Referer', 'wordfence'),
+				'wf-option-blockCustomText' => __('Custom text shown on block pages', 'wordfence'),
 				'wf-option-other-pwStrengthOnUpdate' => __('Check password strength on profile update', 'wordfence'),
-				'wf-option-other-WFNet' => __('Participate in the Real-Time WordPress Security Network', 'wordfence'),
+				'wf-option-other-WFNet' => __('Participate in the Real-Time Wordfence Security Network', 'wordfence'),
 				'wf-option-firewallEnabled' => __('Enable Rate Limiting and Advanced Blocking', 'wordfence'),
 				'wf-option-blockFakeBots' => __('Immediately block fake Google crawlers', 'wordfence'),
 				'wf-option-neverBlockBG' => __('How should we treat Google\'s crawlers', 'wordfence'),
@@ -139,12 +141,12 @@ if (isset($_GET['source']) && wfPage::isValidPage($_GET['source'])) {
 				'wf-option-allowed404s' => __('Whitelisted 404 URLs', 'wordfence'),
 				'wf-option-wafWhitelist' => __('Web Application Firewall Whitelisted URLs', 'wordfence'),
 				'wf-option-ajaxWatcherDisabled-front' => __('Monitor background requests from an administrator\'s web browser for false positives (Front-end Website)', 'wordfence'),
-				'wf-option-ajaxWatcherDisabled-adminMonitor background requests from an administrator\'s web browser for false positives (Admin Panel)
-wf-option-cbl-action' => __('What to do when we block someone visiting from a blocked country', 'wordfence'),
+				'wf-option-ajaxWatcherDisabled-admin' => __('Monitor background requests from an administrator\'s web browser for false positives (Admin Panel)', 'wordfence'),
+				'wf-option-cbl-action' => __('What to do when we block someone visiting from a blocked country', 'wordfence'),
 				'wf-option-cbl-redirURL' => __('URL to redirect blocked countries to', 'wordfence'),
 				'wf-option-cbl-loggedInBlocked' => __('Block countries even if they are logged in', 'wordfence'),
-				'wf-option-cbl-bypassRedirURL If user from a blocked country hits the relative URL ____ then redirect that user to ____ and set a cookie that will bypass all country blocking
-wf-option-cbl-bypassViewURL' => __('If user who is allowed to access the site views the relative URL ____ then set a cookie that will bypass country blocking in future in case that user hits the site from a blocked country', 'wordfence'),
+				'wf-option-cbl-bypassRedirURL' => __('If user from a blocked country hits the relative URL ____ then redirect that user to ____ and set a cookie that will bypass all country blocking', 'wordfence'),
+				'wf-option-cbl-bypassViewURL' => __('If user who is allowed to access the site views the relative URL ____ then set a cookie that will bypass country blocking in future in case that user hits the site from a blocked country', 'wordfence'),
 				'wf-option-scheduledScansEnabled' => __('Schedule Wordfence Scans', 'wordfence'),
 				'wf-option-scanType' => __('Scan Type', 'wordfence'),
 				'wf-option-scansEnabled-checkGSB' => __('Check if this website is on a domain blacklist', 'wordfence'),
@@ -186,6 +188,7 @@ wf-option-cbl-bypassViewURL' => __('If user who is allowed to access the site vi
 				'wf-option-liveTraf-ignoreIPs' => __('List of comma separated IP addresses to ignore', 'wordfence'),
 				'wf-option-liveTraf-ignoreUA' => __('Browser user-agent to ignore', 'wordfence'),
 				'wf-option-liveTraf-maxRows' => __('Amount of Live Traffic data to store (number of rows)', 'wordfence'),
+				'wf-option-liveTraf-maxAge' => __('Maximum days to keep Live Traffic data', 'wordfence'),
 				'wf-option-other-noAnonMemberComments' => __('Hold anonymous comments using member emails for moderation', 'wordfence'),
 				'wf-option-other-scanComments' => __('Filter comments for malware and phishing URLs', 'wordfence'),
 				'wf-option-advancedCommentScanning' => __('Advanced Comment Spam Filter', 'wordfence'),
@@ -204,7 +207,12 @@ wf-option-cbl-bypassViewURL' => __('If user who is allowed to access the site vi
 <div class="wf-options-controls-spacer"></div>
 <?php
 if (wfOnboardingController::shouldShowAttempt3()) {
+	echo wfView::create('onboarding/disabled-overlay')->render();
 	echo wfView::create('onboarding/banner')->render();
+}
+else if (wfConfig::get('touppPromptNeeded')) {
+	echo wfView::create('gdpr/disabled-overlay')->render();
+	echo wfView::create('gdpr/banner')->render();
 }
 ?>
 <div class="wrap wordfence">

@@ -309,6 +309,15 @@ class WP_E_Setting extends WP_E_Model {
     public function get_default_page() {
         return $this->get_generic("default_display_page");
     }
+    
+     /**
+     * return esignature default display page
+     * @return type
+     */
+    public function default_link() {
+       $pageId = $this->get_default_page();
+       return _get_page_link($pageId);
+    }
 
 
 }

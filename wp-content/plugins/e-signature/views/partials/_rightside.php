@@ -6,7 +6,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 ?>      
 
-<div id="postbox-container-1" class="esig-postbox-container">
+
 	 <?php 
             // add new addons here (array push)
         $esig_plugin_list = array(
@@ -78,8 +78,8 @@ if ( ! defined( 'ABSPATH' ) ) {
     // showing premium module end here 
     }
     ?>
-<div id="postbox-container-1" class="esig-postbox-container">
-<div id="esig-support" class="postbox" style="margin-left:10px;min-width:270px">
+
+<div id="esig-support" class="postbox">
 
 	<h3 class="hndle esig-section-title"><span><?php _e('Found a bug? Need support?', 'esig' ); ?></span></h3>
 		<div class="inside">
@@ -103,8 +103,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<a target="_blank" href="https://www.approveme.com/wp-digital-signature-plugin-docs/faq/"><?php _e('Frequently Asked Questions', 'esig' );?></a></p>
 	
 </div>
-</div>
-</div>
+
+
        
     
      

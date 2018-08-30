@@ -164,8 +164,8 @@ class SGBackup implements SGIBackupDelegate
 		$this->state->setBackupFilePath($this->filesBackupPath);
 		$this->state->setPendingStorageUploads($this->pendingStorageUploads);
 		$this->state->setCdrCursor(0);
-		$this->state->setRestoreMode($this->restoreMode);
-		$this->state->setRestoreFiles($this->restoreFiles);
+		$this->state->setRestoreMode(@$this->restoreMode);
+		$this->state->setRestoreFiles(@$this->restoreFiles);
 	}
 
 	private function prepareDBStateFile()
@@ -181,7 +181,7 @@ class SGBackup implements SGIBackupDelegate
 		$this->state->setBackupFilePath($this->filesBackupPath);
 		$this->state->setPendingStorageUploads($this->pendingStorageUploads);
 		$this->state->setBackedUpTables(array());
-		$this->state->setTablesToBackup($this->options['SG_BACKUP_TABLES_TO_BACKUP']);
+		$this->state->setTablesToBackup(@$this->options['SG_BACKUP_TABLES_TO_BACKUP']);
 	}
 
 	private function prepareUploadStateFile()
@@ -369,9 +369,9 @@ class SGBackup implements SGIBackupDelegate
 					}
 				}
 
-				$rootDirectory = rtrim(realpath(SGConfig::get('SG_APP_ROOT_DIRECTORY')), '/').'/';
-				$path = substr(realpath($this->databaseBackupPath), strlen($rootDirectory));
-                $this->backupFiles->addDontExclude(realpath($this->databaseBackupPath));
+				$rootDirectory = rtrim(SGConfig::get('SG_APP_ROOT_DIRECTORY'), '/').'/';
+				$path = substr($this->databaseBackupPath, strlen($rootDirectory));
+                $this->backupFiles->addDontExclude($this->databaseBackupPath);
 				$backupItems = $options['SG_BACKUP_FILE_PATHS'];
 				$allItems = $backupItems?explode(',', $backupItems):array();
 				$allItems[] = $path;
@@ -907,10 +907,12 @@ class SGBackup implements SGIBackupDelegate
 
 	public static function getLogFileHeader($actionType, $fileName)
 	{
+		$pluginCapabilities = backupGuardGetCapabilities();
+
 		$confs = array();
 		$confs['sg_backup_guard_version'] = SG_BACKUP_GUARD_VERSION;
 		$confs['sg_archive_version'] = SG_ARCHIVE_VERSION;
-		$confs['sg_user_mode'] = SGBoot::isFeatureAvailable('STORAGE')?'pro':'free'; // Check if user is pro or free
+		$confs['sg_user_mode'] = ($pluginCapabilities != BACKUP_GUARD_CAPABILITIES_FREE)?'pro':'free'; // Check if user is pro or free
 		$confs['os'] = PHP_OS;
 		$confs['server'] = @$_SERVER['SERVER_SOFTWARE'];
 		$confs['php_version'] = PHP_VERSION;

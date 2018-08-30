@@ -36,6 +36,7 @@ https://www.youtube.com/watch?v=HCz4mkMMXos
 <li>Ability to specify custom exclude paths</li>
 <li>Ability to exclude database tables</li>
 <li>Live progress - precise progress of the current backup or restore</li>
+<li>Upload to Dropbox</li>
 </ul>
 
 See <strong>BackupGuard Free</strong> in action here: <a href="https://www.youtube.com/watch?v=nt6XoP69c0M">https://www.youtube.com/watch?v=nt6XoP69c0M</a>
@@ -156,6 +157,33 @@ When you are facing an issue of any kind with any of our products, the first thi
 6.  Site backup customization
 
 == Changelog ==
+
+= 1.1.66 =
+* Minor bug fixes and improvements
+
+= 1.1.65 =
+* Now you can upload your backups to Dropbox with free version.
+
+= 1.1.64 =
+* Symlink folder backup issue fixed
+* Other bug fixes & improvements
+
+= 1.1.63 =
+* Support link has been updated
+
+= 1.1.62 =
+* Minor bug fixes and improvements
+
+= 1.1.61 =
+* New exclude paths were added
+* Minor bug fixes and improvements
+
+= 1.1.60 =
+* Minor bug fixes and improvements
+
+= 1.1.59 =
+* External restore detection improved
+* Minor bug fixes and improvements
 
 = 1.1.58 =
 * Restore related bug was resolved

@@ -136,7 +136,7 @@ class Cf7_Grid_Layout_Admin {
     //debug_msg($screen, $this->custom_type );
     $plugin_dir = plugin_dir_url( __DIR__ );
     if('toplevel_page_wpcf7' == $page){
-      wp_enqueue_script( $this->plugin_name, $plugin_dir . 'admin/js/cf7-grid-layout-admin.js', array( 'jquery' ), $this->version, false );
+      wp_enqueue_script( $this->plugin_name, $plugin_dir . 'admin/js/cf7-grid-layout-admin.js', array( 'jquery' ), $this->version, true );
       return;
     }
     $screen = get_current_screen();
@@ -150,10 +150,16 @@ class Cf7_Grid_Layout_Admin {
         //enqueue the cf7 scripts.
         wpcf7_admin_enqueue_scripts( 'wpcf7' );
         wp_enqueue_script('jquery-clibboard', $plugin_dir . 'assets/clipboard/clipboard.min.js', array('jquery'),$this->version,true);
-        wp_enqueue_script( 'cf7-grid-codemirror-js', $plugin_dir . 'admin/js/cf7-grid-codemirror.js', array( 'jquery', 'jquery-ui-tabs' ), $this->version, false );
-        wp_enqueue_script( $this->plugin_name, $plugin_dir . 'admin/js/cf7-grid-layout-admin.js', array('cf7-grid-codemirror-js', 'jquery-ui-sortable' ), $this->version, false ); //'jquery-ui-draggable'
-        wp_enqueue_script( 'cf7sg-dynamic-tag-js', $plugin_dir . 'admin/js/cf7sg-dynamic-tag.js', array('jquery','wpcf7-admin-taggenerator' ), $this->version, true );
-        wp_enqueue_script( 'cf7-benchmark-tag-js', $plugin_dir . 'admin/js/cf7-benchmark-tag.js', array('jquery','wpcf7-admin-taggenerator' ), $this->version, true );
+        wp_enqueue_script( 'cf7-grid-codemirror-js', $plugin_dir . 'admin/js/cf7-grid-codemirror.js', array( 'jquery', 'jquery-ui-tabs' ), $this->version, true );
+        wp_localize_script(
+          'cf7-grid-codemirror-js',
+          'cf7sgeditor',
+          array(
+            'mode' => apply_filters('cf7sg_admin_editor_mode', 'shortcode', $post->name),
+						'theme' => apply_filters('cf7sg_admin_editor_theme', 'paraiso-light', $post->name),
+          )
+        );
+        wp_enqueue_script( $this->plugin_name, $plugin_dir . 'admin/js/cf7-grid-layout-admin.js', array('cf7-grid-codemirror-js', 'jquery-ui-sortable' ), $this->version, true );
         wp_localize_script(
           $this->plugin_name,
           'cf7grid',
@@ -164,6 +170,10 @@ class Cf7_Grid_Layout_Admin {
 						'ui' => apply_filters('cf7sg_grid_ui', true, $post->name)
           )
         );
+        wp_enqueue_script( 'cf7sg-dynamic-tag-js', $plugin_dir . 'admin/js/cf7sg-dynamic-tag.js', array('jquery','wpcf7-admin-taggenerator' ), $this->version, true );
+        wp_enqueue_script( 'cf7-benchmark-tag-js', $plugin_dir . 'admin/js/cf7-benchmark-tag.js', array('jquery','wpcf7-admin-taggenerator' ), $this->version, true );
+
+
 
         //codemirror script
         wp_enqueue_script( 'codemirror-js',
@@ -407,8 +417,28 @@ class Cf7_Grid_Layout_Admin {
    * @since 1.0.0
   **/
   public function setup_cf7_object(){
-    WPCF7_ContactForm::get_template( array(
-			'locale' => isset( $_GET['locale'] ) ? $_GET['locale'] : null ) );
+    $args = array();
+    /**
+    * Fix locale setup for new forms using polylang.
+    * @since 2.1.4
+    */
+    if(isset($_GET['locale'])){
+      $args['locale'] = $_GET['locale'];
+    }else if(isset($_GET['new_lang'])){
+      //check for polylang
+      $locale = $_GET['new_lang'];
+      if(function_exists('pll_languages_list')){
+        $langs = pll_languages_list();
+        $locales = pll_languages_list(array('fields'=>'locale'));
+        foreach($langs as $idx => $lang){
+          if($lang == $locale){
+            $locale = $locales[$idx];
+          }
+        }
+      }
+      $args['locale'] =$locale;
+    }
+    WPCF7_ContactForm::get_template( $args);
   }
   /**
   * Callback function to disolay the main editor meta box
@@ -431,7 +461,7 @@ class Cf7_Grid_Layout_Admin {
     //   $post_id = $post->ID;
     // }
   	require_once WPCF7_PLUGIN_DIR . '/admin/includes/editor.php';
-  	require_once plugin_dir_path( __FILE__ )  . '/partials/cf7-admin-editor-display.php';
+  	require_once plugin_dir_path( __FILE__ )  . 'partials/cf7-admin-editor-display.php';
   }
 
   /**
@@ -467,7 +497,7 @@ class Cf7_Grid_Layout_Admin {
   * @since 1.0.0
   */
   public function info_metabox_display($post){
-  	require_once plugin_dir_path( __FILE__ )  . '/partials/cf7-info-metabox-display.php';
+  	require_once plugin_dir_path( __FILE__ )  . 'partials/cf7-info-metabox-display.php';
   }
   /**
   * Function to add the metabox to the cf7 post edit screen
@@ -561,7 +591,7 @@ class Cf7_Grid_Layout_Admin {
     $sanitised_sub_forms = array();
   	foreach($sub_forms as $field){
       $sanitised_sub_forms[] = sanitize_text_field($field);
-	}
+	  }
     update_post_meta($post_id, '_cf7sg_sub_forms', $sanitised_sub_forms);
     //save form fields which are in tabs or tables.
     $tt_fields = json_decode(stripslashes($_POST['cf7sg-table-fields']));
@@ -616,14 +646,14 @@ class Cf7_Grid_Layout_Admin {
     return $allowed;
   }
   /**
-    * Filters the default form loaded when a new CF7 form is created
-    * Hooked on
-    * @since 1.0
-    * @param string $template  the html string for the form tempalte
-    * @param string $prop  the template property required.
-    */
+  * Filters the default form loaded when a new CF7 form is created
+  * Hooked on 'wpcf7_default_template'
+  * @since 1.0
+  * @param string $template  the html string for the form tempalte
+  * @param string $prop  the template property required.
+  */
   public function default_cf7_form($template, $prop){
-	if($prop !== 'form') return $template;
+	  if($prop !== 'form') return $template;
     include( plugin_dir_path( __FILE__ ) . '/partials/cf7-default-form.php');
     return $template;
   }
@@ -831,5 +861,24 @@ class Cf7_Grid_Layout_Admin {
   	);
 
     register_taxonomy( $slug, WPCF7_ContactForm::post_type, $args );
+  }
+  /**
+  * Deactivate this plugin if CF7 plugin is deactivated.
+  * Hooks on action 'admin_init'
+  * @since 2.1
+  */
+  //public function deactivate_cf7_polylang( $plugin, $network_deactivating ) {
+  public function check_plugin_dependency() {
+    //if either the polylang for the cf7 plugin is not active anymore, deactive this extension
+    if( !is_plugin_active("contact-form-7/wp-contact-form-7.php") ){
+        deactivate_plugins( "cf7-grid-layout/cf7-grid-layout.php" );
+        debug_msg("Deactivating Smart Grid");
+
+        $button = '<a href="'.network_admin_url('plugins.php').'">Return to Plugins</a></a>';
+        wp_die( '<p><strong>CF7 smart Grid-layout Extension</strong> requires <strong>Contact Form 7</strong> plugin, and has therefore been deactivated!</p>'.$button );
+
+        return false;
+    }
+    return true;
   }
 }

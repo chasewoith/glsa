@@ -15,31 +15,43 @@ if (!class_exists('esigCf7Filters')):
         private function __construct() {
             add_filter("esig_document_title_filter", array($this, "cf7_document_title_filter"), 10, 2);
             add_filter("esig_strip_shortcodes_tagnames", array($this, "tag_list_filter"), 10, 1);
-            
         }
-        public function tag_list_filter($listArray){
-              $listArray[]="contact-form-7";
-              return $listArray;
+
+        public function tag_list_filter($listArray) {
+            $listArray[] = "contact-form-7";
+            return $listArray;
         }
 
         public function cf7_document_title_filter($docTitle, $docId) {
+            
             $formIntegration = WP_E_Sig()->document->getFormIntegration($docId);
             if ($formIntegration != "cf7") {
                 return $docTitle;
             }
 
-            $formId = WP_E_Sig()->meta->get($docId, 'esig_cf7_form_id');
-            preg_match_all('/{{(.*?)}}/', $docTitle, $matches);
-            if (empty($matches[1])) {
+            preg_match_all('/{{+(.*?)}}/', $docTitle, $matchesAll);
+
+            if (empty($matchesAll[1])) {
                 return $docTitle;
             }
-            $fieldId = is_array($matches) ? str_replace('cf7-field-id-', "", $matches[1][0]) : false;
-            
-            if ($fieldId) {
-                $cf7Value = ESIG_CF7_SETTING::get_submission_value($docId, $formId, $fieldId);
-                $title = str_replace("{{cf7-field-id-" . $fieldId . "}}", $cf7Value, $docTitle);
-                return $title;
+            if (!is_array($matchesAll[1])) {
+                return $docTitle;
             }
+
+            $titleResult = $matchesAll[1];
+
+            $formId = WP_E_Sig()->meta->get($docId, 'esig_cf7_form_id');
+            foreach ($titleResult as $result) {
+               
+               
+                $fieldId = ($result) ? str_replace('cf7-field-id-', "", $result) : false;
+                
+                if ($fieldId) {
+                    $cf7Value = ESIG_CF7_SETTING::get_submission_value($docId, $formId, $fieldId);
+                    $docTitle = str_replace("{{cf7-field-id-" . $fieldId . "}}", $cf7Value, $docTitle);
+                }
+            }
+            
             return $docTitle;
         }
 
@@ -59,6 +71,12 @@ if (!class_exists('esigCf7Filters')):
         }
 
     }
+
+    
+
+    
+
+    
 
     
 

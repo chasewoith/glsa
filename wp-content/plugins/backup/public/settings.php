@@ -52,7 +52,7 @@ $sgBackgroundReloadMethod = SGConfig::get('SG_BACKGROUND_RELOAD_METHOD');
                                 <div class="form-group">
                                     <label class="col-md-4 sg-control-label" for="sg-email"><?php echo _backupGuardT('Enter email')?></label>
                                     <div class="col-md-8">
-                                        <input id="sg-email" name="sgUserEmail" type="email" placeholder="example@domain.com" class="form-control input-md" value="<?php echo @$userEmail?>">
+                                        <input id="sg-email" name="sgUserEmail" type="email" placeholder="You can enter multiple emails, just separate them with comma" class="form-control input-md" value="<?php echo @$userEmail?>">
                                     </div>
                                 </div>
                             </div>

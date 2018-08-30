@@ -107,8 +107,9 @@ class WP_E_SettingsController extends WP_E_appController {
 
 
         $userdata = $this->user->getUserByWPID($wp_user_id);
+       
         // getting value from signature table		
-        if (!empty($userdata) && count($userdata) > 0) {
+        if (!empty($userdata) && count((array)$userdata) > 0) {
 
             foreach ($userdata as $field => $value) {
                 $this->settings->$field = stripslashes($value);
@@ -208,6 +209,7 @@ class WP_E_SettingsController extends WP_E_appController {
         $template_data["esig_administrator"] = $new_common->esig_save_administrator();
 
         $template_data["esig_timezone"] = $new_common->esig_set_timezone();
+        $template_data["esig_terms_of_use"] = $new_common->esig_set_tou();
 
         add_thickbox();
         $template_data = apply_filters('esig-settings-tab-data', $template_data);
@@ -389,7 +391,7 @@ class WP_E_SettingsController extends WP_E_appController {
             $this->model->set("initialized", "true");
 
 
-            $this->notice->set("e-sign-alert esig-updated", __("<strong>Well done sir</strong> :  Your E-Signature settings have been updated!","esig"));
+            $this->notice->set("e-sign-alert esig-updated", __("<strong>Well done</strong> :  Your E-Signature settings have been updated!","esig"));
             
             // set this user as admin 
             $this->user->updateField($userID, 'is_admin', '1');
@@ -400,7 +402,7 @@ class WP_E_SettingsController extends WP_E_appController {
             $this->settings->$field = $value;
         }
 
-        $this->settings->default_display_page = $_POST['default_display_page'];
+        $this->settings->default_display_page = esigpost('default_display_page');
 
         wp_update_post(array(
             'ID' => $this->settings->default_display_page,

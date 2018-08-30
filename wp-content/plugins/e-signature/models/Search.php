@@ -118,9 +118,9 @@ class WP_E_Search extends WP_E_Model
                 else
                 {
                     $user_id = $this->get_search_user_id();
-                     $docs=$this->wpdb->get_results($this->wpdb->prepare("SELECT * FROM " . $this->table . " INNER JOIN ". $this->usertable ." ON ". $this->table .".document_id =". $this->usertable .".document_id WHERE ". $this->table .".user_id=%d and ".$this->table.".document_status=%s and ".$this->table.".document_title LIKE %s OR ".$this->table.".user_id=%d and ".$this->table.".document_status=%s and ". $this->usertable .".signer_name LIKE %s",$user_id,$search,$user_id, $search));
+                     $docs=$this->wpdb->get_results($this->wpdb->prepare("SELECT * FROM " . $this->table . " INNER JOIN ". $this->usertable ." ON ". $this->table .".document_id =". $this->usertable .".document_id WHERE ". $this->table .".user_id=%d and ".$this->table.".document_status=%s and ".$this->table.".document_title LIKE %s OR ".$this->table.".user_id=%d and ".$this->table.".document_status=%s and ". $this->usertable .".signer_name LIKE %s",$user_id,$document_status,$search,$user_id,$document_status, $search));
                 }
-           
+          
                  return count($docs);
         }
         

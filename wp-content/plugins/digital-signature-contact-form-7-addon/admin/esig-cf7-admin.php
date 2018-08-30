@@ -309,12 +309,13 @@ if (!class_exists('ESIG_CF7_Admin')) :
             // Update the doc title
 
 
-            $doc = WP_E_Sig()->document->getDocument($doc_id);
+            
 
             WP_E_Sig()->document->updateTitle($doc_id, $doc_title);
             WP_E_Sig()->document->updateType($doc_id, 'normal');
             WP_E_Sig()->document->updateStatus($doc_id, 'awaiting');
-
+            
+            $doc = WP_E_Sig()->document->getDocument($doc_id);
 
             // trigger an action after document save .
             do_action('esig_sad_document_invite_send', array(

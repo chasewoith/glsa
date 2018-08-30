@@ -139,6 +139,7 @@ class SGReloadHandler
 		curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/602.4.8 (KHTML, like Gecko) Version/10.0.3 Safari/602.4.8');
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
 		curl_exec($ch);
+		sleep(1);
 		curl_close($ch);
 	}
 

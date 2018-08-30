@@ -10896,12 +10896,20 @@ class mPDF
 	}
 
 	/* -- END CJK-FONTS -- */
+	
+	function myEach(&$arr) {
+    $key = key($arr);
+    $result = ($key === null) ? false : [$key, current($arr), 'key' => $key, 'value' => current($arr)];
+    next($arr);
+    return $result;
+	}
 
 	function _putimages()
 	{
 		$filter = ($this->compress) ? '/Filter /FlateDecode ' : '';
 		reset($this->images);
-		while (list($file, $info) = each($this->images)) {
+		while (list($file, $info) = $this->myEach($this->images)) { //each($this->images)) {
+			//$this->myEach($this->images)) {
 			$this->_newobj();
 			$this->images[$file]['n'] = $this->n;
 			$this->_out('<</Type /XObject');
@@ -11825,7 +11833,7 @@ class mPDF
 					$data = @file_get_contents($fullPath);
 					$type = $this->_imageTypeFromString($data);
 				}	
-				if (!$data && !$type){
+				/*if (!$data && !$type){
 				$link_image = wp_make_link_relative($orig_srcpath);
 				$imagePath = "/home/djjoltco/public_html/".$link_image;
 	
@@ -11833,7 +11841,36 @@ class mPDF
 					$data = @file_get_contents($imagePath);
 					$type = $this->_imageTypeFromString($data);
 				}
+				}*/
+				
+				if (!$data && !$type){
+				$link_image = wp_make_link_relative($orig_srcpath);
+				$imagePath = ABSPATH .$link_image;
+				
+				
+				if(file_exists($imagePath)){
+					
+					$data = @file_get_contents($imagePath);
+					$type = $this->_imageTypeFromString($data);
 				}
+				
+				}
+				
+				
+				if (!$data && !$type){
+					
+				$link_image =  preg_replace( '|^'. get_site_url() .'|i', '$2', $orig_srcpath );
+				$imagePath = ABSPATH .$link_image;
+				if(file_exists($imagePath)){
+					
+					$data = @file_get_contents($imagePath);
+					$type = $this->_imageTypeFromString($data);
+				}
+				
+				}
+				
+				
+				
 			}
 			// custome edit end here 
 			
@@ -13075,7 +13112,7 @@ class mPDF
 	function _putformobjects()
 	{
 		reset($this->formobjects);
-		while (list($file, $info) = each($this->formobjects)) {
+		while (list($file, $info) = $this->myEach($this->formobjects)) {
 			$this->_newobj();
 			$this->formobjects[$file]['n'] = $this->n;
 			$this->_out('<</Type /XObject');

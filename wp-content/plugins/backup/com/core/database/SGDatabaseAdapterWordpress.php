@@ -1,6 +1,5 @@
 <?php
 require_once(SG_DATABASE_PATH.'SGIDatabaseAdapter.php');
-require_once(dirname(__FILE__).'/SGDB.php');
 
 class SGDatabaseAdapterWordpress implements SGIDatabaseAdapter
 {
@@ -8,45 +7,43 @@ class SGDatabaseAdapterWordpress implements SGIDatabaseAdapter
 	private $lastResult = array();
 	private $connection = null;
 	private $mysqliAvailable = false;
-	private $sgdb = null;
 
 	public function __construct()
 	{
 		$this->mysqliAvailable = $this->isMysqliAvailable();
-
-		$this->sgdb = new SGDB(DB_USER, DB_PASSWORD, DB_NAME, DB_HOST);
 	}
 
 	public function query($query, $params=array(), $resultType = ARRAY_A)
 	{
-		// global $wpdb;
+		global $wpdb;
 
 		$op = strtoupper(substr(trim($query), 0, 6));
 		if ($op!='INSERT' && $op!='UPDATE' && $op!='DELETE')
 		{
 			if(!empty($params))
 			{
-				return @$this->sgdb->get_results($this->sgdb->prepare($query, $params), $resultType);
+				return @$wpdb->get_results($wpdb->prepare($query, $params), $resultType);
 			}
-			return @$this->sgdb->get_results($query, $resultType);
+			return @$wpdb->get_results($query, $resultType);
 		}
 		else
 		{
 			if(!empty($params))
 			{
-				return $this->sgdb->query($this->sgdb->prepare($query, $params));
+				return $wpdb->query($wpdb->prepare($query, $params));
 			}
-			return $this->sgdb->query($query);
+			return $wpdb->query($query);
 		}
 	}
 
 	public function exec($query)
 	{
 		//as wpdb doesn't work with statements, this function will just return true or false
-		// global $wpdb;
+
+		global $wpdb;
 
 		$this->fetchRowIndex = 0;
-		$res = $this->sgdb->query($query);
+		$res = $wpdb->query($query);
 
 		if ($res === false) {
 			return false;
@@ -92,10 +89,10 @@ class SGDatabaseAdapterWordpress implements SGIDatabaseAdapter
 
 	public function fetch($st)
 	{
-		// global $wpdb;
+		global $wpdb;
 
 		if ($this->fetchRowIndex==0) {
-			$this->lastResult = $this->sgdb->last_result;
+			$this->lastResult = $wpdb->last_result;
 		}
 
 		$res = @$this->lastResult[$this->fetchRowIndex];
@@ -107,8 +104,8 @@ class SGDatabaseAdapterWordpress implements SGIDatabaseAdapter
 
 	public function lastInsertId()
 	{
-		// global $wpdb;
-		return $this->sgdb->insert_id;
+		global $wpdb;
+		return $wpdb->insert_id;
 	}
 
 	public function getLastError()
@@ -117,18 +114,18 @@ class SGDatabaseAdapterWordpress implements SGIDatabaseAdapter
 			return mysqli_error($this->connection);
 		}
 
-		// global $wpdb;
-		return $this->sgdb->last_error;
+		global $wpdb;
+		return $wpdb->last_error;
 	}
 
 	public function flush()
 	{
-		// global $wpdb;
-		$this->sgdb->flush();
+		global $wpdb;
+		$wpdb->flush();
 	}
 
 	public function escapeSql($value)
 	{
-		return $this->sgdb->_escape($value);
+		return esc_sql($value);
 	}
 }

@@ -1,6 +1,6 @@
 (function ($) {
 
-"use strict";
+    "use strict";
 
     // this is common js file . 
 
@@ -30,11 +30,11 @@
 
 
         if ($(e).find('.signature-image')) {
-            
+
             // if already sign or add type 
         }
-        if($(e).find('.esignature-in-text-signed'))
-         {
+        if ($(e).find('.esignature-in-text-signed'))
+        {
             var signature_text = $(e).find('input.esignature-in-text-signed').val(); // $("input[name='esignature_in_text']").val();
             var font = $(e).find('input.font-type-signed').val(); // $('#font-type').val();
 
@@ -65,7 +65,7 @@
     });
 
     $('.digital-signature-image').each(function (i, e) {
-        if($(e).find('.sign-text-pdf'))
+        if ($(e).find('.sign-text-pdf'))
         {
             var spanEl = $(e).find('.sign-text-pdf span');
             var signature_text = spanEl.text();
@@ -79,20 +79,20 @@
 
 
     $('body').on('change keyup paste', '#esignature-in-text', function () {
-    	
-    	
-    	 // hiding  tooltip if that already showed
+
+
+        // hiding  tooltip if that already showed
         $('#esig-agree-button').addClass('disabled').trigger('hidetip');
 
         var signature_type = $("input[name='esignature_in_text']").val();
-        $("#esignature-in-text").css('border','0px solid #ff0000');
-        if(/<(.*)>/.test(signature_type))
-		 {
-		       	$("input[name='esignature_in_text']").focus();
-					   return false ;  
-		 }
+        $("#esignature-in-text").css('border', '0px solid #ff0000');
+        if (/<(.*)>/.test(signature_type))
+        {
+            $("input[name='esignature_in_text']").focus();
+            return false;
+        }
 
-        $("input[name='recipient_first_name']").val(signature_type);
+        //$("input[name='recipient_first_name']").val(signature_type);
 
         var newSize = signature_type.length;
 
@@ -111,24 +111,24 @@
         $('#esig-type-in-preview').addClass("esig-signature-type-font1").css("font-size", newSize + "px");
         $('#esig-iam-type').html(signature_type);
         $('#esig-iam').html(signature_type);
-         $('#esig-iam-draw').html(signature_type);
-        
-       
+        $('#esig-iam-draw').html(signature_type);
+
+
     });
 
-   
+
     $('body').on('click', '#esig-type-in-change-fonts', function (e) {
 
         e.preventDefault();
-        
+
         var font = $('#font-type').val();
 
         var currentfont = Number(font) + Number(1);
         if (currentfont > 7) {
             currentfont = 1;
         }
-       
-        
+
+
         var presentfont = "esig-signature-type-font" + font;
         var nextfont = 'esig-signature-type-font' + currentfont;
         $('#font-type').val(currentfont);
@@ -139,28 +139,33 @@
     $('#esig-type-in-text-accept-signature').click(function () {
 
         var signature_type = $("input[name='esignature_in_text']").val();
-       
-        if(/<(.*)>/.test(signature_type))
-		 {
-        	$("input[name='esignature_in_text']").focus();
-			   return false ;  
-		 }
+
+        if (/<(.*)>/.test(signature_type))
+        {
+            $("input[name='esignature_in_text']").focus();
+            return false;
+        }
+
+        if (!signature_type)
+        {
+            $("input[name='esignature_in_text']").focus();
+            return false;
+        }
+
+        if (signature_type.replace(/\s+/g, '').length == 0)
+        {
+            $("input[name='esignature_in_text']").focus();
+            return false;
+        }
         
-        if(!signature_type)
-        	{
-        		$("input[name='esignature_in_text']").focus();
-        		return false ;
-        	}
-        	
-       if (signature_type.replace(/\s+/g, '').length == 0)
-        	{
-        		$("input[name='esignature_in_text']").focus();
-        		return false ;
-        	}	
-        	
-        
+        if (!esign.isFullName(signature_type) && $("#recipient_first_name").hasClass("esig-no-form-integration"))
+        {
+            return false;
+        }
+
+
         var font = $('#font-type').val();
-       
+
         var htmlcontent = '<div class="sign-here pad signed esig-sig-type esig-signature-type-font' + font + '" width="100%"><span class="esig-sig-type1">' + signature_type + '</span></div>';
         htmlcontent += '<input type="hidden" name="esig_signature_type" value="typed">';
 
@@ -168,9 +173,9 @@
 
         var fname = $("input[name='recipient_first_name']").val();
         if (signature_type != fname) {
-        	
+
             $("input[name='recipient_first_name']").val(signature_type);
-            
+
             $('#esig-iam').html(fname);
             //$('#esig-iam-type').html(fname);
         }
@@ -180,7 +185,7 @@
         $('#esig-signature-added').hide();
         $('#signatureCanvas2').hide();
         $('.signature-wrapper-displayonly .esig-sig-type').remove();
-            
+
         $('.signature-wrapper-displayonly').append(htmlcontent);
 
         var newSize = signature_type.length;

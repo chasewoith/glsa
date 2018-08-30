@@ -5,10 +5,12 @@
  * Description: Receive credit card or PayPal payments using Paypal Powered by Braintree.  A server with cURL, SSL support, and a valid SSL certificate is required (for security reasons) for this gateway to function. Requires PHP 5.4+
  * Author: WooCommerce
  * Author URI: http://woocommerce.com/
- * Version: 2.1.1
+ * Version: 2.1.3
+ * Text Domain: woocommerce-gateway-paypal-powered-by-braintree
+ * Domain Path: /i18n/languages/
  *
  * WC requires at least: 2.5.5
- * WC tested up to: 3.3.0
+ * WC tested up to: 3.4.4
  *
  * Copyright (c) 2016-2018, Automattic, Inc.
  *
@@ -118,7 +120,7 @@ class WC_PayPal_Braintree_Loader {
 		}
 
 		// autoload the Braintree SDK
-		require_once( plugin_dir_path( __FILE__ ) . 'lib/autoload.php' );
+		require_once( plugin_dir_path( __FILE__ ) . 'vendor/autoload.php' );
 
 		// Required framework classes class
 		require_once( plugin_dir_path( __FILE__ ) . 'lib/skyverge/woocommerce/class-sv-wc-plugin.php' );

@@ -67,9 +67,14 @@ sgBackup.sgsettings = function(){
     jQuery('.alert').remove();
 
     if(jQuery('.sg-email-switch').is(":checked")){
-        if(!isValidEmailAddress(jQuery('#sg-email').val())){
-            error.push('Please enter valid email.');
-        }
+        var emails = jQuery('#sg-email').val().split(",");
+
+        $.each(emails, function( index, value ) {
+            value = jQuery.trim(value);
+            if(!isValidEmailAddress(value)){
+                error.push('Please enter valid email.');
+            }
+        });
     }
 
     var backupFileName = jQuery('#backup-file-name').val();

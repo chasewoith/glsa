@@ -104,3 +104,22 @@ a.esig-ac-sign-now{
     width: 20px;
     height: 20px;
 }
+
+ .ac-signed-buttons {
+	 display: table;
+ }
+ 
+
+.pull-button1 {
+	display:table-cell;
+	
+}
+
+.pull-button2 {
+	display:table-cell;
+	width:150px;
+}
+.pull-button3 {
+	display:table-cell;
+	
+}

@@ -14,7 +14,7 @@ class Math_Captcha_Cookie_Session {
 		Math_Captcha()->cookie_session = $this;
 
 		// actions
-		add_action( 'plugins_loaded', array( &$this, 'init_session' ), 1 );
+		add_action( 'plugins_loaded', array( $this, 'init_session' ), 1 );
 	}
 
 	/**
@@ -24,7 +24,7 @@ class Math_Captcha_Cookie_Session {
 		if ( is_admin() )
 			return;
 
-		if ( isset( $_COOKIE['mc_session_ids'] ) )
+		if ( isset( $_COOKIE['mc_session_ids'] ) && is_array( $_COOKIE['mc_session_ids'] ) && array_key_exists( 'default', $_COOKIE['mc_session_ids'] ) && array_key_exists( 'multi', $_COOKIE['mc_session_ids'] ) )
 			$this->session_ids = $_COOKIE['mc_session_ids'];
 		else {
 			foreach ( array( 'default', 'multi' ) as $place ) {

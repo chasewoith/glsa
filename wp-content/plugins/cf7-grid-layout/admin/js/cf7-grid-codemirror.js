@@ -4,7 +4,7 @@
 */
 (function( $ ) {
 
-	$(document).ready( function(){
+  $(document).ready( function(){
     var $codemirror = $('#cf7-codemirror');
     var $wpcf7Editor = $('textarea#wpcf7-form-hidden');
     var codemirrorUpdated = false;
@@ -31,21 +31,29 @@
         };
         return CodeMirror.overlayMode(CodeMirror.getMode(config, parserConfig.backdrop || "htmlmixed"), cf7Overlay);
       });
-      cmEditor = CodeMirror( $codemirror.get(0), {
+      var cmConfig =  {
         value: $wpcf7Editor.text(),
         extraKeys: {"Ctrl-Space": "autocomplete"},
-        mode:  "shortcode",
         lineNumbers: true,
         styleActiveLine: true,
         matchBrackets: true,
-        theme: "paraiso-light",
         tabSize:2,
+        mode: 'htmlmixed',
         lineWrapping: true,
         addModeClass: true,
         foldGutter: true,
         autofocus:false,
         gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"]
-      });
+      }
+      if(cf7sgeditor.mode.length>0){
+        console.log('addind mode');
+        cmConfig['mode']=cf7sgeditor.mode;
+      }
+      if(cf7sgeditor.theme.length>0){
+        cmConfig['theme']=cf7sgeditor.theme;
+      }
+      //console.log(cmConfig);
+      cmEditor = CodeMirror( $codemirror.get(0), cmConfig);
 
       /*  TODO: enable shortcode edit at a future date
       $('.cm-shortcode',$codemirror).each(function(){
@@ -55,7 +63,7 @@
         alert('shortcode '+ $(this).parent().text());
       });
       */
-      $.fn.beautify = function(){
+      $.fn.beautify = function(cursor){
         cmEditor.setSelection({
           'line':cmEditor.firstLine(),
           'ch':0,
@@ -68,6 +76,12 @@
         {scroll: false});
         cmEditor.indentSelection("smart");
         cmEditor.setCursor(cmEditor.firstLine(),0);
+        if('undefined' != typeof cursor && cursor.find(false)){
+          var from = cursor.from();
+          var to = cursor.to();
+          cmEditor.setSelection(CodeMirror.Pos(from.line, 0), to);
+          cmEditor.scrollIntoView({from: from, to: CodeMirror.Pos(to.line + 10, 0)});
+        }
       }
       $codemirror.beautify();
 
@@ -125,13 +139,29 @@
         },
         activate: function( event, ui ) {
           gridTab = ui.newPanel.selector;
-          if('#cf7-editor-grid' == ui.newPanel.selector  && codemirrorUpdated){
-            //update the hidden textarea
-            $wpcf7Editor.text(cmEditor.getValue());
-            //trigger rebuild grid event
-            $grid.trigger('build-grid');
+          if('#cf7-editor-grid' == ui.newPanel.selector){
+            if(codemirrorUpdated){
+              //update the hidden textarea
+              $wpcf7Editor.text(cmEditor.getValue());
+              //trigger rebuild grid event
+              $grid.trigger('build-grid');
+            }else{ //try to set the focus on the 'cf7sgfocus element'
+              var $focus = $('.cf7sgfocus', $grid);
+              if($focus.length>0){
+                var scrollPos = $focus.offset().top - $(window).height()/2 + $focus.height()/2;
+                //console.log(scrollPos);
+                $(window).scrollTop(scrollPos);
+                $focus.removeClass('cf7sgfocus');
+              }
+            }
           }else if('#cf7-codemirror' == ui.newPanel.selector){
-            $codemirror.beautify();
+            var cursor = cmEditor.getSearchCursor('cf7sgfocus', CodeMirror.Pos(cmEditor.firstLine(), 0), {caseFold: true, multiline: true});
+
+            $codemirror.beautify(cursor);
+
+
+            var scrollPos = $('#form-panel').offset().top;
+            $(window).scrollTop(scrollPos);
           }
         }
       });
@@ -157,6 +187,7 @@
     }); //-----------end codemirror editor setup
 
     $('form#post').submit(function(event) {
+      var $this = $(this);
       $( window ).off( 'beforeunload' ); //remove event to stop cf7 script from warning on save
       event.preventDefault(); //this will prevent the default submit
       var $embdedForms = '';
@@ -177,6 +208,8 @@
         $('textarea#wpcf7-form-hidden').html(cmEditor.getValue());
         $formNoEmbeds = $('<div>').append(cmEditor.getValue());
       }
+      //since 1.8 remove cf7sgfocus class if present.
+      $('.cf7sgfocus', $formNoEmbeds).removeClass('cf7sgfocus');
       $embdedForms = $formNoEmbeds.find('.cf7sg-external-form').remove();
 
       //setup sub-forms hidden field.
@@ -189,9 +222,9 @@
         });
       }
       $('#cf7sg-embeded-forms').val(JSON.stringify(embeds));
+      var cf7TagRegexp = /\[(.[^\s]*)\s*(.[^\s]*)(|\s*(.[^\[]*))\]/img;
       //scan and submit tabs & tables fields.
       var tableFields = [];
-      var cf7TagRegexp = /\[(.[^\s]*)\s*(.[^\s]*)(|\s*(.[^\[]*))\]/img;
       $('.row.cf7-sg-table', $formNoEmbeds).each(function(){
         var search = $(this).html();
         var match = cf7TagRegexp.exec(search);
@@ -218,10 +251,10 @@
         hasTabs = true;
       });
       //append hidden fields
-      $(this).append('<input type="hidden" name="cf7sg-has-tabs" value="'+hasTabs+'" /> ');
-      $(this).append('<input type="hidden" name="cf7sg-has-tables" value="'+hasTables+'" /> ');
+      $this.append('<input type="hidden" name="cf7sg-has-tabs" value="'+hasTabs+'" /> ');
+      $this.append('<input type="hidden" name="cf7sg-has-tables" value="'+hasTables+'" /> ');
       var disabled = $('#form-editor-tabs').tabs('option','disabled');
-      $(this).append('<input type="hidden" name="cf7sg-has-grid" value="'+disabled+'" /> ');
+      $this.append('<input type="hidden" name="cf7sg-has-grid" value="'+disabled+'" /> ');
       /*
       TODO: check for nice-select/select2, effects, toggles, accordion, validation to reduce script loads on front end.
       */
@@ -229,52 +262,107 @@
       $('#cf7sg-table-fields').val(JSON.stringify(tableFields));
       //alert(ttFields);
       // continue the submit unbind preventDefault.
-      $(this).unbind('submit').submit();
+      $this.unbind('submit').submit();
    });
    /*
    Function to convert the UI form into its html final form for editing in the codemirror and/or saving to the CF7 plugin.
    */
     $.fn.CF7FormHTML = function(){
-      if( !$(this).is('#grid-form') ){
+      var $this = $(this);
+      if( !$this.is('#grid-form') ){
         return '';
       }
-      var $form = $('<div>').append(  $(this).html() );
+      var $form = $('<div>').append(  $this.html() );
       var text='';
       //remove the external forms
       var external = {};
       $('.cf7sg-external-form', $form).each(function(){
-        var id = $(this).data('form');
-        external[id] = $(this).children('.cf7sg-external-form-content').remove();
-        $(this).children('.form-controls').remove();
+        var $exform = $(this);
+        var id = $exform.data('form');
+        external[id] = $exform.children('.cf7sg-external-form-content').remove();
+        $exform.children('.form-controls').remove();
       });
       //remove the row controls
       $('.row', $form).removeClass('ui-sortable').children('.row-controls').remove();
+
       //remove the collapsible input
       $('.container.cf7sg-collapsible', $form).each(function(){
-        var $title = $(this).children('.cf7sg-collapsible-title');
-        text = $title.children('label').children('input[type="hidden"]').val();
+        var $this = $(this);
+        var cid = $this.attr('id');
+        var $title = $this.children('.cf7sg-collapsible-title');
+        var text = $title.children('label').children('input[type="hidden"]').val();
         $title.children('label').remove();
-        //text = $('input', $title).val();
+        var toggle = '';
+        if($this.is('.with-toggle')){
+          toggle=' toggled';
+        }
+        text = '<span class="cf7sg-title'+toggle+'">'+text+'</span>';
         $title.html(text + $title.html());
-        //TODO check if we have a toggle
       });
       //remove tabs inputs
       $('ul.cf7-sg-tabs-list li label', $form).remove();
-      //remove texarea and embed its content
+
+      var cf7TagRegexp = /\[(.[^\s]*)\s*(.[^\s]*)(|\s*(.[^\[]*))\]/img;
+      var cf7sgToggleRegex = /class:cf7sg-toggle-(.[^\s]+)/i;
+      //remove textarea and embed its content
       $('.columns', $form).each(function(){
-        $(this).removeClass('ui-sortable');
-        var $gridCol = $(this).children('.grid-column');
+        var $this = $(this);
+        $this.removeClass('ui-sortable');
+        var $gridCol = $this.children('.grid-column');
         var $text = $('textarea.grid-input', $gridCol);
         if($text.length>0){
           text = $text.text();
-          $(this).html('\n'+text);
+          //verify if this column is within a toggled section.
+          var $toggle = $this.closest('.container.cf7sg-collapsible.with-toggle');
+          if($toggle.length>0){
+            var cid = $toggle.attr('id');
+            /**
+            * track toggled checkbox/radio fields, because they are not submitted when not filled.
+            *@since 2.1.5
+            */
+            var $field = $text.siblings('div.cf7-field-type');
+            var isToggled = false;
+            if($field.length>0){
+              if($field.is('.checkbox.required') || $field.is('.radio')) isToggled = true;
+            }else isToggled = true; //custom column, needs checking.
+            if(isToggled){
+              var search = text;
+              var match = cf7TagRegexp.exec(search);
+              //var hasRadios = false;
+              while (match != null) {
+                switch(match[1]){
+                  case 'checkbox*':
+                  case 'radio':
+                    var options = '';
+                    if(match.length>4){
+                      var tglmatch = cf7sgToggleRegex.exec(match[4]);
+                      if(tglmatch != null){
+                        if(tglmatch[1] == cid) break;
+                        options =match[4].replace(tglmatch[0],'class:cf7sg-toggle-'+cid);
+                      }else{
+                        options = 'class:cf7sg-toggle-'+cid+' '+match[4];
+                      }
+                    }else{
+                      options = 'class:cf7sg-toggle-'+cid;
+                    }
+                    text = text.replace(match[0], '['+match[1]+' '+match[2]+' '+options+']');
+                    //hasRadios = true;
+                    break;
+                }
+                //console.log('match'+match[2]);
+                match = cf7TagRegexp.exec(search); //get the next match.
+              }
+            }//end isToggled.
+          }
+          $this.html('\n'+text);
         }//else this column is a grid.
         $gridCol.remove();
       });
       //reinsert the external forms
       $('.cf7sg-external-form', $form).each(function(){
-        var id = $(this).data('form');
-        $(this).append( external[id] );
+        var $this = $(this);
+        var id = $this.data('form');
+        $this.append( external[id] );
       });
       text = $form.html();
       if($grid.children('.container').length > 0){ //strip tabs/newlines
@@ -282,6 +370,6 @@
       }
       return text;
     }
-});//dcoument ready end
+  });//dcoument ready end
 
 })( jQuery );

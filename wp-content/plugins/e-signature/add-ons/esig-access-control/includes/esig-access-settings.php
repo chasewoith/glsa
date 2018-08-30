@@ -69,7 +69,7 @@ class Access_Control_Setting {
         if (self::this_document_signed($document_id)) {
             return;
         }
-     
+
         return ESIG_ACCESS_CONTROL_Shortcode::esig_doc_dashboard11($document_id, $meta);
     }
 
@@ -95,11 +95,11 @@ class Access_Control_Setting {
           if (!self::this_document_signed($document_id)) {
           return;
           } */
-      
+
         if (!WP_E_Sig()->signature->userHasSignedDocument(self::get_esign_user_id(), $document_id)) {
             return;
         }
-       
+
         return ESIG_ACCESS_CONTROL_Shortcode::esig_doc_dashboard11($document_id, $meta);
     }
 
@@ -112,15 +112,16 @@ class Access_Control_Setting {
     }
 
     public static function store_signed_data($document_id) {
-        $wp_user_id = get_current_user_id();
+
+        $wp_user_id = self::wordpressUserId();
         $user_data = get_userdata($wp_user_id);
         $email_address = $user_data->user_email;
         //add_user_meta($email_address , "esig-" . $document_id . "-signed", 1);
         WP_E_Sig()->meta->add($document_id, "esig-access-control-signed", $email_address);
     }
 
-    public static function store_sad_signed_data($wp_user_id, $oldDocId,$newDocId) {
-        update_user_meta($wp_user_id, 'esig-stand-alone-' . $oldDocId,$newDocId);
+    public static function store_sad_signed_data($wp_user_id, $oldDocId, $newDocId) {
+        update_user_meta($wp_user_id, 'esig-stand-alone-' . $oldDocId, $newDocId);
     }
 
     public static function get_sad_signed_data($wp_user_id, $document_id, $email_address = false) {
@@ -158,6 +159,12 @@ class Access_Control_Setting {
             if ($document_id != $maxDocId) {
                 return true;
             }
+            
+            $thisDocumentAllow = apply_filters("esig_access_control_allow",true,$document_id);
+            if(!$thisDocumentAllow){
+                return true;
+            }
+            
         }
 
         return false;
@@ -167,6 +174,10 @@ class Access_Control_Setting {
 
         $docutmet_status = WP_E_Sig()->document->getStatus($document_id);
         $docType = WP_E_Sig()->document->getDocumenttype($document_id);
+        
+        if($docType =="stand_alone" && $docutmet_status=="awaiting"){
+            $docType="normal";
+        }
 
         if ($docType == 'normal') {
             if (WP_E_Sig()->document->getSignedresult($document_id)) {
@@ -180,9 +191,11 @@ class Access_Control_Setting {
                 return true;
             }
         }
+
         if ($docutmet_status == "signed") {
             return true;
         }
+       
         return false;
     }
 
@@ -201,14 +214,21 @@ class Access_Control_Setting {
         }
         return false;
     }
-    
-    public static function isFormIntegration($document_id){
-             $document_type = WP_E_Sig()->document->getDocumenttype($document_id);
-            $integration= WP_E_Sig()->document->getFormIntegration($document_id);
-            if($document_type=='stand_alone' && !empty($integration)){
-                return true;
+
+    public static function isFormIntegration($document_id) {
+        $document_type = WP_E_Sig()->document->getDocumenttype($document_id);
+        $integration = WP_E_Sig()->document->getFormIntegration($document_id);
+        if ($document_type == 'stand_alone' && !empty($integration)) {
+
+            if ($integration == "woococmmerce-after-checkout") {
+                return false;
             }
-            return false;
+           
+           
+            return true;
+        }
+
+        return false;
     }
 
     public static function this_document_signed($document_id) {
@@ -220,7 +240,7 @@ class Access_Control_Setting {
         $document_type = WP_E_Sig()->document->getDocumenttype($document_id);
 
         if ($document_type == "stand_alone") {
-            
+
             if (self::is_user_signed_already($email_address, $document_id)) {
                 return true;
             } else {
@@ -251,28 +271,28 @@ class Access_Control_Setting {
             }
         }
     }
-    
-    public static function deleteUserMeta($document_id,$meta_value){
-        
-        delete_user_meta(self::wordpressUserId(), "esig-" . $document_id . "-signed",$meta_value);
-        delete_user_meta(self::wordpressUserId(), 'esig-stand-alone-' . $document_id,$meta_value);
+
+    public static function deleteUserMeta($document_id, $meta_value) {
+
+        delete_user_meta(self::wordpressUserId(), "esig-" . $document_id . "-signed", $meta_value);
+        delete_user_meta(self::wordpressUserId(), 'esig-stand-alone-' . $document_id, $meta_value);
     }
 
     public static function is_user_signed_already($email_address, $document_id) {
 
         $signed = self::get_sad_signed_data(self::wordpressUserId(), $document_id, $email_address);
-        
-        if(is_numeric($signed)){
+
+        if (is_numeric($signed)) {
             $exists = WP_E_Sig()->document->document_exists($signed);
-            if(!$exists){
-                self::deleteUserMeta($document_id,$signed);
-                return false;  
+            if (!$exists) {
+                self::deleteUserMeta($document_id, $signed);
+                return false;
             }
         }
         if ($signed) {
             return true;
         } else {
-            
+
             $meta_data = WP_E_Sig()->meta->get($document_id, 'esig-access-control-signed');
             if ($meta_data == $email_address) {
                 return true;
@@ -326,7 +346,20 @@ class Access_Control_Setting {
     }
 
     public static function wordpressUserId() {
-        return get_current_user_id();
+        if (is_user_logged_in()) {
+            return get_current_user_id();
+        } else {
+            $sadEmail = esigpost('esig-sad-email');
+            if (!is_email($sadEmail)) {
+                return false;
+            }
+            $user = get_user_by('email', $sadEmail);
+            if (!$user) {
+                return false;
+            }
+            return $user->ID;
+        }
+        return false;
     }
 
     /*     * *

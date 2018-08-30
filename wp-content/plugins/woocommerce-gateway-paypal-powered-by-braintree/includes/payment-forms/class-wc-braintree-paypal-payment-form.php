@@ -69,8 +69,8 @@ class WC_Braintree_PayPal_Payment_Form extends WC_Braintree_Payment_Form {
 
 		return array(
 			'is_test_environment'           => $this->get_gateway()->is_test_environment(),
-			'must_login_message'            => __( 'Please click the blue "PayPal" button below to log into your PayPal account before placing your order.', 'woocommerce-gateway-paypal-powered-by-braintree' ),
-			'must_login_add_method_message' => __( 'Please click the blue "PayPal" button below to log into your PayPal account before adding your payment method.', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+			'must_login_message'            => __( 'Please click the "PayPal" button below to log into your PayPal account before placing your order.', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+			'must_login_add_method_message' => __( 'Please click the "PayPal" button below to log into your PayPal account before adding your payment method.', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 			'button_styles'                 => wp_parse_args( $button_styles, $default_button_styles ), // ensure all expected parameters are present after filtering to avoid JS errors
 		);
 	}

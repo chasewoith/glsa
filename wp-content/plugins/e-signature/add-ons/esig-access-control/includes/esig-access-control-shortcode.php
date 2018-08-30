@@ -55,14 +55,21 @@ if (!class_exists('ESIG_ACCESS_CONTROL_Shortcode')) :
 
         public function esig_sad_document_complate($args) {
 
+          
+            
             $old_document_id = esigget('sad_doc_id',$args); //$args['sad_doc_id'];
+            
             if(!$old_document_id){
                 return;
             }
 
             $new_document_id = $args['invitation']->document_id;
 
-            $wp_user_id = get_current_user_id();
+            $wp_user_id = self::wordpressUserId(); 
+            
+            if(!$wp_user_id){
+                return false;
+            }
 
             $old_access_control_settings = WP_E_Sig()->meta->get($old_document_id, "esig_wpaccess_control");
             if (!empty($old_access_control_settings)) {
@@ -130,8 +137,10 @@ if (!class_exists('ESIG_ACCESS_CONTROL_Shortcode')) :
                 if(!$exists){
                     continue;
                 }
+                
                 $docStatus = WP_E_Sig()->document->getStatus($document_id);
-                if($docStatus=="trash" || $docStatus=="draft"){
+                
+                if(empty($docStatus) || $docStatus=="trash" || $docStatus=="draft"){
                     continue;
                 }
                 
@@ -148,6 +157,8 @@ if (!class_exists('ESIG_ACCESS_CONTROL_Shortcode')) :
                 if (!self::esig_is_user_access($wp_user_id, $meta, $document_id)) {
                     continue;
                 }
+                
+                
 
                 $html .=self::dashboard_output($status, $document_id, $meta);
             }
@@ -167,7 +178,7 @@ if (!class_exists('ESIG_ACCESS_CONTROL_Shortcode')) :
                 return $url;
             }
 
-            if ($document->document_type == "stand_alone") {
+            if ($document->document_type == "stand_alone" && $document->document_status !="awaiting") {
 
                 $sad_class = new esig_sad_document();
 
@@ -176,7 +187,7 @@ if (!class_exists('ESIG_ACCESS_CONTROL_Shortcode')) :
 
                 return $url;
             }
-            if ($document->document_type == "normal") {
+            if ($document->document_type == "normal" || $document->document_status =="awaiting") {
                 return WP_E_Invite::get_invite_url($invite_hash, $document->document_checksum);
             }
         }
@@ -187,9 +198,10 @@ if (!class_exists('ESIG_ACCESS_CONTROL_Shortcode')) :
 
             if ($api->signature->userHasSignedDocument(self::get_esign_user_id(), $document->document_id)) {
                 $button_text = '<div class="esig-ac-signed-button">
-                              <span class="pull-left"><a href="#" onclick="esig_print(\'' . self::get_page_link($api, $document) . '\')"><span id="icon" class="icon-print-icon esig-ac-icon"></span></a></span>
-                              <span class="pull-center"><a href="' . admin_url() . 'admin.php?esigtodo=esigpdf&did=' . $document->document_checksum . '" " ><span id="icon" class="icon-download-icon esig-ac-icon"></span></a></span>
-                              <span class="pull-right"><a href="' . self::get_page_link($api, $document) . '" target="_blank"><span id="icon" class="icon-zoom-icons esig-ac-icon"></a></span></span></div>';
+								<div class="ac-signed-buttons">
+                              <span class="pull-button1"><a href="#" onclick="esig_print(\'' . self::get_page_link($api, $document) . '\')"><span id="icon" class="icon-print-icon esig-ac-icon"></span></a></span>
+                              <span class="pull-button2"><a href="' . admin_url() . 'admin.php?esigtodo=esigpdf&did=' . $document->document_checksum . '" " ><span id="icon" class="icon-download-icon esig-ac-icon"></span></a></span>
+                              <span class="pull-button3"><a href="' . self::get_page_link($api, $document) . '" target="_blank"><span id="icon" class="icon-zoom-icons esig-ac-icon"></a></span></span></div></div>';
             } else {
 
                 $button_text = '<a class="esig-ac-sign-now" style="text-decoration: none !important;color:white !important;" href="' . self::get_page_link($api, $document) . '"><div class="esig-ac-button">' . __('COMPLETE & ESIGN NOW', 'esign') . '</div></a>';

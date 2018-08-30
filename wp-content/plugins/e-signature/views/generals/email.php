@@ -67,7 +67,7 @@ $email_class = new WP_E_Email();
                     </tr>
 
 
-                    <tr valign="top">
+                  <!---  <tr valign="top">
                         <th scope="row"><?php _e("From Email Address", 'esig'); ?></th>
                         <td>
                             <input type="text" name="esig_from_email" class="regular-text" placeholder="e.g. john@gmail.com" value="<?php echo esc_attr($esig_options['from_email_field']); ?>"/><br />
@@ -80,7 +80,7 @@ $email_class = new WP_E_Email();
                             <input type="text" placeholder="e.g. John Doe" name="esig_from_name" class="regular-text" value="<?php echo esc_attr($esig_options['from_name_field']); ?>"/><br />
                             <span  class="esig_info"><?php _e("This text will be used in the 'FROM' field for your eSignature emails", 'easy_wp_smtp'); ?></span>
                         </td>
-                    </tr>			
+                    </tr>--->			
                     <tr class="ad_opt esig_smtp_options">
                         <th><?php _e('SMTP Host', 'esig'); ?></th>
                         <td>
@@ -89,7 +89,7 @@ $email_class = new WP_E_Email();
                         </td>
                     </tr>
                     <tr class="ad_opt esig_smtp_options">
-                        <th><?php _e('Type of Encription', 'esig'); ?></th>
+                        <th><?php _e('Type of Encryption', 'esig'); ?></th>
                         <td>
                             <label for="esig_smtp_type_encryption_1"><input type="radio" id="esig_smtp_type_encryption_1" name="esig_smtp_type_encryption" value='none' <?php if ('none' == $esig_options['smtp_settings']['type_encryption']) echo 'checked="checked"'; ?> /> <?php _e('None', 'esig'); ?></label>
                             <label for="esig_smtp_type_encryption_2"><input type="radio" id="esig_smtp_type_encryption_2" name="esig_smtp_type_encryption" value='ssl' <?php if ('ssl' == $esig_options['smtp_settings']['type_encryption']) echo 'checked="checked"'; ?> /> <?php _e('SSL', 'esig'); ?></label>

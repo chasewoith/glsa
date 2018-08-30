@@ -1,12 +1,10 @@
 ===  Contact Forms 7 Digital Signature Add-On === 
-
 Contributors: approveme
 Donate link: http://aprv.me/1LgWgTW
 Tags:  contact form 7, Forms Plugin, forms plugin, contact forms 7, Contact Form 7, contact form, Contact Forms 7, Contactform 7, ContactForm, contactform, Contactform 7, signature, esignature, contract, contracts, wordpress forms, wordpress form, contact form plugin, proposal, Contact Form 7 Signature,  contact form 7 signature plugin, contact form signature,  Electronic Signature, contact form 7 electronic signature, contact form 7 signature, contact form 7 digital signature, contact form 7 esignature, wordpress e-signature, wordpress esignature, wordpress signature, digital signature, contract plugin, wordpress contract plugin,  WP Digital Signature, WordPress E-Signature, Digital Signature, Contract Plugin, Wordpress Contract Plugin, WordPress Proposal, contact forms
-
 Requires at least: 3.3
-Tested up to: 4.9.2
-Stable tag: 1.5.3.0
+Tested up to: 4.9.6
+Stable tag: 1.5.3.6
 
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -302,7 +300,6 @@ Please feel free to contact us at anytime with any additional questions you migh
 4. **Choose Your Contact Form 7 Fields:** After selecting your Contact Form you will see the available field options from this particular Contact Form. You can easily insert dynamic data from your form anywhere in this new contract.
 
 
-
 5. **Document Signing Options (optional):** The powerful WP eSignature tool by ApproveMe features plenty of customizable options including: Signing reminder Emails, Attach PDF to emails, Dropbox Sync, Auto Register WordPress Users, and TONS more. To read all about the available add-on features (which come with the business license) please see: [https://www.approveme.com/esign-integrations](https://www.approveme.com/esign-integrations/?utm_source=wprepo&utm_medium=link&utm_campaign=contactform7)
 
 
@@ -342,8 +339,16 @@ Important: Do NOT include this page in your Nav menu.  All of the magic actually
 
 
 == Changelog ==
+Version 1.5.3.6 - June 25, 2018
+FIX: Demo video for plugins is not getting start after click on Play icon
+
+Version 1.5.3.4 - April 19, 2018
+FIX: Improved CSS
+ADDED: Multiple field value adding into document title
+
+
 Version 1.5.3.0 - January 31, 2018
-FIX: showing value bug fixed in case of disabling caldera core
+FIX: showing value bug fixed in case of disabling cf7 core
 FIX: undefined form issue fixed
 
 Version 1.5.2.0 - October 9, 2017

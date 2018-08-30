@@ -56,7 +56,10 @@ if (!class_exists('ESIG_SIF')) :
 
             // Load public-facing style sheet and JavaScript.
             add_action('esig_footer', array($this, 'enqueue_styles'));
-            add_action('esig_head', array($this, 'enqueue_scripts'));
+
+            add_filter('esig_print_footer_scripts', array($this, 'enqueue_footer_scripts'), 10, 1);
+            add_filter('esig_print_header_scripts', array($this, 'enqueue_scripts'), 10, 1);
+            add_action('esig_register_scripts', array($this, 'register_scripts'));
 
             // Register Shortcodes
             add_shortcode('esigtextfield', array($this, 'render_shortcode_textfield'));
@@ -83,6 +86,11 @@ if (!class_exists('ESIG_SIF')) :
 
             add_action('wp_ajax_sif_upload_file', array($this, 'sif_upload_file'));
             add_action('wp_ajax_nopriv_sif_upload_file', array($this, 'sif_upload_file'));
+        }
+
+        public function register_scripts() {
+
+            wp_register_script('esig-sif-js', ESIGN_DIRECTORY_URI . "add-ons/esig-signer-input-fields/public/assets/js/public.js", array('jquery'), esigGetVersion(), false);
         }
 
         /*         * ******************************************** Sif file upload functionality here ********************************** */
@@ -204,7 +212,7 @@ if (!class_exists('ESIG_SIF')) :
             if (isset($document_id) && intval($document_id)) {
 
                 // Already signed	
-                if ($esig->signature->getDocumentSignatures($document_id)) {
+                if ($this->check_signature($document_id, $verifysigner)) {
 
                     $this->populate_field($esig, $document_id, $name, $value, $verifysigner);
 
@@ -302,6 +310,7 @@ if (!class_exists('ESIG_SIF')) :
 								 j("#error-' . $name . '").remove();
 								 j("#upload-' . $name . '").remove();
 								 j("#pallate-' . $name . '").remove();
+                                                                 j("#signatureCanvas2").addClass("esig-signing-disabled");
 						        j("#' . $name . '-content").append("<span id=\"upload-' . $name . '\">Uploading please wait..</span>");
 	var file_data = j("#' . $name . '").prop("files")[0];  
 	var extensions=j("#' . $name . '").attr( "extensions");
@@ -322,6 +331,7 @@ if (!class_exists('ESIG_SIF')) :
                 data: form_data,                         
                 type: "post",
                 success: function(data){
+                        j("#signatureCanvas2").removeClass("esig-signing-disabled");
                 	if(data[0] == "error")
                 	{
                 		 j("#upload-' . $name . '").remove();
@@ -353,8 +363,10 @@ if (!class_exists('ESIG_SIF')) :
                 $filesize = ($filesize) ? "filesize=\"" . $filesize . "\"" : null;
 
                 $fname = isset($fname) ? "fname=\"" . $fname . "\"" : null;
-
-                $html .= '<div class="sif-file-container" id="' . $name . '-content"><label id="file-' . $name . '"> ' . $label . '  <input class="esig-sif-file" ' . $verify . ' id="' . $name . '" type="file" ' . $towhom . ' value=""  name="' . $name . '" ' . $fname . ' ' . $extensions . '  ' . $filesize . '  ' . $required . ' /></label> </div>';
+                $ccView = esigget("esigpreview");
+                $readonly= ($ccView)?"disabled":false;
+                
+                $html .= '<div class="sif-file-container" id="' . $name . '-content"><label id="file-' . $name . '"> ' . $label . '  <input '. $readonly .' class="esig-sif-file" ' . $verify . ' id="' . $name . '" type="file" ' . $towhom . ' value=""  name="' . $name . '" ' . $fname . ' ' . $extensions . '  ' . $filesize . '  ' . $required . ' /></label> </div>';
 
                 return $html;
             }
@@ -680,6 +692,9 @@ if (!class_exists('ESIG_SIF')) :
                 'verifysigner' => '',
                 'required' => '',
                 'displaytype' => 'border', //border is a default value
+                'readonly'=>'1',
+                'mindate' => '',
+                'maxdate' => ''
                             ), $atts, 'esigdatepicker'));
 
             if (!function_exists('WP_E_Sig'))
@@ -702,23 +717,24 @@ if (!class_exists('ESIG_SIF')) :
 
                 $document_id = isset($_GET['did']) ? $esig->document->document_id_by_csum($_GET['did']) : null;
             }
+           
             // Admins
 
             if (isset($document_id) && intval($document_id)) {
 
-                $document_status = $esig->document->getStatus($document_id);
-
+                //$document_status = $esig->document->getStatus($document_id);
+                
                 // Already signed	
-                if ($document_status == "signed") {
+                if ($this->check_signature($document_id, $verifysigner)) {
 
                     $this->populate_field($esig, $document_id, $name, $value, $verifysigner);
 
-                    return $this->datepicker_to_html($value, $name, true, $verifysigner, false, $label, $displaytype);
+                    return $this->datepicker_to_html($value, $name, true, $verifysigner, false, $label, $displaytype, $mindate, $maxdate,false);
 
                     // Not signed
                 } else {
 
-                    return $this->datepicker_to_html($date, $name, false, $verifysigner, $required, $label, $displaytype);
+                    return $this->datepicker_to_html($date, $name, false, $verifysigner, $required, $label, $displaytype, $mindate, $maxdate,$readonly);
                 }
 
                 // Recipient
@@ -731,12 +747,12 @@ if (!class_exists('ESIG_SIF')) :
 
                     $this->populate_field($esig, $doc_id, $name, $value, $verifysigner, $recipient->user_id);
 
-                    return $this->datepicker_to_html($value, $name, true, $verifysigner, false, $label, $displaytype);
+                    return $this->datepicker_to_html($value, $name, true, $verifysigner, false, $label, $displaytype, $mindate, $maxdate,false);
 
                     // Not signed
                 } else {
 
-                    return $this->datepicker_to_html($date, $name, false, $verifysigner, $required, $label, $displaytype);
+                    return $this->datepicker_to_html($date, $name, false, $verifysigner, $required, $label, $displaytype, $mindate, $maxdate,$readonly);
                 }
 
                 // Public-facing page (Stand Alone Doc)
@@ -746,10 +762,10 @@ if (!class_exists('ESIG_SIF')) :
                     $document_id = $this->esig_document_id();
 
                     $this->populate_field($esig, $document_id, $name, $value, $verifysigner);
-                    return $this->datepicker_to_html($value, $name, true, $verifysigner, false, $label, $displaytype);
+                    return $this->datepicker_to_html($value, $name, true, $verifysigner, false, $label, $displaytype, $mindate, $maxdate,false);
                 } else {
 
-                    return $this->datepicker_to_html($date, $name, false, $verifysigner, $required, $label, $displaytype);
+                    return $this->datepicker_to_html($date, $name, false, $verifysigner, $required, $label, $displaytype, $mindate, $maxdate,$readonly);
                 }
             }
         }
@@ -757,7 +773,7 @@ if (!class_exists('ESIG_SIF')) :
         /**
          * Renders a date. $value will override.
          */
-        private function datepicker_to_html($value = '', $name, $signed = false, $verifysigner = 'undefined', $is_required = false, $label = false, $displaytype = null) {
+        private function datepicker_to_html($value = '', $name, $signed = false, $verifysigner = 'undefined', $is_required = false, $label = false, $displaytype = null, $startDate, $endDate,$is_readonly = false) {
 
 
             if ($signed) {
@@ -789,25 +805,39 @@ if (!class_exists('ESIG_SIF')) :
                     if ($this->check_sif_display($verifysigner))
                         $verify = 'readonly title="This element is assigned to ' . $this->get_signer_name($verifysigner) . '" class="sifreadonly"';
                 }
+
                 $required = ($is_required == 1 && empty($verify)) ? 'required' : '';
                 $html = '';
+                if (!$startDate && !$endDate) {
+                    $dateRange = false;
+                } else {
+                    $dateRange = esigSifSetting::instance()->getDateRange($startDate, $endDate);
+                }
+
                 if (empty($verify)) {
                     $date_format = get_option('date_format');
 
                     $html .= '<script type="text/javascript">
 							var j = jQuery.noConflict();
 							j(document).ready(function () { 
-						j( "#' . $name . '" ).datepicker();
-						j( "#' . $name . '" ).change(function() {
-			j( "#' . $name . '" ).datepicker( "option", "dateFormat", "' . $this->date_format_php_to_js($date_format) . '" ).valid();
-		});
-						});  
+						j( "#' . $name . '" ).datepicker(' . $dateRange . ');
+                                                j( "#' . $name . '" ).datepicker( "option", "dateFormat", "' . $this->date_format_php_to_js($date_format) . '","ignoreReadonly: true","allowInputToggle: true" );    
+                                                     j( "#' . $name . '" ).change(function() { 
+                                                         var selectedDate=j(this).val();
+                                                         if(selectedDate){
+                            j( "#' . $name . '" ).datepicker("setDate",new Date(selectedDate));
+                                }
+                            });  
+                });  
 								  </script> ';
                 }
+                
+                $readonly = ($is_readonly) ? "readonly":"";
+                
 
                 global $esig_pdf_export;
                 $value = ($esig_pdf_export) ? __('Select Date', 'esig') : '';
-                $html .= '<label> ' . $label . '  <input class="esig-sif-datepicker" ' . $verify . ' placeholder="Select Date" id="' . $name . '" type="text"  name="' . $name . '" value="' . $value . '" ' . $required . '  /></label> ';
+                $html .= '<label> ' . $label . '  <input ' . $readonly .' class="esig-sif-datepicker" ' . $verify . ' placeholder="Select Date" id="' . $name . '" type="text"  name="' . $name . '" value="' . $value . '" ' . $required . '  /></label> ';
 
                 return $html;
             }
@@ -828,6 +858,7 @@ if (!class_exists('ESIG_SIF')) :
             extract(shortcode_atts(array(
                 'format' => get_option('date_format'),
                 'displaytype' => 'border', //border is a default value
+                'verifysigner' => 'undefined',
                             ), $atts, 'esigtodaydate'));
 
             if (!function_exists('WP_E_Sig'))
@@ -849,19 +880,19 @@ if (!class_exists('ESIG_SIF')) :
             if (isset($document_id) && intval($document_id)) {
 
 
-                $document_status = $esig->document->getStatus($document_id);
+                //$document_status = $esig->document->getStatus($document_id);
 
                 // Already signed	
-                if ($document_status == "signed") {
+                if ($this->check_signature($document_id, $verifysigner)) {
 
-                    $this->populate_field($esig, $document_id, $name, $value, $verifysigner = 'null');
+                    $this->populate_field($esig, $document_id, $name, $value, $verifysigner);
 
-                    return $this->date_to_html($value, true, $displaytype);
+                    return $this->date_to_html($value, true, $displaytype, $verifysigner);
 
                     // Not signed
                 } else {
 
-                    return $this->date_to_html($date, false, $displaytype);
+                    return $this->date_to_html($date, false, $displaytype, $verifysigner);
                 }
 
                 // Recipient
@@ -869,15 +900,15 @@ if (!class_exists('ESIG_SIF')) :
 
                 $doc_id = $invitation->document_id;
                 // Already signed
-                if ($this->check_signature($doc_id, $verifysigner = 'null', $invitation->user_id)) {
+                if ($this->check_signature($doc_id, $verifysigner, $invitation->user_id)) {
 
-                    $this->populate_field($esig, $doc_id, $name, $value, $verifysigner = 'null');
-                    return $this->date_to_html($value, true, $displaytype);
+                    $this->populate_field($esig, $doc_id, $name, $value, $verifysigner);
+                    return $this->date_to_html($value, true, $displaytype, $verifysigner);
 
                     // Not signed
                 } else {
 
-                    return $this->date_to_html($date, false, $displaytype);
+                    return $this->date_to_html($date, false, $displaytype, $verifysigner);
                 }
 
 
@@ -886,11 +917,11 @@ if (!class_exists('ESIG_SIF')) :
 
                 if ($this->sif_public_access($name)) {
                     $document_id = $this->esig_document_id();
-                    $this->populate_field($esig, $document_id, $name, $value, $verifysigner = 'null');
-                    return $this->date_to_html($value, true, $displaytype);
+                    $this->populate_field($esig, $document_id, $name, $value, $verifysigner);
+                    return $this->date_to_html($value, true, $displaytype, $verifysigner);
                 } else {
 
-                    return $this->date_to_html($date, false, $displaytype);
+                    return $this->date_to_html($date, false, $displaytype, $verifysigner);
                 }
             }
         }
@@ -898,8 +929,18 @@ if (!class_exists('ESIG_SIF')) :
         /**
          * Renders a date. $value will override.
          */
-        private function date_to_html($value = '', $signed = false, $displaytype = null) {
+        private function date_to_html($value = '', $signed = false, $displaytype = null, $verifysigner = "undefined") {
 
+            $verify = '';
+            if ($verifysigner != 'undefined' and $verifysigner != 'null') {
+                if ($this->check_sif_display($verifysigner))
+                    $verify = 'onclick="this.checked=false;" title="This element is assigned to ' . $this->get_signer_name($verifysigner) . '" class="sifreadonly"';
+            }
+
+            if (!empty($verify) && !$signed) {
+                $signed = true;
+                $value = date(get_option('date_format'));
+            }
             if ($signed) {
 
                 if (get_transient('is_esig_pdf')) {
@@ -910,27 +951,28 @@ if (!class_exists('ESIG_SIF')) :
 
                 if ($displaytype == 'border') {
 
-                    return '<span style="border:1px solid #ccc;text-align:left;padding:3px;">' . $value . '</span>';
+                    return '<span ' . $verify . ' style="border:1px solid #ccc;text-align:left;padding:3px;">' . $value . '</span>';
                 } elseif ($displaytype == 'underline') {
 
-                    return '<span><u>' . $value . '</u></span>';
+                    return '<span ' . $verify . '><u>' . $value . '</u></span>';
                 } elseif ($displaytype == 'plaintext') {
 
-                    return '<span >' . $value . '</span>';
+                    return '<span ' . $verify . '>' . $value . '</span>';
                 } else {
 
-                    return '<span style="border:1px solid #ccc;text-align:left;padding:3px;">' . $value . '</span>';
+                    return '<span ' . $verify . ' style="border:1px solid #ccc;text-align:left;padding:3px;">' . $value . '</span>';
                 }
 
                 //return '<input value="'. $value .'" readonly size="'. $width .'" style="border:1px solid #ccc;text-align:center;padding:1px;" />';
                 //return  '<span class="esig-sif-textfield signed" >'.$value.'</span>';
             } else {
+
                 if ($displaytype == 'border') {
-                    return '<input class="esig-sif-todaydate" type="text" name="esig-sif-todaydate" value="' . $value . '" readonly />';
+                    return '<input ' . $verify . ' class="esig-sif-todaydate" type="text" name="esig-sif-todaydate" value="' . $value . '" readonly />';
                 } elseif ($displaytype == 'underline') {
-                    return '<span><u><input class="esig-sif-todaydate" type="hidden" name="esig-sif-todaydate" value="' . $value . '" readonly />' . $value . '</u></span>';
+                    return '<span><u><input ' . $verify . ' class="esig-sif-todaydate" type="hidden" name="esig-sif-todaydate" value="' . $value . '" readonly />' . $value . '</u></span>';
                 } elseif ($displaytype == 'plaintext') {
-                    return '<span><input class="esig-sif-todaydate" type="hidden" name="esig-sif-todaydate" value="' . $value . '" readonly />' . $value . '</span>';
+                    return '<span><input ' . $verify . ' class="esig-sif-todaydate" type="hidden" name="esig-sif-todaydate" value="' . $value . '" readonly />' . $value . '</span>';
                 }
             }
         }
@@ -1151,7 +1193,7 @@ if (!class_exists('ESIG_SIF')) :
 
                     $this->populate_field($esig, $doc_id, $name, $value, $verifysigner, $invitation->user_id);
                     $html = $this->checkboxes_to_html($boxes_arr, $name, $value, '', $verifysigner, $display, $label);
-
+                    
                     // Not signed
                 } else {
                     $html = $this->checkboxes_to_html($boxes_arr, $name, "", $required, $verifysigner, $display, $label);
@@ -1198,14 +1240,14 @@ if (!class_exists('ESIG_SIF')) :
 
 
                     if ($display == "vertical") {
-                        if (!wp_is_mobile()) {
-                            $html .= '<div class="checkbox"> ';
-                        }
+                        //if (!wp_is_mobile()) {
+                        $html .= '<div class="checkbox"> ';
+                        //}
                         $html .= '<label>' .
                                 '<input type="checkbox" onclick="javascript: return false;" ' . $verify . ' ' . $checked . '  value="' . $value . '"  />' . $key . '</label>';
-                        if (!wp_is_mobile()) {
-                            $html .= '</div> ';
-                        }
+                        //if (!wp_is_mobile()) {
+                        $html .= '</div> ';
+                        //}
                     } else {
                         $html .= '<label class="checkbox-inline">' .
                                 '<input type="checkbox" onclick="javascript: return false;" ' . $verify . ' ' . $checked . '  value="' . $value . '"  />' . $key . '</label>';
@@ -1225,16 +1267,16 @@ if (!class_exists('ESIG_SIF')) :
 
                     if ($display == "vertical") {
 
-                        if (!wp_is_mobile()) {
+                        //if (!wp_is_mobile()) {
                             $html .= '<div class="checkbox">';
-                        }
+                       // }
                         $html .= '<label>' .
                                 '<input  type="checkbox" id="' . $name . '"  name="' . $name . '[]" ' . $verify . ' value="' . $value . '" ' . $required . " " . $checked .
                                 ' /> ' . $key . '</label>';
 
-                        if (!wp_is_mobile()) {
+                       // if (!wp_is_mobile()) {
                             $html .= '</div> ';
-                        }
+                       // }
                     } elseif ($display == "horizontal") {
 
                         $html .= '<label class="checkbox-inline">' .
@@ -1864,8 +1906,8 @@ if (!class_exists('ESIG_SIF')) :
             if (!function_exists('WP_E_Sig'))
                 return;
 
-            $esig = WP_E_Sig();
-            $api = $esig->shortcode;
+
+            $api = WP_E_Sig();
             $table = $wpdb->prefix . 'esign_documents_stand_alone_docs';
             $default_page = array();
             if ($wpdb->get_var("SHOW TABLES LIKE '$table'") == $table) {
@@ -1886,8 +1928,8 @@ if (!class_exists('ESIG_SIF')) :
 
             // echo "<script type='text/javascript' src='". includes_url() ."/js/jquery/jquery.js?ver=1.11.1'></script>";
             // echo "<script type='text/javascript' src='". includes_url() ."/js/jquery/jquery-migrate.min.js?ver=1.2.1'></script>";
-            $esig_scripts = new WP_E_Esigscripts();
-            $esig_scripts->display_ui_scripts(array('core.min', 'datepicker.min'));
+            // $esig_scripts = new WP_E_Esigscripts();
+            //$esig_scripts->display_ui_scripts(array('core.min', 'datepicker.min'));
         }
 
         /**
@@ -1895,11 +1937,11 @@ if (!class_exists('ESIG_SIF')) :
          *
          * @since     0.1
          */
-        public function enqueue_scripts() {
+        public function enqueue_scripts($scripts) {
+
             $current_page = get_queried_object_id();
             global $wpdb;
-            if (!function_exists('WP_E_Sig'))
-                return;
+
 
             $api = WP_E_Sig();
             $table = $wpdb->prefix . 'esign_documents_stand_alone_docs';
@@ -1912,11 +1954,41 @@ if (!class_exists('ESIG_SIF')) :
             $default_normal_page = $api->setting->get_generic('default_display_page');
             // If we're on a stand alone page
             if (is_page($current_page) && in_array($current_page, $default_page)) {
-                echo "<script type='text/javascript' src='" . ESIGN_DIRECTORY_URI . "add-ons/esig-signer-input-fields/public/assets/js/public.js?ver=" . self::VERSION . "'></script>";
+                $scripts[] = "esig-sif-js"; //"<script type='text/javascript' src='" . ESIGN_DIRECTORY_URI . "add-ons/esig-signer-input-fields/public/assets/js/public.js'></script>";
             } else if (is_page($current_page) && $current_page == $default_normal_page) {
-                echo "<script type='text/javascript' src='" . ESIGN_DIRECTORY_URI . "add-ons/esig-signer-input-fields/public/assets/js/public.js?ver=" . self::VERSION . "'></script>";
+                $scripts[] = "esig-sif-js"; //"<script type='text/javascript' src='" . ESIGN_DIRECTORY_URI . "add-ons/esig-signer-input-fields/public/assets/js/public.js'></script>";
+            }
+            return $scripts;
+            //  wp_enqueue_script('jquery-ui-datepicker');
+        }
+
+        public function enqueue_footer_scripts($scripts) {
+
+            $current_page = get_queried_object_id();
+            global $wpdb;
+            if (!function_exists('WP_E_Sig'))
+                return;
+
+            $api = WP_E_Sig();
+            $table = $wpdb->prefix . 'esign_documents_stand_alone_docs';
+            $default_page = array();
+            if ($wpdb->get_var("SHOW TABLES LIKE '$table'") == $table) {
+                $default_page = $wpdb->get_col("SELECT page_id FROM {$table}");
             }
 
+            $default_normal_page = $api->setting->get_generic('default_display_page');
+            // If we're on a stand alone page
+            if (is_page($current_page) && in_array($current_page, $default_page)) {
+                
+                $scripts[] = "core.min";
+                $scripts[] = "jquery-ui-datepicker";
+            } else if (is_page($current_page) && $current_page == $default_normal_page) {
+              
+                $scripts[] = "core.min";
+                $scripts[] = "jquery-ui-datepicker";
+            }
+           
+            return $scripts;
             //  wp_enqueue_script('jquery-ui-datepicker');
         }
 
@@ -1977,6 +2049,16 @@ if (!class_exists('ESIG_SIF')) :
         }
 
     }
+
+    
+
+    
+
+    
+
+    
+
+    
 
     
 

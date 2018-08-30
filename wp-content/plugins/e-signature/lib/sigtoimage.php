@@ -25,6 +25,8 @@ $doc_id=$_GET['doc_id'];
   unlink($file_name);
   ob_clean();
   
+  
+  
  imageto($json);
     
 ?>

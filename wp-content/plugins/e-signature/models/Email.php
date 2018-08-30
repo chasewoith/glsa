@@ -62,24 +62,48 @@ class WP_E_Email extends WP_E_Model {
         return apply_filters('esig_mail_chartype', $charType);
     }
 
-    public function default_mail($to_email, $subject, $message, $headers, $attachments = false) {
+    public function phpMail($to_email, $subject, $message, $headers, $attachments) {
+
+        if (!class_exists("PHPMailer")) {
+            require_once( ABSPATH . WPINC . '/class-phpmailer.php' );
+        }
+       
+        $email = new PHPMailer();
+        
+        $email->From = esigget('from_email',$headers);
+        $email->FromName = esigget('from_name',$headers);
+        $email->Subject = $subject;
+        $email->isHTML(true);
+        $email->msgHTML($message);
+        $email->AddAddress($to_email);
+        $email->AddAttachment($attachments, basename($attachments));
+        return $email->Send();
+    }
+
+    public function default_mail($to_email, $subject, $message, $headers, $attachments = false, $wpheaders=false,$senderHeader=array()) {
 
         add_filter('wp_mail_content_type', array($this, 'mailType'));
         add_filter('wp_mail_charset', array($this, 'charType'));
 
         if ($attachments) {
+
             try {
-                $mailsent = @wp_mail($to_email, $subject, $message, $headers, $attachments);
-                if (!$mailsent) {
-                    $mailsent = @mail($to_email, $subject, $message, implode("\r\n", $headers), $attachments);
+               
+                $mailsent = @wp_mail($to_email, $subject, $message, $headers, array($attachments));
+               
+                if (!$mailsent) {  
+                    $mailsent = $this->phpMail($to_email, $subject, $message, $senderHeader, $attachments);
                 }
             } catch (Exception $e) {
                 error_log('WP E-sginature mail sent error:' . $e->getMessage()); // this line is for testing 
             }
         } else {
             try {
+               
                 $mailsent = @wp_mail($to_email, $subject, $message, $headers);
+                
                 if (!$mailsent) {
+                  
                     $mailsent = @mail($to_email, $subject, $message, implode("\r\n", $headers));
                 }
             } catch (Exception $e) {
@@ -119,7 +143,16 @@ class WP_E_Email extends WP_E_Model {
                 "Content-type: text/html; charset=utf-8"
             );
 
-            $mailsent = $this->default_mail($to_email, $newSubject, $message, $headers, $attachments);
+            $wpheaders = "From: " . stripslashes_deep(html_entity_decode($from_name, ENT_COMPAT, 'UTF-8')) . " <$from_email>\r\n";
+            $wpheaders .= "Reply-To: " . $from_email . "\r\n";
+
+            $senderHeader = array(
+                "from_name"=> $from_name,
+                "from_email"=> $from_email,
+            );
+
+
+            $mailsent = $this->default_mail($to_email, $newSubject, $message, $headers, $attachments, $wpheaders,$senderHeader);
             return $mailsent;
         }
 
@@ -128,8 +161,6 @@ class WP_E_Email extends WP_E_Model {
         }
 
         $mail = new PHPMailer();
-
-
 
 
         /* If using smtp auth, set the username & password */
@@ -155,6 +186,7 @@ class WP_E_Email extends WP_E_Model {
         $mail->Subject = $newSubject; //utf8_decode($subject);
         $mail->MsgHTML($message);
         $mail->AddAddress($to_email);
+        $mail->CharSet = 'UTF-8';
 
         // adding attachment if there is attachment 
         if ($attachments) {
@@ -197,8 +229,8 @@ class WP_E_Email extends WP_E_Model {
 
 
 
-        $from_name = utf8_decode($esig_options['from_name_field']);
-        $from_email = $esig_options['from_email_field'];
+        $from_name = WP_E_Sig()->user->getUserFullName(); 
+        $from_email =WP_E_Sig()->user->getUserEmail(); 
 
 
 
@@ -299,6 +331,7 @@ class WP_E_Email extends WP_E_Model {
         $template_data['esig_footer_head'] = $this->get_email_footer_head($wpUserId);
         $template_data['esig_footer_text'] = $this->get_email_footer_text($wpUserId);
         $template_data['document_title'] = esc_attr(wp_unslash($template_data['document_title']));
+       
         $template_data['wpUserId'] = $wpUserId;
         return $template_data;
     }

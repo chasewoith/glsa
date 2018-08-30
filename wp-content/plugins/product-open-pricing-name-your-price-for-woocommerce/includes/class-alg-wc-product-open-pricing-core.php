@@ -2,7 +2,7 @@
 /**
  * Product Open Pricing for WooCommerce - Core Class
  *
- * @version 1.1.1
+ * @version 1.2.1
  * @since   1.0.0
  * @author  Algoritmika Ltd.
  */
@@ -16,7 +16,7 @@ class Alg_WC_Product_Open_Pricing_Core {
 	/**
 	 * Constructor.
 	 *
-	 * @version 1.1.1
+	 * @version 1.2.0
 	 * @since   1.0.0
 	 */
 	function __construct() {
@@ -33,11 +33,229 @@ class Alg_WC_Product_Open_Pricing_Core {
 			add_filter( 'woocommerce_product_supports',           array( $this, 'disable_add_to_cart_ajax' ), PHP_INT_MAX, 3 );
 			add_filter( 'woocommerce_product_add_to_cart_url',    array( $this, 'add_to_cart_url' ), PHP_INT_MAX, 2 );
 			add_filter( 'woocommerce_product_add_to_cart_text',   array( $this, 'add_to_cart_text' ), PHP_INT_MAX, 2 );
-			add_action( 'woocommerce_before_add_to_cart_button',  array( $this, 'add_open_price_input_field_to_frontend' ), PHP_INT_MAX );
 			add_filter( 'woocommerce_add_to_cart_validation',     array( $this, 'validate_open_price_on_add_to_cart' ), PHP_INT_MAX, 2 );
 			add_filter( 'woocommerce_add_cart_item_data',         array( $this, 'add_open_price_to_cart_item_data' ), PHP_INT_MAX, 3 );
 			add_filter( 'woocommerce_add_cart_item',              array( $this, 'add_open_price_to_cart_item' ), PHP_INT_MAX, 2 );
-			add_filter( 'woocommerce_get_cart_item_from_session', array( $this, 'get_cart_item_open_price_from_session' ), PHP_INT_MAX, 3 );
+			add_action( 'woocommerce_before_calculate_totals',    array( $this, 'override_product_price' ), 10, 1 );
+			add_action( 'woocommerce_before_calculate_totals',    array( $this, 'convert_before_calculate_totals_currency_switcher' ), 11, 1 );
+			add_action( 'aopwc_value',                            array( $this, 'convert_price_currency_switcher' ), 10, 2 );
+			add_filter( 'woocommerce_loop_add_to_cart_link',      array( $this, 'add_attribute_on_add_to_cart_button' ), 10, 2 );
+			add_action( 'wp_footer',                              array( $this, 'sync_add_to_cart_button_attribute' ) );
+
+			// Frontend filter on Single Product Page
+			$placeholder_filter = sanitize_text_field( apply_filters( 'aopwc_frontend_input_filter', 'woocommerce_before_add_to_cart_button' ) );
+			if ( ! empty( $placeholder_filter ) ) {
+				add_action( $placeholder_filter, array( $this, 'add_open_price_input_field_to_frontend' ), PHP_INT_MAX );
+			}
+
+            // Frontend filter on Loop
+			$placeholder_filter_loop = 'yes' === get_option( 'alg_wc_product_open_pricing_field_on_loop', 'no' ) ? sanitize_text_field( apply_filters( 'aopwc_frontend_input_filter_loop', 'woocommerce_before_add_to_cart_button' ) ) : '';
+			if ( ! empty( $placeholder_filter_loop ) ) {
+				add_action( 'woocommerce_after_shop_loop_item', array( $this, 'add_open_price_input_field_to_frontend' ), 9 );
+			}
+		}
+	}
+
+	/**
+     * Syncs add to cart button attribute with open price value
+     *
+	 * @version 1.1.9
+	 * @since   1.1.9
+	 */
+	public function sync_add_to_cart_button_attribute(){
+		if (
+			'yes' !== get_option( 'alg_wc_product_open_pricing_field_on_loop', 'no' ) ||
+			is_product() ||
+			is_checkout() ||
+			is_cart() ||
+			! is_woocommerce()
+		) {
+			return;
+		}
+		?>
+        <script>
+            var popfwc_sync = {
+                init: function () {
+                    var open_prices = document.querySelectorAll('.alg_open_price');
+                    [].forEach.call(open_prices, function (el) {
+                        var product_id = el.getAttribute('data-product_id');
+                        var add_to_cart_btn = document.querySelector('.add_to_cart_button[data-product_id="' + product_id + '"]');
+                        var href = add_to_cart_btn.getAttribute("href");
+                        el.addEventListener('input', function (evt) {
+                            add_to_cart_btn.setAttribute('data-alg_open_price', this.value);
+                            if (href.indexOf('alg_open_price') !== -1) {
+                                var new_href = href.replace(/alg_open_price=\d*/i, "alg_open_price=" + this.value);
+                            } else {
+                                var new_href = href + '&alg_open_price=' + this.value
+                            }
+                            add_to_cart_btn.setAttribute('href', new_href);
+                        });
+                    });
+                }
+            };
+            document.addEventListener("DOMContentLoaded", function () {
+                popfwc_sync.init();
+            });
+        </script>
+        <?php
+    }
+
+	/**
+     * Adds attribute data-alg_open_price on 'Add to Cart' button on loop pages
+     *
+	 * @version 1.2.0
+	 * @since   1.1.9
+     *
+	 * @param $link
+	 * @param $product
+	 *
+	 * @return string
+	 */
+	public function add_attribute_on_add_to_cart_button( $link, $product ) {
+		if (
+			'yes' !== get_option( 'alg_wc_product_open_pricing_field_on_loop', 'no' ) ||
+			! $this->is_open_price_product( $product )
+		) {
+			return $link;
+		}
+
+		$id = $this->get_product_or_variation_parent_id( $product );
+
+		$product_link = add_query_arg( array(
+			'add-to-cart' => $id
+		), get_permalink( $id ) );
+
+		$value = get_post_meta( $id, '_' . 'alg_wc_product_open_pricing_default_price', true );
+
+		$dom = new DOMDocument();
+		@$dom->loadHTML( $link );
+		$x = new DOMXPath( $dom );
+
+		foreach ( $x->query( "//a" ) as $node ) {
+			$node->setAttribute( "data-alg_open_price", $value );
+			$node->setAttribute( "href", $product_link);
+			if ( ! empty( $value ) ) {
+				$href = $node->getAttribute( "href" );
+				if(strpos($href, 'alg_open_price') === false){
+					$node->setAttribute( "href", $href . '&alg_open_price=' . $value );
+                }
+			}
+		}
+		$newHtml = $dom->saveHtml();
+
+		return $newHtml;
+	}
+
+	/**
+     * Converts min and max price if using currency switcher
+     *
+	 * @version 1.1.8
+	 * @since   1.1.8
+     *
+	 * @param $value
+	 * @param $value_type
+	 *
+	 * @return bool|float|int|mixed|string
+	 */
+	public function convert_price_currency_switcher( $value, $value_type ) {
+		if (
+			is_admin() ||
+			! function_exists( 'alg_wc_currency_switcher_plugin' ) ||
+			( $value_type != 'min' && $value_type != 'max' && $value_type != 'value' )
+		) {
+			return $value;
+		}
+
+		$current_currency_code = alg_get_current_currency_code();
+		$default_currency      = get_option( 'woocommerce_currency' );
+
+		// Converts Back, since WooCommerce gets in the way
+		$value = alg_convert_price( array(
+			'price'         => $value,
+			'currency_from' => $default_currency,
+			'currency'      => $current_currency_code,
+			'format_price'  => 'no'
+		) );
+		$value = alg_wc_cs_round_and_pretty( $value, $current_currency_code );
+
+		return $value;
+	}
+
+	/**
+     * Overrides product price
+     *
+	 * @version 1.1.7
+	 * @since   1.1.7
+     *
+	 * @param $cart_obj
+	 */
+	public function override_product_price( $cart_obj ) {
+		if ( is_admin() ) {
+			return;
+		}
+		foreach ( $cart_obj->get_cart() as $key => $item ) {
+			if ( ! isset( $item['alg_open_price'] ) ) {
+				continue;
+			}
+
+			$final_value = $item['alg_open_price'];
+			$item['data']->set_price( $final_value );
+			$item['alg_open_price'] = $final_value;
+		}
+	}
+
+	/**
+	 * Converts pricing, if using currency switcher
+	 *
+	 * @version 1.1.7
+	 * @since   1.1.6
+	 */
+	public function convert_before_calculate_totals_currency_switcher( $cart_obj ) {
+
+		if (
+			is_admin() ||
+			! function_exists( 'alg_wc_currency_switcher_plugin' )
+		) {
+			return;
+		}
+
+		foreach ( $cart_obj->get_cart() as $key => $item ) {
+
+			if (
+				! isset( $item['alg_open_price_curr'] ) ||
+				! isset( $item['alg_open_price'] )
+			) {
+				continue;
+			}
+
+			$current_currency_code = alg_get_current_currency_code();
+			$default_currency      = get_option( 'woocommerce_currency' );
+
+			// Converts Back, since WooCommerce gets in the way
+			$final_value = alg_convert_price( array(
+				'price'         => $item['alg_open_price'],
+				'currency_from' => $current_currency_code,
+				'currency'      => $default_currency,
+				'format_price'  => 'no'
+			) );
+			$item['data']->set_price( $final_value );
+			$item['alg_open_price'] = $final_value;
+
+			// Converts again if different currency
+			if (
+				! empty( $item['alg_open_price_curr'] ) &&
+				$item['alg_open_price_curr'] != $current_currency_code
+			) {
+				$final_value                 = alg_convert_price( array(
+					'price'         => $item['alg_open_price'],
+					'currency_from' => $item['alg_open_price_curr'],
+					'currency'      => $current_currency_code,
+					'format_price'  => 'no'
+				) );
+				$item['alg_open_price_curr'] = $current_currency_code;
+				$item['data']->set_price( $final_value );
+				$item['alg_open_price'] = $final_value;
+			}
 		}
 	}
 
@@ -75,11 +293,15 @@ class Alg_WC_Product_Open_Pricing_Core {
 	/**
 	 * disable_add_to_cart_ajax.
 	 *
-	 * @version 1.0.0
+	 * @version 1.1.9
 	 * @since   1.0.0
 	 */
 	function disable_add_to_cart_ajax( $supports, $feature, $_product ) {
-		if ( $this->is_open_price_product( $_product ) && 'ajax_add_to_cart' === $feature ) {
+		if (
+			'yes' !== get_option( 'alg_wc_product_open_pricing_field_on_loop', 'no' ) &&
+		    $this->is_open_price_product( $_product ) &&
+            'ajax_add_to_cart' === $feature
+        ) {
 			$supports = false;
 		}
 		return $supports;
@@ -108,21 +330,29 @@ class Alg_WC_Product_Open_Pricing_Core {
 	/**
 	 * add_to_cart_text.
 	 *
-	 * @version 1.0.0
+	 * @version 1.1.9
 	 * @since   1.0.0
 	 */
 	function add_to_cart_text( $text, $_product ) {
-		return ( $this->is_open_price_product( $_product ) ) ? __( 'Read more', 'woocommerce' ) : $text;
+		if ( 'yes' !== get_option( 'alg_wc_product_open_pricing_field_on_loop', 'no' ) ) {
+			return ( $this->is_open_price_product( $_product ) ) ? __( 'Read more', 'woocommerce' ) : $text;
+		} else {
+			return $text;
+		}
 	}
 
 	/**
 	 * add_to_cart_url.
 	 *
-	 * @version 1.1.0
+	 * @version 1.1.9
 	 * @since   1.0.0
 	 */
 	function add_to_cart_url( $url, $_product ) {
-		return ( $this->is_open_price_product( $_product ) ) ? get_permalink( $this->get_product_or_variation_parent_id( $_product ) ) : $url;
+		if ( 'yes' !== get_option( 'alg_wc_product_open_pricing_field_on_loop', 'no' ) ) {
+			return ( $this->is_open_price_product( $_product ) ) ? get_permalink( $this->get_product_or_variation_parent_id( $_product ) ) : $url;
+		} else {
+			return $url;
+		}
 	}
 
 	/**
@@ -158,7 +388,7 @@ class Alg_WC_Product_Open_Pricing_Core {
 	/**
 	 * validate_open_price_on_add_to_cart.
 	 *
-	 * @version 1.1.0
+	 * @version 1.1.9
 	 * @since   1.0.0
 	 */
 	function validate_open_price_on_add_to_cart( $passed, $product_id ) {
@@ -166,18 +396,22 @@ class Alg_WC_Product_Open_Pricing_Core {
 		if ( $this->is_open_price_product( $_product ) ) {
 			$min_price = get_post_meta( $product_id, '_' . 'alg_wc_product_open_pricing_min_price', true );
 			$max_price = get_post_meta( $product_id, '_' . 'alg_wc_product_open_pricing_max_price', true );
+
+			$min_price = apply_filters( 'aopwc_value', $min_price, 'min' );
+			$max_price = apply_filters( 'aopwc_value', $max_price, 'max' );
+
 			if ( $min_price > 0 ) {
-				if ( ! isset( $_POST['alg_open_price'] ) || '' === $_POST['alg_open_price'] ) {
+				if ( ! isset( $_REQUEST['alg_open_price'] ) || '' === $_REQUEST['alg_open_price'] ) {
 					wc_add_notice( get_option( 'alg_wc_product_open_pricing_messages_required', __( 'Price is required!', 'product-open-pricing-for-woocommerce' ) ), 'error' );
 					return false;
 				}
-				if ( $_POST['alg_open_price'] < $min_price ) {
+				if ( $_REQUEST['alg_open_price'] < $min_price ) {
 					wc_add_notice( get_option( 'alg_wc_product_open_pricing_messages_too_small', __( 'Entered price is too small!', 'product-open-pricing-for-woocommerce' ) ), 'error' );
 					return false;
 				}
 			}
 			if ( $max_price > 0 ) {
-				if ( isset( $_POST['alg_open_price'] ) && $_POST['alg_open_price'] > $max_price ) {
+				if ( isset( $_REQUEST['alg_open_price'] ) && $_REQUEST['alg_open_price'] > $max_price ) {
 					wc_add_notice( get_option( 'alg_wc_product_open_pricing_messages_too_big', __( 'Entered price is too big!', 'product-open-pricing-for-woocommerce' ) ), 'error' );
 					return false;
 				}
@@ -187,28 +421,33 @@ class Alg_WC_Product_Open_Pricing_Core {
 	}
 
 	/**
-	 * get_cart_item_open_price_from_session.
+     * Sanitizes open price input value
+     *
+	 * @version 1.2.1
+	 * @since   1.1.9
+	 * @param $open_price
 	 *
-	 * @version 1.0.0
-	 * @since   1.0.0
+	 * @return mixed
 	 */
-	function get_cart_item_open_price_from_session( $item, $values, $key ) {
-		if ( array_key_exists( 'alg_open_price', $values ) ) {
-			$item['data']->alg_open_price = $values['alg_open_price'];
-		}
-		return $item;
+	function sanitize_open_price( $open_price ) {
+		return filter_var( sanitize_text_field( $open_price ), FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION );
 	}
 
 	/**
 	 * add_open_price_to_cart_item_data.
 	 *
-	 * @version 1.0.0
+	 * @version 1.1.6
 	 * @since   1.0.0
 	 */
 	function add_open_price_to_cart_item_data( $cart_item_data, $product_id, $variation_id ) {
-		if ( isset( $_POST['alg_open_price'] ) ) {
-			$cart_item_data['alg_open_price'] = $_POST['alg_open_price'];
+		if ( isset( $_REQUEST['alg_open_price'] ) ) {
+			$cart_item_data['alg_open_price'] = $this->sanitize_open_price( $_REQUEST['alg_open_price'] );
 		}
+		if ( function_exists( 'alg_wc_currency_switcher_plugin' ) ) {
+			$current_currency_code = alg_get_current_currency_code();
+			$cart_item_data['alg_open_price_curr'] = $current_currency_code;
+		}
+
 		return $cart_item_data;
 	}
 
@@ -228,40 +467,93 @@ class Alg_WC_Product_Open_Pricing_Core {
 	/**
 	 * add_open_price_input_field_to_frontend.
 	 *
-	 * @version 1.1.0
+	 * @version 1.1.9
 	 * @since   1.0.0
-	 * @todo    set min and max as in product's settings
 	 * @todo    step on per product basis
 	 */
 	function add_open_price_input_field_to_frontend() {
 		$_product = wc_get_product();
 		if ( $this->is_open_price_product( $_product ) ) {
-			// Title
-			$title = get_option( 'alg_wc_product_open_pricing_label_frontend', __( 'Name Your Price', 'product-open-pricing-for-woocommerce' ) );
+			$product_id = $this->get_product_or_variation_parent_id( $_product );
+
+			$is_loop = ( strpos( current_filter(), 'loop' ) !== false ) ? true : false;
+
 			// The field - Value
-			$value = ( isset( $_POST['alg_open_price'] ) ) ? $_POST['alg_open_price'] : get_post_meta( $this->get_product_or_variation_parent_id( $_product ), '_' . 'alg_wc_product_open_pricing_default_price', true );
+			if ( is_product() ) {
+				$value = ( isset( $_REQUEST['alg_open_price'] ) ) ? $this->sanitize_open_price( $_REQUEST['alg_open_price'] ) : get_post_meta( $product_id, '_' . 'alg_wc_product_open_pricing_default_price', true );
+			} else {
+				$value = get_post_meta( $product_id, '_' . 'alg_wc_product_open_pricing_default_price', true );
+			}
+
+			if ( ! empty( $value ) ) {
+				$value = apply_filters( 'aopwc_value', $value, 'value' );
+			}
+
+			$input_id = "alg_open_price_".$product_id;
+
+			// Min and Max
+			$min = get_post_meta( $product_id, '_' . 'alg_wc_product_open_pricing_min_price', true );
+			$max = get_post_meta( $product_id, '_' . 'alg_wc_product_open_pricing_max_price', true );
+
+			$min = apply_filters( 'aopwc_value', $min, 'min' );
+			$max = apply_filters( 'aopwc_value', $max, 'max' );
+
 			// The field - Custom attributes
 			$custom_attributes = '';
 			$default_price_step = 1 / pow( 10, absint( get_option( 'woocommerce_price_num_decimals', 2 ) ) );
 			$custom_attributes .= 'step="' . get_option( 'alg_wc_product_open_pricing_price_step', $default_price_step ) . '" ';
-			$custom_attributes .= 'min="0" ';
+			$custom_attributes .= 'min="'.esc_attr($min).'" ';
+			$custom_attributes .= 'max="'.esc_attr($max).'" ';
 			// The field - Final assembly
 			$input_field = '<input '
 				. 'type="number" '
-				. 'class="text" '
+                . 'data-product_id="'.$product_id.'" '
+				. 'class="alg_open_price text" '
 				. 'style="width:75px;text-align:center;" '
 				. 'name="alg_open_price" '
-				. 'id="alg_open_price" '
+				. 'id="'.$input_id.'" '
 				. 'value="' . $value . '" '
 				. $custom_attributes . '>';
 			// Currency symbol
-			$currency_symbol = get_woocommerce_currency_symbol();
+			$currency_symbol_template = '<span class="popfwc-currency-symbol">'.get_woocommerce_currency_symbol().'</span>';
+			$min_template = '<span class="popfwc-min">'.$min.'</span>';
+			$max_template = '<span class="popfwc-max">'.$max.'</span>';
+
+			//%frontend_label%
+
+			$template_single = get_option( 'alg_wc_product_open_pricing_frontend_template', '<label for="%input_id%">' . __( 'Name Your Price', 'product-open-pricing-for-woocommerce' ) . '</label> %open_price_input% %currency_symbol%' );
+			$template        = $template_single;
+			if ( $is_loop ) {
+				$template_loop = get_option( 'alg_wc_product_open_pricing_frontend_loop_template', '<label for="%input_id%">' . __( 'Name Your Price', 'product-open-pricing-for-woocommerce' ) . '</label> %open_price_input% %currency_symbol%' );
+				$template      = empty( $template_loop ) ? $template_single : $template_loop;
+			}
+
+			// Title is not being used anymore, but maintained in code for compatibility
+			$title = get_option( 'alg_wc_product_open_pricing_label_frontend', __( 'Name Your Price', 'product-open-pricing-for-woocommerce' ) );
+
 			// Output
 			echo str_replace(
-				array( '%frontend_label%', '%open_price_input%', '%currency_symbol%' ),
-				array( $title,             $input_field,         $currency_symbol ),
-				get_option( 'alg_wc_product_open_pricing_frontend_template', '<label for="alg_open_price">%frontend_label%</label> %open_price_input% %currency_symbol%' )
+				array( '%input_id%', '%open_price_input%', '%currency_symbol%', '%minimum_price%', '%max_price%', '%frontend_label%' ),
+				array( $input_id, $input_field, $currency_symbol_template, $min_template, $max_template, $title ),
+				$template
 			);
+
+			// Disable step, if necessary
+			$step_enabled = get_option( 'alg_wc_product_open_pricing_enable_step', 'yes' );
+			if ( $step_enabled !== 'yes' ) {
+				?>
+				<style>
+					#alg_open_price[type='number'] {
+						-moz-appearance:textfield;
+					}
+					#alg_open_price::-webkit-outer-spin-button,
+					#alg_open_price::-webkit-inner-spin-button {
+						-webkit-appearance: none;
+						margin: 0;
+					}
+				</style>
+				<?php
+			}
 		}
 	}
 

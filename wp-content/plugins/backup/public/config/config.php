@@ -7,6 +7,8 @@ define('SG_PUBLIC_INCLUDE_PATH', SG_PUBLIC_PATH.'include/');
 define('SG_PUBLIC_MODALS_PATH', SG_PUBLIC_PATH.'include/modals/');
 define('SG_PUBLIC_AJAX_PATH', SG_PUBLIC_PATH.'ajax/');
 
+define('SG_EXTENSIONS_FOLDER_PATH', dirname(SG_PUBLIC_PATH)."/extensions/");
+
 //Defines
 define('SG_BACKUP_TYPE_FULL', 1);
 define('SG_BACKUP_TYPE_CUSTOM', 2);

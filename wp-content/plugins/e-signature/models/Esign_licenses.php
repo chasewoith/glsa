@@ -143,7 +143,7 @@ class Esign_licenses extends WP_E_Model {
 
                 WP_E_Sig()->setting->set_generic('esig_license_info', json_encode($cache_data));
 
-                $allowed_status = array('active', 'inactive', 'valid');
+                $allowed_status = array('active', 'valid');
                 $esig_status = in_array($esign_licenses_check_license->license, $allowed_status) ? 'valid' : 'invalid';
                 WP_E_Sig()->setting->set_generic("esig_wp_esignature_license_active", $esig_status);
             } else {
@@ -201,7 +201,7 @@ class Esign_licenses extends WP_E_Model {
 
     public static function get_strip_license_key($status) {
 
-        $valid_status = array('valid', 'active', 'inactive');
+        $valid_status = array('valid', 'active');
 
         $license_key  = self::get_license_key();
         if ( in_array( $status, $valid_status ) && ! empty( $license_key ) ) {

@@ -18,6 +18,12 @@ function activate_backup_guard() {
 		SGBoot::install();
 		SGBoot::didInstallForFirstTime();
 	}
+
+	// check if extensions should be installed
+	// if (backupGuardShouldInstallExtension(SG_BACKUP_GUARD_SECURITY_EXTENSION)) {
+	// 	$extensionAdapter = SGExtension::getInstance();
+	// 	$extensionAdapter->installExtension(SG_BACKUP_GUARD_SECURITY_EXTENSION);
+	// }
 }
 
 // The code that runs during plugin deactivation.
@@ -26,13 +32,31 @@ function uninstall_backup_guard() {
 }
 
 function deactivate_backup_guard() {
-	if (SGBoot::isFeatureAvailable('STORAGE')) {
+	$pluginCapabilities = backupGuardGetCapabilities();
+	if ($pluginCapabilities != BACKUP_GUARD_CAPABILITIES_FREE) {
 		require_once(SG_LIB_PATH.'SGAuthClient.php');
 		$res = SGAuthClient::getInstance()->logout();
 		SGConfig::set('SG_LICENSE_CHECK_TS', 0, true);
 		SGConfig::set('SG_LOGGED_USER', '', true);
 	}
 }
+
+function backupGuardMaybeShortenEddFilename($return, $package)
+{
+	if (strpos($package, 'backup-guard') !== false) {
+		add_filter('wp_unique_filename', 'backupGuardShortenEddFilename', 10, 2);
+	}
+	return $return;
+}
+
+function backupGuardShortenEddFilename($filename, $ext)
+{
+	$filename = substr($filename, 0, 20).$ext;
+	remove_filter('wp_unique_filename', 'backupGuardShortenEddFilename', 10);
+	return $filename;
+}
+
+add_filter('upgrader_pre_download', 'backupGuardMaybeShortenEddFilename', 10, 4);
 
 register_activation_hook(SG_BACKUP_GUARD_MAIN_FILE, 'activate_backup_guard');
 register_uninstall_hook(SG_BACKUP_GUARD_MAIN_FILE, 'uninstall_backup_guard');
@@ -62,6 +86,18 @@ function backup_guard_admin_menu()
 	if (SGBoot::isFeatureAvailable('SHOW_UPGRADE_PAGE')) {
 		add_submenu_page('backup_guard_backups', 'Why upgrade?', 'Why upgrade?', 'manage_options', 'backup_guard_pro_features', 'backup_guard_pro_features_page');
 	}
+
+	// check if extensions should be installed
+	// if (backupGuardShouldActivateExtension(SG_BACKUP_GUARD_SECURITY_EXTENSION)) {
+	// 	$extensionAdapter = SGExtension::getInstance();
+	// 	$extensionAdapter->activateExtension(SG_BACKUP_GUARD_SECURITY_EXTENSION);
+	// }
+
+	// Create security extension page. To be applied in the next update.
+	/*$extensionAdapter = SGExtension::getInstance();
+	if ($extensionAdapter->isExtensionActive(SG_BACKUP_GUARD_SECURITY_EXTENSION)) {
+		add_submenu_page('backup_guard_backups', 'Security', 'Security', 'manage_options', 'backup_guard_security', 'backup_guard_security_page');
+	}*/
 }
 
 function backup_guard_services_page()
@@ -75,6 +111,11 @@ function backup_guard_services_page()
 function backup_guard_pro_features_page()
 {
 	require_once(plugin_dir_path(__FILE__).'public/proFeatures.php');
+}
+
+function backup_guard_security_page()
+{
+	require_once(plugin_dir_path(__FILE__).'public/security.php');
 }
 
 //Support page
@@ -542,7 +583,8 @@ function backup_guard_schedule_action($id)
 }
 
 //load pro plugin updater
-if (SGBoot::isFeatureAvailable('STORAGE')) {
+$pluginCapabilities = backupGuardGetCapabilities();
+if ($pluginCapabilities != BACKUP_GUARD_CAPABILITIES_FREE) {
 	require_once(dirname(__FILE__).'/plugin-update-checker/plugin-update-checker.php');
 	require_once(dirname(__FILE__).'/plugin-update-checker/Puc/v4/Utils.php');
 	require_once(SG_LIB_PATH.'SGAuthClient.php');
@@ -596,5 +638,5 @@ function add_dashboard_widgets()
 
 
 	require_once(plugin_dir_path( __FILE__ ).'public/dashboardWidget.php');
-	wp_add_dashboard_widget('backupGuardWidget', 'Backup Guard', 'dashboard_widget_function');
+	wp_add_dashboard_widget('backupGuardWidget', 'Backup Guard', 'backup_guard_dashboard_widget_function');
 }

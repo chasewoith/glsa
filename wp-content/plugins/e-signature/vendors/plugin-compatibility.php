@@ -17,8 +17,8 @@ function esig_dequeue_other_plugin() {
 }
 
 function esig_older_version($document_id) {
-    $document = new WP_E_Document();
 
+    $document = new WP_E_Document();
     $upload_event = $document->get_upload_event($document_id);
 
     if ($upload_event) {
@@ -28,13 +28,28 @@ function esig_older_version($document_id) {
     }
 }
 
-function esig_remove_template_include_filter() {
 
-    $setting = new WP_E_Setting();
-    $default_display_page = $setting->get_generic('default_display_page');
+add_filter('template_include', 'esig_page_template',9999999999);
+
+/* * *
+ *  Use e-signature page template for e-signature page. 
+ *  @since 1.5.3.5
+ */
+
+function esig_page_template($page_template) {
+
+    if (!is_page()) {
+        return $page_template;
+    }
 
     $current_page_id = get_queried_object_id();
 
+    if (!$current_page_id) {
+        return $page_template;
+    }
+
+    $setting = new WP_E_Setting();
+    $default_display_page = $setting->get_generic('default_display_page');
     if (class_exists('esig_sad_document')) {
         $sad = new esig_sad_document();
 
@@ -46,39 +61,17 @@ function esig_remove_template_include_filter() {
 
 
     if (!is_page($default_display_page))
-        return;
+        return $page_template;
 
     if (!has_esig_shortcode($default_display_page))
-        return;
+        return $page_template;
 
-    $hook_name = 'template_include';
-    global $wp_filter;
 
-    if (array_key_exists($hook_name, $wp_filter)) {
-        foreach ($wp_filter[$hook_name] as $priority => $filter) {
-            foreach ($filter as $identifier => $function) {
+    $page_template = Esign_core_load::documentTemplateHook($page_template);
 
-                if (is_array($function)) {
-                    remove_filter(
-                            $hook_name, array($function['function'][0], $function['function'][1]), $priority
-                    );
-                }
-            }
-        }
-    }
-    // if nexus theme remove nexus template include filter. 
-    if (defined('NXS_FRAMEWORKLOADED')) {
-        remove_filter('template_include', 'nxs_template_include', 9999);
-    }
-
-    if (class_exists('BWP_MINIFY')) {
-        add_filter('bwp_minify_is_loadable', 'bwp_loads', -100, 1);
-    }
-
-    add_filter('template_include', array('Esign_core_load', 'documentTemplateHook'), 9999);
+    return $page_template;
 }
 
-add_action("template_redirect", "esig_remove_template_include_filter", -100);
 
 function files_to_delete() {
 
@@ -200,6 +193,7 @@ function esig_cache_plugin_compatibility($args) {
     if (function_exists('sg_cachepress_purge_cache')) {
         sg_cachepress_purge_cache();
     }
+    return false;
 }
 
 add_action('esig_signature_loaded', "esig_cache_plugin_compatibility", -100, 1);
@@ -208,7 +202,7 @@ add_action('esig_signature_loaded', "esig_cache_plugin_compatibility", -100, 1);
 if (!function_exists('is_esig_newer_version')) {
 
     function is_esig_newer_version() {
-        
+
         $currentVersion = esigGetVersion();
         $installVersion = get_option('esig_version');
         if (version_compare($currentVersion, $installVersion, "<=")) {

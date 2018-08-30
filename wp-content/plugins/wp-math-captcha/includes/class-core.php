@@ -20,13 +20,13 @@ class Math_Captcha_Core {
 		Math_Captcha()->core = $this;
 
 		// actions
-		add_action( 'init', array( &$this, 'load_actions_filters' ), 1 );
-		add_action( 'plugins_loaded', array( &$this, 'load_defaults' ) );
-		add_action( 'admin_init', array( &$this, 'flush_rewrites' ) );
+		add_action( 'init', array( $this, 'load_actions_filters' ), 1 );
+		add_action( 'plugins_loaded', array( $this, 'load_defaults' ) );
+		add_action( 'admin_init', array( $this, 'flush_rewrites' ) );
 
 		// filters
-		add_filter( 'shake_error_codes', array( &$this, 'add_shake_error_codes' ), 1 );
-		add_filter( 'mod_rewrite_rules', array( &$this, 'block_direct_comments' ) );
+		add_filter( 'shake_error_codes', array( $this, 'add_shake_error_codes' ), 1 );
+		add_filter( 'mod_rewrite_rules', array( $this, 'block_direct_comments' ) );
 	}
 
 	/**
@@ -51,45 +51,45 @@ class Math_Captcha_Core {
 		if ( is_admin() )
 			return;
 
-		$action = (isset( $_GET['action'] ) && $_GET['action'] !== '' ? $_GET['action'] : null);
+		$action = isset( $_GET['action'] ) && $_GET['action'] !== '' ? $_GET['action'] : null;
 
 		// comments
 		if ( Math_Captcha()->options['general']['enable_for']['comment_form'] ) {
 			if ( ! is_user_logged_in() )
-				add_action( 'comment_form_after_fields', array( &$this, 'add_captcha_form' ) );
+				add_action( 'comment_form_after_fields', array( $this, 'add_captcha_form' ) );
 			elseif ( ! Math_Captcha()->options['general']['hide_for_logged_users'] )
-				add_action( 'comment_form_logged_in_after', array( &$this, 'add_captcha_form' ) );
+				add_action( 'comment_form_logged_in_after', array( $this, 'add_captcha_form' ) );
 
-			add_filter( 'preprocess_comment', array( &$this, 'add_comment_with_captcha' ) );
+			add_filter( 'preprocess_comment', array( $this, 'add_comment_with_captcha' ) );
 		}
 
 		// registration
 		if ( Math_Captcha()->options['general']['enable_for']['registration_form'] && ( ! is_user_logged_in() || (is_user_logged_in() && ! Math_Captcha()->options['general']['hide_for_logged_users'])) && $action === 'register' ) {
-			add_action( 'register_form', array( &$this, 'add_captcha_form' ) );
-			add_action( 'register_post', array( &$this, 'add_user_with_captcha' ), 10, 3 );
-			add_action( 'signup_extra_fields', array( &$this, 'add_captcha_form' ) );
-			add_filter( 'wpmu_validate_user_signup', array( &$this, 'validate_user_with_captcha' ) );
+			add_action( 'register_form', array( $this, 'add_captcha_form' ) );
+			add_action( 'register_post', array( $this, 'add_user_with_captcha' ), 10, 3 );
+			add_action( 'signup_extra_fields', array( $this, 'add_captcha_form' ) );
+			add_filter( 'wpmu_validate_user_signup', array( $this, 'validate_user_with_captcha' ) );
 		}
 
 		// lost password
 		if ( Math_Captcha()->options['general']['enable_for']['reset_password_form'] && ( ! is_user_logged_in() || (is_user_logged_in() && ! Math_Captcha()->options['general']['hide_for_logged_users'])) && $action === 'lostpassword' ) {
-			add_action( 'lostpassword_form', array( &$this, 'add_captcha_form' ) );
-			add_action( 'lostpassword_post', array( &$this, 'check_lost_password_with_captcha' ) );
+			add_action( 'lostpassword_form', array( $this, 'add_captcha_form' ) );
+			add_action( 'lostpassword_post', array( $this, 'check_lost_password_with_captcha' ) );
 		}
 
 		// login
 		if ( Math_Captcha()->options['general']['enable_for']['login_form'] && ( ! is_user_logged_in() || (is_user_logged_in() && ! Math_Captcha()->options['general']['hide_for_logged_users'])) && $action === null ) {
-			add_action( 'login_form', array( &$this, 'add_captcha_form' ) );
-			add_filter( 'login_redirect', array( &$this, 'redirect_login_with_captcha' ), 10, 3 );
-			add_filter( 'authenticate', array( &$this, 'authenticate_user' ), 1000, 3 );
+			add_action( 'login_form', array( $this, 'add_captcha_form' ) );
+			add_filter( 'login_redirect', array( $this, 'redirect_login_with_captcha' ), 10, 3 );
+			add_filter( 'authenticate', array( $this, 'authenticate_user' ), 1000, 3 );
 		}
 
 		// bbPress
 		if ( Math_Captcha()->options['general']['enable_for']['bbpress'] && class_exists( 'bbPress' ) && ( ! is_user_logged_in() || (is_user_logged_in() && ! Math_Captcha()->options['general']['hide_for_logged_users'])) ) {
-			add_action( 'bbp_theme_after_reply_form_content', array( &$this, 'add_bbp_captcha_form' ) );
-			add_action( 'bbp_theme_after_topic_form_content', array( &$this, 'add_bbp_captcha_form' ) );
-			add_action( 'bbp_new_reply_pre_extras', array( &$this, 'check_bbpress_captcha' ) );
-			add_action( 'bbp_new_topic_pre_extras', array( &$this, 'check_bbpress_captcha' ) );
+			add_action( 'bbp_theme_after_reply_form_content', array( $this, 'add_bbp_captcha_form' ) );
+			add_action( 'bbp_theme_after_topic_form_content', array( $this, 'add_bbp_captcha_form' ) );
+			add_action( 'bbp_new_reply_pre_extras', array( $this, 'check_bbpress_captcha' ) );
+			add_action( 'bbp_new_topic_pre_extras', array( $this, 'check_bbpress_captcha' ) );
 		}
 	}
 
@@ -121,9 +121,11 @@ class Math_Captcha_Core {
 		$user_data = null;
 
 		// checks captcha
-		if ( isset( $_POST['mc-value'] ) && $_POST['mc-value'] !== '' ) {
+		if ( ! empty( $_POST['mc-value'] ) ) {
+			$mc_value = (int) $_POST['mc-value'];
+
 			if ( Math_Captcha()->cookie_session->session_ids['default'] !== '' && get_transient( 'mc_' . Math_Captcha()->cookie_session->session_ids['default'] ) !== false ) {
-				if ( strcmp( get_transient( 'mc_' . Math_Captcha()->cookie_session->session_ids['default'] ), sha1( AUTH_KEY . $_POST['mc-value'] . Math_Captcha()->cookie_session->session_ids['default'], false ) ) !== 0 )
+				if ( strcmp( get_transient( 'mc_' . Math_Captcha()->cookie_session->session_ids['default'] ), sha1( AUTH_KEY . $mc_value . Math_Captcha()->cookie_session->session_ids['default'], false ) ) !== 0 )
 					$this->errors->add( 'math-captcha-error', $this->error_messages['wrong'] );
 			} else
 				$this->errors->add( 'math-captcha-error', $this->error_messages['time'] );
@@ -148,9 +150,9 @@ class Math_Captcha_Core {
 		if ( ! empty( $this->errors->errors ) ) {
 			// nasty hack (captcha is invalid but user_login is fine)
 			if ( $user_error === false )
-				add_filter( 'allow_password_reset', array( &$this, 'add_lostpassword_wp_message' ) );
+				add_filter( 'allow_password_reset', array( $this, 'add_lostpassword_wp_message' ) );
 			else
-				add_filter( 'login_errors', array( &$this, 'add_lostpassword_captcha_message' ) );
+				add_filter( 'login_errors', array( $this, 'add_lostpassword_captcha_message' ) );
 		}
 	}
 
@@ -163,9 +165,11 @@ class Math_Captcha_Core {
 	 * @return array
 	 */
 	public function add_user_with_captcha( $login, $email, $errors ) {
-		if ( isset( $_POST['mc-value'] ) && $_POST['mc-value'] !== '' ) {
+		if ( ! empty( $_POST['mc-value'] ) ) {
+			$mc_value = (int) $_POST['mc-value'];
+
 			if ( Math_Captcha()->cookie_session->session_ids['default'] !== '' && get_transient( 'mc_' . Math_Captcha()->cookie_session->session_ids['default'] ) !== false ) {
-				if ( strcmp( get_transient( 'mc_' . Math_Captcha()->cookie_session->session_ids['default'] ), sha1( AUTH_KEY . $_POST['mc-value'] . Math_Captcha()->cookie_session->session_ids['default'], false ) ) !== 0 )
+				if ( strcmp( get_transient( 'mc_' . Math_Captcha()->cookie_session->session_ids['default'] ), sha1( AUTH_KEY . $mc_value . Math_Captcha()->cookie_session->session_ids['default'], false ) ) !== 0 )
 					$errors->add( 'math-captcha-error', $this->error_messages['wrong'] );
 			} else
 				$errors->add( 'math-captcha-error', $this->error_messages['time'] );
@@ -182,9 +186,11 @@ class Math_Captcha_Core {
 	 * @return array
 	 */
 	public function validate_user_with_captcha( $result ) {
-		if ( isset( $_POST['mc-value'] ) && $_POST['mc-value'] !== '' ) {
+		if ( ! empty( $_POST['mc-value'] ) ) {
+			$mc_value = (int) $_POST['mc-value'];
+
 			if ( Math_Captcha()->cookie_session->session_ids['default'] !== '' && get_transient( 'mc_' . Math_Captcha()->cookie_session->session_ids['default'] ) !== false ) {
-				if ( strcmp( get_transient( 'mc_' . Math_Captcha()->cookie_session->session_ids['default'] ), sha1( AUTH_KEY . $_POST['mc-value'] . Math_Captcha()->cookie_session->session_ids['default'], false ) ) !== 0 )
+				if ( strcmp( get_transient( 'mc_' . Math_Captcha()->cookie_session->session_ids['default'] ), sha1( AUTH_KEY . $mc_value . Math_Captcha()->cookie_session->session_ids['default'], false ) ) !== 0 )
 					$result['errors']->add( 'math-captcha-error', $this->error_messages['wrong'] );
 			} else
 				$result['errors']->add( 'math-captcha-error', $this->error_messages['time'] );
@@ -206,9 +212,11 @@ class Math_Captcha_Core {
 		if ( $this->login_failed === false && ! empty( $_POST ) ) {
 			$error = '';
 
-			if ( isset( $_POST['mc-value'] ) && $_POST['mc-value'] !== '' ) {
+			if ( ! empty( $_POST['mc-value'] ) ) {
+				$mc_value = (int) $_POST['mc-value'];
+
 				if ( Math_Captcha()->cookie_session->session_ids['default'] !== '' && get_transient( 'mc_' . Math_Captcha()->cookie_session->session_ids['default'] ) !== false ) {
-					if ( strcmp( get_transient( 'mc_' . Math_Captcha()->cookie_session->session_ids['default'] ), sha1( AUTH_KEY . $_POST['mc-value'] . Math_Captcha()->cookie_session->session_ids['default'], false ) ) !== 0 )
+					if ( strcmp( get_transient( 'mc_' . Math_Captcha()->cookie_session->session_ids['default'] ), sha1( AUTH_KEY . $mc_value . Math_Captcha()->cookie_session->session_ids['default'], false ) ) !== 0 )
 						$error = 'wrong';
 				} else
 					$error = 'time';
@@ -228,15 +236,17 @@ class Math_Captcha_Core {
 	 * @param WP_Error $user
 	 * @param string $username
 	 * @param string $password
-	 * @return \WP_Error
+	 * @return object WP_Error
 	 */
 	public function authenticate_user( $user, $username, $password ) {
 		// user gave us valid login and password
 		if ( ! is_wp_error( $user ) ) {
 			if ( ! empty( $_POST ) ) {
-				if ( isset( $_POST['mc-value'] ) && $_POST['mc-value'] !== '' ) {
+				if ( ! empty( $_POST['mc-value'] ) ) {
+					$mc_value = (int) $_POST['mc-value'];
+
 					if ( Math_Captcha()->cookie_session->session_ids['default'] !== '' && get_transient( 'mc_' . Math_Captcha()->cookie_session->session_ids['default'] ) !== false ) {
-						if ( strcmp( get_transient( 'mc_' . Math_Captcha()->cookie_session->session_ids['default'] ), sha1( AUTH_KEY . $_POST['mc-value'] . Math_Captcha()->cookie_session->session_ids['default'], false ) ) !== 0 )
+						if ( strcmp( get_transient( 'mc_' . Math_Captcha()->cookie_session->session_ids['default'] ), sha1( AUTH_KEY . $mc_value . Math_Captcha()->cookie_session->session_ids['default'], false ) ) !== 0 )
 							$error = 'wrong';
 					} else
 						$error = 'time';
@@ -278,10 +288,12 @@ class Math_Captcha_Core {
 	 * @return array
 	 */
 	public function add_comment_with_captcha( $comment ) {
-		if ( isset( $_POST['mc-value'] ) && ( ! is_admin() || DOING_AJAX) && ($comment['comment_type'] === '' || $comment['comment_type'] === 'comment') ) {
-			if ( $_POST['mc-value'] !== '' ) {
+		if ( ! empty( $_POST['mc-value'] ) ) {
+			$mc_value = (int) $_POST['mc-value'];
+
+			if ( ( ! is_admin() || ( defined( 'DOING_AJAX' ) && DOING_AJAX ) ) && ( $comment['comment_type'] === '' || $comment['comment_type'] === 'comment' ) ) {
 				if ( Math_Captcha()->cookie_session->session_ids['default'] !== '' && get_transient( 'mc_' . Math_Captcha()->cookie_session->session_ids['default'] ) !== false ) {
-					if ( strcmp( get_transient( 'mc_' . Math_Captcha()->cookie_session->session_ids['default'] ), sha1( AUTH_KEY . $_POST['mc-value'] . Math_Captcha()->cookie_session->session_ids['default'], false ) ) === 0 )
+					if ( strcmp( get_transient( 'mc_' . Math_Captcha()->cookie_session->session_ids['default'] ), sha1( AUTH_KEY . $mc_value . Math_Captcha()->cookie_session->session_ids['default'], false ) ) === 0 )
 						return $comment;
 					else
 						wp_die( $this->error_messages['wrong'] );
@@ -290,7 +302,7 @@ class Math_Captcha_Core {
 			} else
 				wp_die( $this->error_messages['fill'] );
 		} else
-			return $comment;
+			wp_die( $this->error_messages['fill'] );
 	}
 
 	/**
@@ -343,9 +355,11 @@ class Math_Captcha_Core {
 	 * Validate bbpress topics and replies.
 	 */
 	public function check_bbpress_captcha() {
-		if ( isset( $_POST['mc-value'] ) && $_POST['mc-value'] !== '' ) {
+		if ( ! empty( $_POST['mc-value'] ) ) {
+			$mc_value = (int) $_POST['mc-value'];
+
 			if ( Math_Captcha()->cookie_session->session_ids['default'] !== '' && get_transient( 'bbp_' . Math_Captcha()->cookie_session->session_ids['default'] ) !== false ) {
-				if ( strcmp( get_transient( 'bbp_' . Math_Captcha()->cookie_session->session_ids['default'] ), sha1( AUTH_KEY . $_POST['mc-value'] . Math_Captcha()->cookie_session->session_ids['default'], false ) ) !== 0 )
+				if ( strcmp( get_transient( 'bbp_' . Math_Captcha()->cookie_session->session_ids['default'] ), sha1( AUTH_KEY . $mc_value . Math_Captcha()->cookie_session->session_ids['default'], false ) ) !== 0 )
 					bbp_add_error( 'math-captcha-wrong', $this->error_messages['wrong'] );
 			} else
 				bbp_add_error( 'math-captcha-wrong', $this->error_messages['time'] );
@@ -608,8 +622,7 @@ class Math_Captcha_Core {
 
 			$transient_name = ($form === 'bbpress' ? 'bbp' : 'mc');
 			$session_id = Math_Captcha()->cookie_session->session_ids['default'];
-		}
-		elseif ( $form === 'cf7' ) {
+		} elseif ( $form === 'cf7' ) {
 			$return = array();
 
 			if ( $rnd_input === 0 ) {
@@ -627,7 +640,13 @@ class Math_Captcha_Core {
 			}
 
 			$transient_name = 'cf7';
-			$session_id = Math_Captcha()->cookie_session->session_ids['multi'][$this->session_number ++];
+
+			if ( array_key_exists( $this->session_number, Math_Captcha()->cookie_session->session_ids['multi'] ) )
+				$session_id = Math_Captcha()->cookie_session->session_ids['multi'][$this->session_number];
+			else
+				$session_id = '';
+
+			$this->session_number++;
 		}
 
 		set_transient( $transient_name . '_' . $session_id, sha1( AUTH_KEY . $number[$rnd_input] . $session_id, false ), apply_filters( 'math_captcha_time', Math_Captcha()->options['general']['time'] ) );
@@ -636,7 +655,7 @@ class Math_Captcha_Core {
 	}
 
 	/**
-	 * FLush rewrite rules.
+	 * Flush rewrite rules.
 	 */
 	public function flush_rewrites() {
 		if ( Math_Captcha()->options['general']['flush_rules'] ) {
@@ -663,7 +682,7 @@ class Math_Captcha_Core {
 RewriteEngine On
 RewriteCond %{REQUEST_METHOD} POST
 RewriteCond %{REQUEST_URI} .wp-comments-post.php*
-RewriteCond %{HTTP_REFERER} !.*{$_SERVER['HTTP_HOST']}.* [OR]
+RewriteCond %{HTTP_REFERER} !.*{$this->get_host()}.* [OR]
 RewriteCond %{HTTP_USER_AGENT} ^$
 RewriteRule (.*) ^http://%{REMOTE_ADDR}/$ [R=301,L]
 </IfModule>
@@ -676,4 +695,30 @@ EOT;
 		return $rules;
 	}
 
+	/**
+	 * Get host.
+	 *
+	 * @return string
+	 */
+	private function get_host() {
+		$host = '';
+
+		foreach ( array( 'HTTP_X_FORWARDED_HOST', 'HTTP_HOST', 'SERVER_NAME', 'SERVER_ADDR' ) as $source ) {
+			if ( ! empty( $host ) )
+				break;
+
+			if ( empty( $_SERVER[$source] ) )
+				continue;
+
+			$host = $_SERVER[$source];
+
+			if ( $source === 'HTTP_X_FORWARDED_HOST' ) {
+				$elements = explode( ',', $host );
+				$host = trim( end( $elements ) );
+			}
+		}
+
+		// remove port number from host and return it
+		return trim( preg_replace( '/:\d+$/', '', $host ) );
+	}
 }

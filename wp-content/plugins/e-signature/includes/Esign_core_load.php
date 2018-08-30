@@ -33,13 +33,13 @@ class Esign_core_load {
         $this->General = new WP_E_General();
         $this->esigrole = new WP_E_Esigrole();
 
-        add_shortcode('wp_e_signature', array(new WP_E_Shortcode(), 'e_sign_document'));
+        add_shortcode('wp_e_signature', array(WP_E_Shortcode::instance(), 'e_sign_document'));
 
         add_action('init', array("WP_E_Shortcode", "register_scripts"), -100);
 
 
         //add_filter('template_include', array(&$this, 'documentTemplateHook'),-29);
-        //add_filter('show_admin_bar' , array(&$this, 'adminBarHook'));
+        add_filter('show_admin_bar' , array(&$this, 'adminBarHook'));
         add_action('wp_ajax_wp_e_signature_ajax', 'wp_e_signature_ajax');
         add_action('wp_ajax_nopriv_wp_e_signature_ajax', 'wp_e_signature_ajax_nopriv');
         add_filter('admin_footer_text', 'e_sign_admin_footer');
@@ -380,6 +380,7 @@ class Esign_core_load {
 
             // registering and loading bootstrap
             wp_enqueue_style( 'e-signature-' . 'bootstrap',ESIGN_DIRECTORY_URI . 'assets/css/bootstrap.min.css', array(), '3.3.4',false );
+            wp_enqueue_style( 'e-signature-' . 'bootstrap-dialog',ESIGN_DIRECTORY_URI . 'assets/css/bootstrap/bootstrap-dialog.css', array(), '3.3.4',false );
             	//wp_register_script( 'esig-bootstrap', '//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js', array('jquery'),'3.3.4',true);
             	//wp_enqueue_script('esig-bootstrap');
                 wp_enqueue_style('esig-main-style', ESIGN_DIRECTORY_URI . 'assets/css/esig-main.css');
@@ -394,8 +395,11 @@ class Esign_core_load {
             wp_enqueue_script('e-signature' . '-js-script', ESIGN_DIRECTORY_URI . 'assets/js/esign.js', array('jquery', 'jquery-ui-dialog'), '1.0.1', true);
             wp_enqueue_script('e-signature' . '-validation-script', ESIGN_DIRECTORY_URI . 'assets/js/esig-validation.js', array('jquery', 'jquery-ui-dialog'), '1.0.1', true);
             wp_enqueue_style('e-signature' . '-document-styles', ESIGN_DIRECTORY_URI . 'assets/css/chosen.min.css', array(), null, false);
-
+            wp_enqueue_script('e-signature-bootstrap-scripts', ESIGN_ASSETS_DIR_URI . '/js/bootstrap/bootstrap.min.js', array(), '3.2.0', false);
+            wp_enqueue_script('e-signature-bootstrap-dialog', ESIGN_ASSETS_DIR_URI . '/js/bootstrap/bootstrap-dialog.min.js', array(), '3.2.0', true);
             wp_enqueue_script('jquery-ui-dialog');
+            
+            
 
             wp_enqueue_script('e-signature' . '-admin-script', ESIGN_DIRECTORY_URI . 'assets/js/chosen.jquery.js', array('jquery', 'jquery-ui-dialog'), '1.0.1', true);
 
@@ -410,6 +414,7 @@ class Esign_core_load {
             wp_enqueue_script('e-signature' . '-common-script2', ESIGN_DIRECTORY_URI . 'assets/js/common_admin.js', array('jquery', 'jquery-ui-dialog'), '1.0.1', true);
             wp_localize_script('e-signature' . '-admin-script2', 'esigAjax', array('ajaxurl' => admin_url('admin-ajax.php')));
             wp_localize_script('e-signature' . '-admin-script2', 'esig_tool_tip_script', array('imgurl' => ESIGN_DIRECTORY_URI . 'assets/images/callout_black.gif'));
+            
         }
     }
 
@@ -577,6 +582,7 @@ class Esign_core_load {
      * @return void
      */
     public function adminBarHook($content) {
+        
         if (is_page()) {
             $setting = new WP_E_Setting();
             $doc_id = $setting->get_generic('default_display_page');

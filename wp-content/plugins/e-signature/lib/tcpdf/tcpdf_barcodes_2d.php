@@ -253,6 +253,7 @@ class TCPDF2DBarcode {
 		$mode = explode(',', $type);
 		$qrtype = strtoupper($mode[0]);
 		switch ($qrtype) {
+                    
 			case 'DATAMATRIX': { // DATAMATRIX (ISO/IEC 16022)
 				require_once(dirname(__FILE__).'/include/barcodes/datamatrix.php');
 				$qrcode = new Datamatrix($code);
@@ -262,6 +263,7 @@ class TCPDF2DBarcode {
 			}
 			case 'PDF417': { // PDF417 (ISO/IEC 15438:2006)
 				require_once(dirname(__FILE__).'/include/barcodes/pdf417.php');
+                               
 				if (!isset($mode[1]) OR ($mode[1] === '')) {
 					$aspectratio = 2; // default aspect ratio (width / height)
 				} else {
@@ -273,6 +275,7 @@ class TCPDF2DBarcode {
 					$ecl = intval($mode[2]);
 				}
 				// set macro block
+                                
 				$macro = array();
 				if (isset($mode[3]) AND ($mode[3] !== '') AND isset($mode[4]) AND ($mode[4] !== '') AND isset($mode[5]) AND ($mode[5] !== '')) {
 					$macro['segment_total'] = intval($mode[3]);
@@ -286,7 +289,9 @@ class TCPDF2DBarcode {
 						}
 					}
 				}
+                               
 				$qrcode = new PDF417($code, $ecl, $aspectratio, $macro);
+                                
 				$this->barcode_array = $qrcode->getBarcodeArray();
 				$this->barcode_array['code'] = $code;
 				break;

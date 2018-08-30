@@ -241,7 +241,7 @@ class WP_E_User extends WP_E_Model {
 
     public function checkEsigAdmin($user_id) {
         $admin_user_id = $this->esig_get_super_admin_id();
-        
+
         // if super admin wp user id not exists reset esign 
         if ($this->settings->get("initialized") == 'false') {
             return true;
@@ -446,6 +446,15 @@ class WP_E_User extends WP_E_Model {
 				user_email='%s',
 				first_name='%s',
 				last_name='%s' WHERE user_id=%d", $wp_user_id, $user['user_title'], $user['user_email'], $user['first_name'], $user['last_name'], $user['user_id']
+                        )
+        );
+    }
+
+    public function delete($user_id) {
+
+        return $this->wpdb->query(
+                        $this->wpdb->prepare(
+                                "DELETE from " . $this->table . " WHERE user_id=%d", $user_id
                         )
         );
     }

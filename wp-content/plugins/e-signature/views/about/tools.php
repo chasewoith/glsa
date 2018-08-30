@@ -1,5 +1,7 @@
 <div class="wrap">
     <h2><?php _e('Export / Import Settings', 'esig'); ?></h2>
+    
+    <p><?php _e('This tool is NOT meant to be used to import/export E-Signature files into another site. This tool is to be used for same-site back up purposes only. If you are looking to import/export to a different site, take a look at <a href="https://www.approveme.com/wp-digital-signature-plugin-docs/article/import-export-tool/" target="_blank">this helpful article!</a>', 'esig'); ?></p>
 
     <?php echo WP_E_Notice::instance()->esig_print_notice(); ?>
 
@@ -7,8 +9,9 @@
         <?php do_action('esig_export_import_top'); ?>
         <div class="postbox">
             <h3><span><?php _e('Export settings / documents', 'esig'); ?></span></h3>
+            
             <div class="inside">
-                <p><?php _e('Export the WP E-Signature settings for this site as a xml file. This allows you to easily import the configuration into another site and back up your settings and documents.', 'esig'); ?></p>
+                <p><?php _e('Export the WP E-Signature settings for this site as a xml file.', 'esig'); ?></p>
 
                 <form method="post" action="<?php echo admin_url('admin.php?page=esign-docs'); ?>">
                     <p>
@@ -24,7 +27,7 @@
         <div class="postbox">
             <h3><span><?php _e('Import settings / documents', 'esig'); ?></span></h3>
             <div class="inside">
-                <p><?php _e('Import the WP E-Signature settings and documents from a xml file. This file can be obtained by exporting the settings on another site using the form above. This import will overwrite settings and documents.', 'edd'); ?></p>
+                <p><?php _e('Import the WP E-Signature settings and documents from a xml file. This file can be obtained by exporting the settings on same site using the form above. This import will overwrite settings and documents.', 'edd'); ?></p>
                 
                 <form method="post" enctype="multipart/form-data" action="<?php echo admin_url('admin.php?page=esign-docs'); ?>">
                     <p>

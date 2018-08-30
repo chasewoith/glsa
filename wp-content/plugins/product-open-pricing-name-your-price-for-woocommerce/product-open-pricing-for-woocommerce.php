@@ -3,13 +3,14 @@
 Plugin Name: Product Open Pricing (Name Your Price) for WooCommerce
 Plugin URI: https://wpcodefactory.com/item/product-open-pricing-woocommerce/
 Description: Open price (i.e. Name your price) products for WooCommerce.
-Version: 1.1.1
+Version: 1.2.1
 Author: Algoritmika Ltd
 Author URI: http://www.algoritmika.com
 Text Domain: product-open-pricing-for-woocommerce
 Domain Path: /langs
-Copyright: © 2018 Algoritmika Ltd.
-WC tested up to: 3.2
+Copyright: Â© 2018 Algoritmika Ltd.
+WC requires at least: 3.0.0
+WC tested up to: 3.4
 License: GNU General Public License v3.0
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 */
@@ -42,7 +43,7 @@ if ( ! class_exists( 'Alg_WC_Product_Open_Pricing' ) ) :
  * Main Alg_WC_Product_Open_Pricing Class
  *
  * @class   Alg_WC_Product_Open_Pricing
- * @version 1.1.0
+ * @version 1.1.2
  * @since   1.0.0
  */
 final class Alg_WC_Product_Open_Pricing {
@@ -53,7 +54,7 @@ final class Alg_WC_Product_Open_Pricing {
 	 * @var   string
 	 * @since 1.0.0
 	 */
-	public $version = '1.1.1';
+	public $version = '1.1.9';
 
 	/**
 	 * @var   Alg_WC_Product_Open_Pricing The single instance of the class
@@ -120,16 +121,16 @@ final class Alg_WC_Product_Open_Pricing {
 	/**
 	 * Include required core files used in admin and on the frontend.
 	 *
-	 * @version 1.1.0
+	 * @version 1.1.2
 	 * @since   1.0.0
 	 */
 	function includes() {
 		// Settings
 		require_once( 'includes/admin/class-alg-wc-product-open-pricing-settings-section.php' );
-		$settings = array();
-		$settings[] = require_once( 'includes/admin/class-alg-wc-product-open-pricing-settings-general.php' );
+		$this->settings = array();
+		$this->settings['general'] = require_once( 'includes/admin/class-alg-wc-product-open-pricing-settings-general.php' );
 		if ( is_admin() && get_option( 'alg_wc_product_open_pricing_version', '' ) !== $this->version ) {
-			foreach ( $settings as $section ) {
+			foreach ( $this->settings as $section ) {
 				foreach ( $section->get_settings() as $value ) {
 					if ( isset( $value['default'] ) && isset( $value['id'] ) ) {
 						$autoload = isset( $value['autoload'] ) ? ( bool ) $value['autoload'] : true;

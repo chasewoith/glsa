@@ -31,14 +31,20 @@ if (backupGuardIsAjax() && count($_POST)) {
     SGConfig::set('SG_AMOUNT_OF_BACKUPS_TO_KEEP', $amountOfBackupsToKeep);
 
     SGConfig::set('SG_NOTIFICATIONS_ENABLED', '0');
-    $email = '';
+    $emails = '';
     if (isset($_POST['sgIsEmailNotification'])) {
-        $email = @$_POST['sgUserEmail'];
-        if (empty($email)) {
+        $emails = @$_POST['sgUserEmail'];
+        $emailsArray = explode(',', $emails);
+
+        if (empty($emails)) {
             array_push($error, _backupGuardT('Email is required.', true));
         }
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            array_push($error, _backupGuardT('Invalid email address.', true));
+
+        foreach ($emailsArray as $email) {
+            $email = trim($email);
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                array_push($error, _backupGuardT('Invalid email address.', true));
+            }
         }
 
         SGConfig::set('SG_NOTIFICATIONS_ENABLED', '1');
@@ -123,7 +129,7 @@ if (backupGuardIsAjax() && count($_POST)) {
     SGConfig::set('SG_BACKUP_WITH_RELOADINGS', $isReloadingsEnabled);
     SGConfig::set('SG_BACKUP_FILE_NAME_PREFIX', $backupFileName);
     SGConfig::set('SG_AJAX_REQUEST_FREQUENCY', $ajaxInterval);
-    SGConfig::set('SG_NOTIFICATIONS_EMAIL_ADDRESS', $email);
+    SGConfig::set('SG_NOTIFICATIONS_EMAIL_ADDRESS', $emails);
     die(json_encode($success));
 }
 

@@ -492,6 +492,42 @@ to send and preview documents unless you have the Additional E-Signature Roles A
     	</tr>
 		
 		<!-- timezone settings end here -->
+                
+                <!-- Terms of use settings start here -->
+		<tr>
+
+		    <th><?php _e("Terms of use language","esig");?></th>
+
+			<td><label for="">
+
+    		<a href="#" class="tooltip">
+
+					<img src="<?php echo $data['ESIGN_ASSETS_DIR_URI']; ?>/images/help.png" height="20px" width="20px" align="left" />
+
+					<span>
+
+					<?php _e('E-signature Terms of use language settings. ', 'esig' ); ?>
+
+					</span>
+
+					</a>
+					
+					<select id="esig_tou_string" name="esig_tou_string" class="esig-select2"  aria-describedby="tou-description" style="width: 288px">
+<?php  
+
+     echo $data['esig_terms_of_use'] ; 
+
+ ?>
+ </select>
+			</label>
+
+        
+
+			</td>
+
+    	</tr>
+		
+		<!-- Terms of use settings end here -->
 
 		<tr>
 
@@ -589,10 +625,11 @@ to send and preview documents unless you have the Additional E-Signature Roles A
 
 
 
-    
+    <div id="postbox-container-1" class="esig-postbox-container">
 
     <?php echo $data['extra_contents']; ?>
-
+        
+    </div>>
    
 
 <?php $tail= apply_filters('esig-document-footer-content', '',array()); 

@@ -3,7 +3,7 @@
 /*
   Plugin Name: WP E-Signature
   Description: Legally sign and collect signatures on documents, contracts, proposals, estimates and more using WP E-Signature.
-  Version: 1.5.3.1
+  Version: 1.5.3.8
   Author: Approve Me
   Author URI: https://www.approveme.com
   Contributors: Kevin Michael Gray, Micah Blu, Michael Medaglia, Abu Shoaib, Earl Red, Pippin Williamson
@@ -102,15 +102,17 @@ if (!class_exists('WP_E_Digital_Signature')) :
             require_once ESIGN_PLUGIN_PATH . '/includes/Esign_core_load.php';
 
 
-
+            require_once ESIGN_PLUGIN_PATH . '/includes/esig-render-shortcode.php';
             require_once ESIGN_PLUGIN_PATH . '/includes/Esign_actions.php';
             require_once ESIGN_PLUGIN_PATH . '/includes/actions.php';
             require_once ESIGN_PLUGIN_PATH . '/includes/esig-messages.php';
-            require_once ESIGN_PLUGIN_PATH . '/includes/esig-render-shortcode.php';
+            
             
             
             include_once ESIGN_PLUGIN_PATH . "/lib/export/esig-export-xml.php";
             include_once ESIGN_PLUGIN_PATH . "/lib/export/esig-migrate.php";
+            include_once ESIGN_PLUGIN_PATH . "/lib/export/esig-personal-data-export.php";
+            include_once ESIGN_PLUGIN_PATH . "/lib/export/esig-personal-data-eraser.php";
             // laods some other files .
             include (dirname(__FILE__) . '/includes/Esign-add-on.php' );
             include( dirname(__FILE__) . '/vendors/core-load.php');
@@ -190,7 +192,7 @@ if (!class_exists('WP_E_Digital_Signature')) :
             }
 
 
-            $license = new ESIG_License(ESIGN_PLUGIN_BASENAME, __('WP E-Signature', 'esig'), 2660, '1.5.3.1', __('Approve Me', 'esig'));
+            $license = new ESIG_License(ESIGN_PLUGIN_BASENAME, __('WP E-Signature', 'esig'), 2660, '1.5.3.8', __('Approve Me', 'esig'));
         }
 
     }

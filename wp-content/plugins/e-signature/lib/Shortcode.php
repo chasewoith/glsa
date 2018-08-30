@@ -8,18 +8,30 @@
  */
 class WP_E_Shortcode {
 
+    private static $instance;
+
+    public static function instance() {
+        // If the single instance hasn't been set, set it now.
+        if (null == self::$instance) {
+            self::$instance = new self;
+        }
+
+        return self::$instance;
+    }
+
     public function __construct() {
-        $this->view = new WP_E_View();
-        $this->invite = new WP_E_Invite;
-        $this->document = new WP_E_Document;
-        $this->signature = new WP_E_Signature;
-        $this->user = new WP_E_User;
-        $this->setting = new WP_E_Setting;
-        $this->validation = new WP_E_Validation();
-        $this->notice = new WP_E_Notice();
-        $this->email = new WP_E_Email();
-        $this->signer = new WP_E_Signer();
-        $this->audit_trail_helper = new WP_E_AuditTrail();
+
+        //$this->view = new WP_E_View();
+        //$this->invite = new WP_E_Invite;
+        //$this->document = new WP_E_Document;
+        //$this->signature = new WP_E_Signature;
+        //$this->user = new WP_E_User;
+        //$this->setting = new WP_E_Setting;
+        //$this->validation = new WP_E_Validation();
+        //$this->notice = new WP_E_Notice();
+        // $this->email = new WP_E_Email();
+        //$this->signer = new WP_E_Signer();
+        //$this->audit_trail_helper = new WP_E_AuditTrail();
     }
 
     /**
@@ -32,28 +44,27 @@ class WP_E_Shortcode {
 
         $recipient_fname = trim($_POST['recipient_first_name']);
 
-        $invite_hash = $this->validation->esig_clean($_POST['invite_hash']);
-        $checksum = $this->validation->esig_clean($_POST['checksum']);
+        $invite_hash = WP_E_Sig()->validation->esig_clean($_POST['invite_hash']);
+        $checksum = WP_E_Sig()->validation->esig_clean($_POST['checksum']);
         $assets_dir = ESIGN_ASSETS_DIR_URI;
 
         $validity = true; // assume true, only false assertions are made
 
-        $invitation = $this->invite->getInviteBy('invite_hash', $invite_hash);
+        $invitation = WP_E_Sig()->invite->getInviteBy('invite_hash', $invite_hash);
 
         // use checksum to ensure doc hasn't changed
-        $document = $this->document->getDocument($invitation->document_id);
-
+        //$document = WP_E_Sig()->document->getDocument($invitation->document_id);
         // The checksum is calculated by appended the document's content to its id then generating a sha1 checksum from that value
         //$doc_checksum = sha1($invitation->document_id . $document->document_content);
         // Enforce a legal name
-        if (!$this->document->isFormIntegration($invite_hash) && !$this->validation->esig_valid_string($recipient_fname)) {
-            $this->view->setAlert(array("type" => "error", "message" => __("First & Last Name are required", 'esig')));
+        if (!WP_E_Sig()->document->isFormIntegration($invite_hash) && !WP_E_Sig()->validation->esig_valid_string($recipient_fname)) {
+            WP_E_View::instance()->setAlert(array("type" => "error", "message" => __("First & Last Name are required", 'esig')));
             $validity = false;
         }
 
         // if hash isn't here... 
         if (empty($invite_hash)) {
-            $this->view->setAlert(array("type" => "error", "message" => sprintf(__("Oh snap! Carnegie, you've stumbled upon a broken URL. We're on the case. Let us know if the problem continues to persist. <p align='center'><img src='%s/images/boss.svg'></p>", 'esig'), $assets_dir)));
+            WP_E_View::instance()->setAlert(array("type" => "error", "message" => sprintf(__("Oh snap! Carnegie, you've stumbled upon a broken URL. We're on the case. Let us know if the problem continues to persist. <p align='center'><img src='%s/images/boss.svg'></p>", 'esig'), $assets_dir)));
             $validity = false;
         }
         // if checksums don't match...
@@ -63,11 +74,11 @@ class WP_E_Shortcode {
           } */
         if (!empty($invite_hash) && !empty($checksum)) {
             if (!esig_verify_nonce(esigpost('esig_nonce'), $invitation->document_id)) {
-                wp_die('You are not allowed to sign this agreement');
+                wp_die('You are not allowed to sign this agreement.Use a latest Browser.');
             }
 
             if (!esig_verify_not_spam()) {
-                wp_die('You are not allowed to sign this agreement');
+                wp_die('You are not allowed to sign this agreement.');
             }
         }
 
@@ -81,8 +92,12 @@ class WP_E_Shortcode {
      */
     public function e_sign_document() {
 
+        global $document, $invitation, $recipient, $esigOwner, $document_id, $userHasSignedDocument, $recipient_signature;
+
         $assets_dir = ESIGN_ASSETS_DIR_URI;
         @ini_set('memory_limit', '256M');
+
+
         // GET - Display signed or unsigned signature form
         if (!ESIG_POST('recipient_signature') && !ESIG_POST('esignature_in_text')) {
 
@@ -91,12 +106,13 @@ class WP_E_Shortcode {
                 return $this->admin_preview();
             }
 
-            $invite = isset($_GET['invite']) ? $this->validation->esig_clean($_GET['invite']) : null;
-            $check_sum = isset($_GET['csum']) ? $this->validation->esig_clean($_GET['csum']) : null;
+            $invite = isset($_GET['invite']) ? WP_E_Sig()->validation->esig_clean($_GET['invite']) : null;
+            $check_sum = isset($_GET['csum']) ? WP_E_Sig()->validation->esig_clean($_GET['csum']) : null;
 
             // URL is expected to pass an invite hash and document checksum
             $invite_hash = isset($invite) ? $invite : null;
             $checksum = isset($check_sum) ? $check_sum : null;
+
             //$document_id = WP_E_Sig()->document->document_id_by_csum($checksum);
             if (class_exists("Esig_Slv_Dashboard")) {
 
@@ -111,36 +127,39 @@ class WP_E_Shortcode {
 
             if (empty($invite_hash) || empty($checksum)) {
 
-               /* if (get_transient('esig_current_url')) {
+                /* if (get_transient('esig_current_url_' . esig_get_ip())) {
+                  $current_url = get_transient('esig_current_url_' . esig_get_ip());
+                  delete_transient('esig_current_url_' . esig_get_ip());
+                  wp_redirect($current_url);
+                  exit;
+                  } */
 
-                    $current_url = get_transient('esig_current_url');
-                    delete_transient('esig_current_url');
-
-                    wp_redirect($current_url);
-                    exit;
-                }*/
+                $this->getTempUrl();
 
                 $esigPreview = esigget('esigpreview');
                 if ($esigPreview) {
-                    $docId = esigget("document_id");
-                    $doc = WP_E_Sig()->document->getDocument($docId);
+                    $document_id = esigget("document_id");
+                    $document = WP_E_Sig()->document->getDocument($document_id);
                     $template_data = array(
-                        "message" => sprintf(__("<p align='center' class='esig-404-page-template'><img src='%s/images/logo.png' alt='Sign Documents Online using WordPress E-Signature by Approve Me'></a></p><p align='center' class='esig-404-page-template'><strong>Woah tiger!</strong> You are attempting to access <strong>". $doc->document_title ."</strong> which was created by another user. For security reasons only the original document creator and recipients have access to this document. If you have questions about this document you can contact the document creator directly. <br>Thank you for using Wordpress Digital E-Signature By <a href='https://www.approveme.com/wp-digital-e-signature/' title='Free Document Signing by Approve Me'>Approve Me</a></p> <p align='center'><img src='" . $assets_dir . "/images/search.svg' alt='esignature by Approve Me' class='esig-404-search'></p>", 'esig'), $assets_dir),
+                        "message" => sprintf(__("<p align='center' class='esig-404-page-template'><img src='%s/images/logo.png' alt='Sign Documents Online using WordPress E-Signature by Approve Me'></a></p><p align='center' class='esig-404-page-template'><strong>Woah tiger!</strong> You are attempting to access <strong>" . $document->document_title . "</strong> which was created by another user. For security reasons only the original document creator and recipients have access to this document. If you have questions about this document you can contact the document creator directly. <br>Thank you for using Wordpress Digital E-Signature By <a href='https://www.approveme.com/wp-digital-e-signature/' title='Free Document Signing by Approve Me'>Approve Me</a></p> <p align='center'><img src='%s/images/search.svg' alt='esignature by Approve Me' class='esig-404-search'></p>", 'esig'), $assets_dir),
                     );
                 } else {
                     $template_data = array(
-                        "message" => sprintf(__("<p align='center' class='esig-404-page-template'><a href='https://www.approveme.com/wp-digital-e-signature/' title='Wordpress Digital E-Signature by Approve Me' target='_blank'><img src='%s/images/logo.png' alt='Sign Documents Online using WordPress E-Signature by Approve Me'></a></p><p align='center' class='esig-404-page-template'>Well this is embarrassing, but we can't seem to locate the document you're looking to sign online.<br>You may want to send an email to the website owner. <br>Thank you for using Wordpress Digital E-Signature By <a href='https://www.approveme.com/wp-digital-e-signature/' title='Free Document Signing by Approve Me'>Approve Me</a></p> <p align='center'><img src='" . $assets_dir . "/images/search.svg' alt='esignature by Approve Me' class='esig-404-search'><br><a class='esig-404-btn' href='https://www.approveme.com/wp-digital-e-signature?404'>Download WP E-Signature!</a></p>", 'esig'), $assets_dir),
+                        "message" => sprintf(__("<p align='center' class='esig-404-page-template'><a href='https://www.approveme.com/wp-digital-e-signature/' title='Wordpress Digital E-Signature by Approve Me' target='_blank'><img src='%s/images/logo.png' alt='Sign Documents Online using WordPress E-Signature by Approve Me'></a></p><p align='center' class='esig-404-page-template'>Well this is embarrassing, but we can't seem to locate the document you're looking to sign online.<br>You may want to send an email to the website owner. <br>Thank you for using Wordpress Digital E-Signature By <a href='https://www.approveme.com/wp-digital-e-signature/' title='Free Document Signing by Approve Me'>Approve Me</a></p> <p align='center'><img src='%s/images/search.svg' alt='esignature by Approve Me' class='esig-404-search'><br><a class='esig-404-btn' href='https://www.approveme.com/wp-digital-e-signature?404'>Download WP E-Signature!</a></p>", 'esig'), $assets_dir),
                     );
                 }
+
+
                 $this->displayDocumentToSign(null, '404', $template_data);
-                return; // nothing to do here
+
+                return false; // nothing to do here
             }
 
             // Grab invitation and recipient from invite hash
-            $invitation = $this->invite->getInviteBy('invite_hash', $invite_hash);
-            $doc_id = $invitation->document_id;
+            $invitation = WP_E_Sig()->invite->getInviteBy('invite_hash', $invite_hash);
+            $document_id = $invitation->document_id;
 
-            if ($this->document->document_exists($doc_id) == 0) {
+            if (WP_E_Sig()->document->document_exists($document_id) == 0) {
                 $template_data = array(
                     "message" => sprintf(__("<p align='center' class='esig-404-page-template'><a href='https://www.approveme.com/wp-digital-e-signature/' title='Wordpress Digital E-Signature by Approve Me' target='_blank'><img src='%s/images/logo.png' alt='Sign Documents Online using WordPress E-Signature by Approve Me'></a></p><p align='center' class='esig-404-page-template'>Well this is embarrassing, but we can't seem to locate the document you're looking to sign online.<br>You may want to send an email to the website owner. <br>Thank you for using Wordpress Digital E-Signature By <a href='https://www.approveme.com/wp-digital-e-signature/' title='Free Document Signing by Approve Me'>Approve Me</a></p> <p align='center'><img src='" . $assets_dir . "/images/search.svg' alt='esignature by Approve Me' class='esig-404-search'><br><a class='esig-404-btn' href='https://www.approveme.com/wp-digital-e-signature?404'>Download WP E-Signature!</a></p>", 'esig'), $assets_dir),
                 );
@@ -148,7 +167,7 @@ class WP_E_Shortcode {
                 return; // nothing to do here
             }
 
-            $recipient = $this->user->getUserdetails($invitation->user_id, $invitation->document_id);
+            $recipient = WP_E_Sig()->user->getUserdetails($invitation->user_id, $document_id);
             $template_data = array(
                 "invite_hash" => $invite_hash,
                 "checksum" => $checksum,
@@ -161,9 +180,10 @@ class WP_E_Shortcode {
             );
 
             // If the doc has already been signed by this user, add their signature and display read only
-            if ($this->signature->userHasSignedDocument($recipient->user_id, $doc_id)) {
+            $userHasSignedDocument = WP_E_Sig()->signature->userHasSignedDocument($recipient->user_id, $document_id);
+            if ($userHasSignedDocument) {
 
-                $recipient_signature = stripslashes($this->signature->getDocumentSignature($recipient->user_id, $doc_id));
+                $recipient_signature = stripslashes(WP_E_Sig()->signature->getDocumentSignature($recipient->user_id, $document_id));
                 // echo '<h1>..'.$recipient_signature."</h1>";
                 $template_data["recipient_signature"] = $recipient_signature;
                 $template_data["signature_classes"] = 'signed';
@@ -176,10 +196,11 @@ class WP_E_Shortcode {
                 $template = "sign-document";
             }
 
-            $this->document->recordView($invitation->document_id, $invitation->user_id, null);
+            WP_E_Sig()->document->recordView($document_id, $invitation->user_id, null);
 
             add_thickbox();
-            $this->displayDocumentToSign($invitation->document_id, $template, $template_data);
+
+            $this->displayDocumentToSign($document_id, $template, $template_data);
 
 
             // POST - Handle signature submission
@@ -187,23 +208,25 @@ class WP_E_Shortcode {
 
 
             // for pdmi bug added this tra
-           // set_transient('esig_current_url', esc_url_raw($_SERVER['REQUEST_URI']));
+            $this->saveTempUrl();
+            //set_transient('esig_current_url_' . esig_get_ip() . "-" . ESIG_COOKIE("esig_session_id"), esc_url_raw($_SERVER['REQUEST_URI']), 30);
             // increase execution time 
             @ini_set('max_execution_time', 300);
 
             if ($this->doc_signature_validates()) {
 
-                $invitation = $this->invite->getInviteBy('invite_hash', $this->validation->esig_clean($_POST['invite_hash']));
+                $invitation = WP_E_Sig()->invite->getInviteBy('invite_hash', WP_E_Sig()->validation->esig_clean($_POST['invite_hash']));
 
-                $doc_id = $invitation->document_id;
+                $document_id = $invitation->document_id;
 
                 // using the invitation grab the recipient user
-                $recipient = $this->user->getUserdetails($invitation->user_id, $invitation->document_id);
-                $invite_hash_post = $this->validation->esig_clean($_POST['invite_hash']);
+                $recipient = WP_E_Sig()->user->getUserdetails($invitation->user_id, $document_id);
+                $invite_hash_post = WP_E_Sig()->validation->esig_clean($_POST['invite_hash']);
 
                 // User has already signed. Don't let them sign again
-                if ($this->signature->userHasSignedDocument($invitation->user_id, $doc_id)) {
-                    $recipient_signature = stripslashes($this->signature->getDocumentSignature($invitation->user_id, $doc_id));
+                $userHasSignedDocument = WP_E_Sig()->signature->userHasSignedDocument($invitation->user_id, $document_id);
+                if ($userHasSignedDocument) {
+                    $recipient_signature = stripslashes(WP_E_Sig()->signature->getDocumentSignature($invitation->user_id, $document_id));
                     $template_data = array(
                         "invite_hash" => $invite_hash_post,
                         "recipient_signature" => $recipient_signature,
@@ -214,42 +237,42 @@ class WP_E_Shortcode {
                         "message" => __("<p class=\"doc_title\" align=\"center\">You've already signed this document.</h2> <p align='center'></p>", 'esig')
                     );
 
-                    $this->displayDocumentToSign($invitation->document_id, "sign-preview", $template_data);
+                    $this->displayDocumentToSign($document_id, "sign-preview", $template_data);
                     return;
                 }
 
                 // validation type signature 
-                $esig_signature_type = $this->validation->esig_clean($_POST['esig_signature_type']);
+                $esig_signature_type = WP_E_Sig()->validation->esig_clean($_POST['esig_signature_type']);
 
-                $esignature_in_text = $this->validation->esig_clean($_POST['esignature_in_text']);
+                $esignature_in_text = WP_E_Sig()->validation->esig_clean($_POST['esignature_in_text']);
 
                 // adding signature here 
                 if (isset($esig_signature_type) && $esig_signature_type == "typed") {
 
-                    $signature_id = $this->signature->add($esignature_in_text, $recipient->user_id, $esig_signature_type);
+                    $signature_id = WP_E_Sig()->signature->add($esignature_in_text, $recipient->user_id, $esig_signature_type);
 
                     //$this->setting->set('esig-signature-type-font' . $recipient->user_id, $_POST['font_type']);
-                    $this->signature->save_font_type($doc_id, $recipient->user_id, $_POST['font_type']);
+                    WP_E_Sig()->signature->save_font_type($document_id, $recipient->user_id, $_POST['font_type']);
                 }
 
 
                 $recipient_signature = ESIG_POST('recipient_signature');
                 if (isset($recipient_signature) && !empty($recipient_signature)) {
-                    $signature_id = $this->signature->add($recipient_signature, $recipient->user_id);
+                    $signature_id = WP_E_Sig()->signature->add($recipient_signature, $recipient->user_id);
                 }
 
 
                 // save signing device information
                 if (wp_is_mobile()) {
-                    $this->document->save_sign_device($doc_id, 'mobile');
+                    WP_E_Sig()->document->save_sign_device($document_id, 'mobile');
                 }
 
                 // link this signature to this document in the document_signature join table
-                $join_id = $this->signature->join($invitation->document_id, $signature_id);
+                $join_id = WP_E_Sig()->signature->join($invitation->document_id, $signature_id);
 
 
                 if (!$join_id) {
-                    $this->view->setAlert(array("type" => "error", "message" => __("There was an error attaching the signature to the document", 'esig')));
+                    WP_E_View::instance()->setAlert(array("type" => "error", "message" => __("There was an error attaching the signature to the document", 'esig')));
                     error_log("Shortcode: e_sign_document: An error attaching the signature to the document");
                     return;
                 }
@@ -269,25 +292,25 @@ class WP_E_Shortcode {
                     $l_name = "";
                 }
 
-                $user_name = $this->user->get_esig_signer_name($recipient->user_id, $doc_id);
+                $user_name = WP_E_Sig()->user->get_esig_signer_name($recipient->user_id, $document_id);
 
                 if ($f_name != $user_name) {
 
-                    $this->user->updateField($recipient->user_id, "first_name", trim($f_name));
+                    WP_E_Sig()->user->updateField($recipient->user_id, "first_name", trim($f_name));
 
-                    $this->signer->updateField($recipient->user_id, $doc_id, "signer_name", trim($f_name));
+                    WP_E_Sig()->signer->updateField($recipient->user_id, $document_id, "signer_name", trim($f_name));
 
                     //$this->user->updateField($recipient->user_id, "last_name", trim($l_name));
                     //$this->setting->set("esign_signed_". $invitation->user_id ."_name_document_id_".$doc_id,$f_name);
                     // saving event
                     $event_text = sprintf(__("Signer name %s was changed to %s by %s IP: %s", "esig"), $user_name, stripslashes($f_name), $recipient->user_email, esig_get_ip());
-                    $this->document->recordEvent($doc_id, 'name_changed', $event_text, null);
+                    WP_E_Sig()->document->recordEvent($document_id, 'name_changed', $event_text, null);
                 }
 
                 $event_text = sprintf(__("Document signed by %s - %s IP %s", "esig"), stripslashes($f_name), $recipient->user_email, esig_get_ip());
-                $this->document->recordEvent($doc_id, 'document_signed', $event_text);
+                WP_E_Sig()->document->recordEvent($document_id, 'document_signed', $event_text);
 
-                $document = $this->document->getDocumentByID($doc_id);
+                $document = WP_E_Sig()->document->getDocumentByID($document_id);
 
                 // Fire post-sign action
                 do_action('esig_signature_saved', array(
@@ -297,12 +320,12 @@ class WP_E_Shortcode {
                     'post_fields' => $_POST,
                 ));
 
-                $recipient_signature = stripslashes($_POST['recipient_signature']);
-                $sender_signature = stripslashes($this->signature->getUserSignature($document->user_id));
-                $sender = $this->user->getUserBy('user_id', $document->user_id);
+                //$recipient_signature = stripslashes($_POST['recipient_signature']);
+                // $sender_signature = stripslashes(WP_E_Sig()->signature->getUserSignature($document->user_id));
+                // $esigOwner = WP_E_Sig()->user->getUserBy('user_id', $document->user_id);
+                $successText = __("You're done signing!", "esig");
 
-
-                $success_msg = __("<p class=\"success_title\" align=\"center\"><h2>You're done signing!</h2> <p align='center' class='s_logo'><span class=\"icon-success-check\"></span></p>", "esign");
+                $success_msg = "<p class=\"success_title\" align=\"center\"><h2>" . $successText . "</h2> <p align='center' class='s_logo'><span class=\"icon-success-check\"></span></p>";
 
                 $success_msg = apply_filters('esig-success-page-filter', $success_msg, array('document' => $document));
 
@@ -313,18 +336,38 @@ class WP_E_Shortcode {
                     "recipient_last_name" => $recipient->last_name,
                     "viewer_needs_to_sign" => false,
                     "notify" => 'yes',
+                    "signature_id" => $signature_id,
                     "message" => __($success_msg, 'esig')
                 );
 
                 $template = "sign-preview";
-                $this->displayDocumentToSign($document->document_id, $template, $template_data);
+                $this->displayDocumentToSign($document_id, $template, $template_data);
 
                 // setting extra transient for pdmi bug
             } else { // ! Submission didn't validate
                 // display all errors 
-                $this->view->renderAlerts();
+                WP_E_View::instance()->renderAlerts();
             }
         }
+    }
+
+    private function saveTempUrl() {
+        $esigSession = WP_E_Sig()->notice->esig_session_id();
+        set_transient('esig_current_url_' . esig_get_ip() . "-" . $esigSession, esc_url_raw($_SERVER['REQUEST_URI']), 30);
+    }
+
+    private function getTempUrl() {
+
+        $esigSession = WP_E_Sig()->notice->esig_session_id();
+        $tempUrl = get_transient('esig_current_url_' . esig_get_ip() . "-" . $esigSession);
+
+        if (!empty($tempUrl)) {
+            //$current_url = get_transient('esig_current_url_' . esig_get_ip());
+            delete_transient('esig_current_url_' . esig_get_ip() . "-" . $esigSession);
+            wp_redirect($tempUrl);
+            exit;
+        }
+        return false;
     }
 
     /**
@@ -333,7 +376,7 @@ class WP_E_Shortcode {
      */
     public function notify_owner($document, $recipient, $audit_hash, $attachments = false) {
 
-        $owner = $this->user->getUserByWPID($document->user_id);
+        $owner = WP_E_Sig()->user->getUserByWPID($document->user_id);
 
         $background_color_bg = apply_filters('esig-invite-button-background-color', '', $document->user_id);
         $background_color = !empty($background_color_bg) ? $background_color_bg : '#0083c5';
@@ -349,7 +392,7 @@ class WP_E_Shortcode {
             'sender' => $sender,
             'owner_last_name' => $owner->last_name,
             'owner_email' => $owner->user_email,
-            'signer_name' => $this->user->get_esig_signer_name($recipient->user_id, $document->document_id),
+            'signer_name' => WP_E_Sig()->user->get_esig_signer_name($recipient->user_id, $document->document_id),
             'signer_email' => $recipient->user_email,
             'view_url' => WP_E_Invite::get_preview_url($document->document_id, $audit_hash),
             'assets_dir' => ESIGN_ASSETS_DIR_URI,
@@ -358,8 +401,8 @@ class WP_E_Shortcode {
 
         // $signed_message = $this->view->renderPartial('document_signed', $template_data, false, 'notifications/admin');
 
-        $subject = sprintf(__("%s - Signed by %s %s", "esig"), $document->document_title, $this->user->get_esig_signer_name($recipient->user_id, $document->document_id), $recipient->user_email);
-       
+        $subject = sprintf(__("%s - Signed by %s %s", "esig"), $document->document_title, WP_E_Sig()->user->get_esig_signer_name($recipient->user_id, $document->document_id), $recipient->user_email);
+
 
         $mailsent = WP_E_Sig()->email->send(array(
             'from_name' => $sender, // Use 'posts' to get standard post objects
@@ -384,7 +427,7 @@ class WP_E_Shortcode {
      */
     public function notify_signer($document, $recipient, $post, $audit_hash, $attachments = false) {
 
-        $owner = $this->user->getUserByWPID($document->user_id);
+        $owner = WP_E_Sig()->user->getUserByWPID($document->user_id);
 
         $background_color_bg = apply_filters('esig-invite-button-background-color', '', $document->user_id);
         $background_color = !empty($background_color_bg) ? $background_color_bg : '#0083c5';
@@ -407,7 +450,7 @@ class WP_E_Shortcode {
             'sender' => $sender,
             'owner_last_name' => $owner->last_name,
             'owner_email' => $owner->user_email,
-            'signer_name' => $this->user->get_esig_signer_name($recipient->user_id, $document->document_id),
+            'signer_name' => WP_E_Sig()->user->get_esig_signer_name($recipient->user_id, $document->document_id),
             'signer_email' => $recipient->user_email,
             'view_url' => WP_E_Invite::get_signed_doc_url($document->document_checksum, $inviteHash),
             'assets_dir' => ESIGN_ASSETS_DIR_URI,
@@ -415,7 +458,7 @@ class WP_E_Shortcode {
         );
 
 
-        $subject = sprintf(__('%s has been signed', 'esign'), $document->document_title);
+        $subject = sprintf(__('%s has been signed', 'esig'), $document->document_title);
 
         $mailsent = WP_E_Sig()->email->send(array(
             'from_name' => $sender, // Use 'posts' to get standard post objects
@@ -439,7 +482,7 @@ class WP_E_Shortcode {
     public function admin_preview() {
 
 
-        $doc_id = $this->validation->esig_valid_int($_GET['document_id']);
+        $doc_id = WP_E_Sig()->validation->esig_valid_int($_GET['document_id']);
 
         if (isset($doc_id)) {
             $template_data = array(
@@ -468,7 +511,7 @@ class WP_E_Shortcode {
         $args = array();
         //$template_data=array();
 
-        $document_id = isset($_GET['document_id']) ? $this->validation->esig_valid_int($_GET['document_id']) : $this->validation->esig_valid_int($_GET['document_id']);
+        $document_id = isset($_GET['document_id']) ? WP_E_Sig()->validation->esig_valid_int($_GET['document_id']) : WP_E_Sig()->validation->esig_valid_int($_GET['document_id']);
 
         $print_option = $this->print_option_display($document_id);
 
@@ -487,12 +530,12 @@ class WP_E_Shortcode {
 
         $template_data = apply_filters('esig-document-footer-data', $template_data, $args);
 
-        $preview = $this->validation->esig_clean($_GET['preview']);
-        $invitecode = $this->validation->esig_clean($_GET['inviteCode']);
+        $preview = WP_E_Sig()->validation->esig_clean($_GET['preview']);
+        $invitecode = WP_E_Sig()->validation->esig_clean($_GET['inviteCode']);
         // If is admin
         if (isset($preview) && $preview == "1") {
 
-            $this->view->renderPartial('_footer_admin', $template_data, true);
+            WP_E_View::instance()->renderPartial('_footer_admin', $template_data, true);
 
             // If is user
         } else {
@@ -500,13 +543,13 @@ class WP_E_Shortcode {
             $invite_hash = isset($invitecode) ? $invitecode : null;
 
             // Grab invitation and recipient from invite hash
-            $invitation = $this->invite->getInviteBy('invite_hash', $invite_hash);
-            $recipient = $this->user->getUserdetails($invitation->user_id, $invitation->document_id);
+            $invitation = WP_E_Sig()->invite->getInviteBy('invite_hash', $invite_hash);
+            $recipient = WP_E_Sig()->user->getUserdetails($invitation->user_id, $invitation->document_id);
 
             // Viewer signed
-            if ($this->user->hasSignedDocument($recipient->user_id, $invitation->document_id)) {
+            if (WP_E_Sig()->user->hasSignedDocument($recipient->user_id, $invitation->document_id)) {
 
-                $this->view->renderPartial('_footer_recipient_signed', $template_data, true);
+                WP_E_View::instance()->renderPartial('_footer_recipient_signed', $template_data, true);
             }
         }
         die();
@@ -519,32 +562,59 @@ class WP_E_Shortcode {
      */
     public function displayDocumentToSign($document_id, $template, $data = array(), $return = false) {
 
+        global $document, $invitation, $invitations, $recipient, $esigOwner, $audit_hash, $docSignatureStatus;
+
         $recipient_sig_html = "";
         $owner_sig_html = "";
-        $audit_hash = "";
+        //$audit_hash = "";
 
-        $invite_hash_post = (isset($_POST['invite_hash'])) ? $this->validation->esig_clean($_POST['invite_hash']) : null;
-        $invite_get = (isset($_GET['invite'])) ? $this->validation->esig_clean($_GET['invite']) : null;
+        $invite_hash_post = (isset($_POST['invite_hash'])) ? WP_E_Sig()->validation->esig_clean($_POST['invite_hash']) : null;
+        $invite_get = (isset($_GET['invite'])) ? WP_E_Sig()->validation->esig_clean($_GET['invite']) : null;
 
         do_action('esig_agreement_before_display', array('document_id' => $document_id));
 
+        if (is_null($document) && !is_null($document_id)) {
+            $document = WP_E_Sig()->document->getDocumentByID($document_id);
+        }
+
         if (isset($data['notify']) == 'yes') {
 
-            $document = $this->document->getDocument($document_id);
-            $doc_status = $this->document->getSignatureStatus($document_id);
+            // $document = WP_E_Sig()->document->getDocument($document_id);
+            if (is_null($docSignatureStatus)) {
+                $docSignatureStatus = WP_E_Sig()->document->getSignatureStatus($document_id);
+            }
 
-            $invitation = $this->invite->getInviteBy('invite_hash', $invite_hash_post);
-            $recipient = $this->user->getUserdetails($invitation->user_id, $document_id);
+            if (is_null($invitation)) {
+                $invitation = WP_E_Sig()->invite->getInviteBy('invite_hash', $invite_hash_post);
+            }
+            if (is_null($recipient)) {
+                $recipient = WP_E_Sig()->user->getUserdetails($invitation->user_id, $document_id);
+            }
+
+            do_action('esig_document_basic_closing', array(
+                'signature_id' => esigget('signature_id', $data),
+                'recipient' => $recipient,
+                'invitation' => $invitation,
+                'post_fields' => $_POST,
+                'sad_doc_id' => $document_id
+            ));
 
             // If no more signatures are needed
-            if (is_array($doc_status['signatures_needed']) && (count($doc_status['signatures_needed']) == 0)) {
+            if (is_array($docSignatureStatus['signatures_needed']) && (count($docSignatureStatus['signatures_needed']) == 0)) {
 
                 // Update the document's status to signed
 
-                $this->document->updateStatus($invitation->document_id, "signed");
+                do_action('esig_document_pre_close', array(
+                    'signature_id' => esigget('signature_id', $data),
+                    'recipient' => $recipient,
+                    'invitation' => $invitation,
+                    'post_fields' => $_POST,
+                ));
+
+                WP_E_Sig()->document->updateStatus($invitation->document_id, "signed");
 
                 $event_text = __("The document has been signed by all parties and is now closed.", 'esig');
-                $this->document->recordEvent($document->document_id, 'all_signed', $event_text, null);
+                WP_E_Sig()->document->recordEvent($document->document_id, 'all_signed', $event_text, null);
 
                 // this action is called when all signing request signed . 
                 do_action('esig_all_signature_request_signed', array(
@@ -552,21 +622,21 @@ class WP_E_Shortcode {
                     'recipient' => $recipient,
                     'invitation' => $invitation,
                 ));
-                
-               // do_action('esig_agreement_signed_by_all_party',$document_id);
-                
-                $document = $this->document->getDocument($document_id);
-                 
+
+                // do_action('esig_agreement_signed_by_all_party',$document_id);
+                //$document = WP_E_Sig()->document->getDocument($document_id);
                 // getting attachment 
                 $attachments = apply_filters('esig_email_pdf_attachment', array('document' => $document));
-                $audit_hash = $this->auditReport($document_id, $document, true);
+                if (is_null($audit_hash)) {
+                    $audit_hash = $this->auditReport($document_id, $document, true);
+                }
 
                 if (is_array($attachments) || empty($attachments)) {
                     $attachments = false;
                 }
                 // Email all signers
 
-                foreach ($doc_status['invites'] as $invite) {
+                foreach ($docSignatureStatus['invites'] as $invite) {
 
                     $this->notify_signer($document, $invite, $invite->invite_hash, $audit_hash, $attachments);
                 }
@@ -576,7 +646,9 @@ class WP_E_Shortcode {
                 }
                 // Otherwise, if the admin wants to be notified of each signature
             } else if ($document->notify) {
-                $audit_hash = $this->auditReport($document_id, $document, true);
+                if (is_null($audit_hash)) {
+                    $audit_hash = $this->auditReport($document_id, $document, true);
+                }
                 $this->notify_owner($document, $recipient, $audit_hash); // Notify admin
             }
             // do action after sending email 
@@ -591,32 +663,46 @@ class WP_E_Shortcode {
 
             set_transient('esig_document_id', $document_id);
 
-            $document = $this->document->getDocumentByID($document_id);
-            $document_report = $this->auditReport($document_id, $document);
-
             // Grab sender and sender signature
             if (!empty($document->document_content)) {
                 // get shortcoded document content by document id   
-                $unfiltered_content = $this->document->esig_do_shortcode($document_id);
+                $unfiltered_content = WP_E_Sig()->document->esig_do_shortcode($document_id);
+            }
+
+            if (count($_POST) > 0 && ESIG_POST('esignature_in_text')) {
+                do_action('esig_document_before_content_load', array(
+                    'document' => $document,
+                    'recipient' => $recipient,
+                    'invitation' => $invitation,
+                ));
             }
 
 
             $content = apply_filters('the_content', $unfiltered_content);
 
-            $owner = $this->user->getUserBy('wp_user_id', $document->user_id);
+            $owner = WP_E_Sig()->user->getUserBy('wp_user_id', $document->user_id);
 
             //Get all other recipient signatures
-            $sig_data = $this->document->getSignatureStatus($document_id);
+            if (is_null($docSignatureStatus)) {
+                // $sig_data = WP_E_Sig()->document->getSignatureStatus($document_id);
+                $docSignatureStatus = WP_E_Sig()->document->getSignatureStatus($document_id);
+            }
+
+            $invitations = $docSignatureStatus['invites'];
 
             // Fire e-signature loaded action
-            if (count($_POST) > 0)
-                do_action('esig_signature_loaded', array('document_id' => $document_id,));
+            if (count($_POST) > 0 && ESIG_POST('esignature_in_text')) {
+                do_action('esig_signature_loaded', array('document_id' => $document_id, 'sad_doc_id' => $document_id));
+            }
+
+
+            do_action('esig_signature_pre_loaded', array('document_id' => $document_id));
 
             //If signer is viewing put their box in a different chunk
-            foreach ($sig_data['invites'] as $invite) {
+            foreach ($docSignatureStatus['invites'] as $invite) {
 
                 // signed username will be here 
-                $user_name = $this->user->get_esig_signer_name($invite->user_id, $document_id);
+                $user_name = WP_E_Sig()->user->get_esig_signer_name($invite->user_id, $document_id);
 
 
                 $user_data = array(
@@ -627,19 +713,19 @@ class WP_E_Shortcode {
                     'input_name' => 'recipient_signatures[]',
                 );
 
-                foreach ($sig_data['signatures'] as $signature) {
+                foreach ($docSignatureStatus['signatures'] as $signature) {
 
                     if ($signature->user_id == $invite->user_id) {
                         //$sd = new DateTime($signature->sign_date);
-                        $sign_date = $this->document->esig_date_format($signature->sign_date,$document_id);
+                        $sign_date = WP_E_Sig()->document->esig_date_format($signature->sign_date, $document_id);
 
-                        if ($this->signature->userHasSignedDocument($invite->user_id, $document_id)) {
+                        if (WP_E_Sig()->signature->userHasSignedDocument($invite->user_id, $document_id)) {
                             $user_data['signature'] = "yes";
                         }
 
-                        $user_data['output_type'] = $this->signature->getSignature_by_type($signature);
+                        $user_data['output_type'] = WP_E_Sig()->signature->getSignature_by_type($signature);
 
-                        $user_data['font_type'] = $this->signature->get_font_type($document_id, $invite->user_id);
+                        $user_data['font_type'] = WP_E_Sig()->signature->get_font_type($document_id, $invite->user_id);
                         $user_data['css_classes'] = __('signed', 'esig');
                         $user_data['by_line'] = __('Signed by', 'esig');
                         $user_data['sign_date'] = __("Signed on:", "esig") . $sign_date;
@@ -654,10 +740,10 @@ class WP_E_Shortcode {
                         $current_user_invite_hash = isset($invite_get) ? $invite_get : null;
                         if ($invite->invite_hash != $current_user_invite_hash) {
                             $user_data['esig-tooltip'] = 'title="This signature section is assigned to ' . $user_name . '"';
-                            if (!$this->user->hasSignedDocument($invite->user_id, $document_id)) {
-                                $user_data['esig-awaiting-sig'] = $user_name . "<br>" . __("(Awaiting Signature)","esig");
+                            if (!WP_E_Sig()->user->hasSignedDocument($invite->user_id, $document_id)) {
+                                $user_data['esig-awaiting-sig'] = $user_name . "<br>" . __("(Awaiting Signature)", "esig");
                             }
-                            $recipient_sig_html .= $this->view->renderPartial('_signature_display', $user_data);
+                            $recipient_sig_html .= WP_E_View::instance()->renderPartial('_signature_display', $user_data);
                         }
                     }
                     // All other signatures
@@ -666,31 +752,33 @@ class WP_E_Shortcode {
 
                     $current_user_invite_hash = isset($invite_get) ? $invite_get : null;
                     if ($invite->invite_hash != $current_user_invite_hash) {
-                        if (!$this->user->hasSignedDocument($invite->user_id, $document_id)) {
+                        if (!WP_E_Sig()->user->hasSignedDocument($invite->user_id, $document_id)) {
                             $user_data['esig-awaiting-sig'] = $user_name . "<br>" . "(Awaiting Signature)";
                         }
                         $user_data['esig-tooltip'] = 'title="This signature section is assigned to ' . $user_name . '"';
                     }
 
-                    $recipient_sig_html .= $this->view->renderPartial('_signature_display', $user_data);
+                    $recipient_sig_html .= WP_E_View::instance()->renderPartial('_signature_display', $user_data);
                 }
             }
 
 
 
             //$dt = new DateTime($document->date_created);
-            $date4sort = $this->document->esig_date_format($document->date_created,$document_id);
+            $date4sort = WP_E_Sig()->document->esig_date_format($document->date_created, $document_id);
 
             if (isset($_GET['hash'])) {
-                $audit_hash = __("Audit Signature ID#","esig") . $_GET['hash'];
+                $audit_hash = __("Audit Signature ID#", "esig") . $_GET['hash'];
             } else {
 
-                if ($this->document->getSignedresult($document->document_id)) {
+                if (WP_E_Sig()->document->getSignedresult($document->document_id)) {
 
-                    $audit_hash = $this->auditReport($document_id, $document, true);
+                    if (is_null($audit_hash)) {
+                        $audit_hash = $this->auditReport($document_id, $document, true);
+                    }
 
                     if ($audit_hash != "")
-                        $audit_hash = __("Audit Signature ID#","esig") . $audit_hash;
+                        $audit_hash = __("Audit Signature ID#", "esig") . $audit_hash;
                 }
             }
 
@@ -701,9 +789,10 @@ class WP_E_Shortcode {
             $document_extra_content = '';
             $document_extra_content = apply_filters('esig-sign-document-bottom-content', $document_extra_content, array('document' => $document));
 
+            $document_report = $this->auditReport($document_id, $document);
             // Default template data
             $template_data = array(
-                "message" => $this->view->renderAlerts(),
+                "message" => WP_E_View::instance()->renderAlerts(),
                 "document_title" => esc_attr(wp_unslash($document->document_title)),
                 "document_logo" => $document_logo,
                 "document_date" => $date4sort,
@@ -723,8 +812,9 @@ class WP_E_Shortcode {
                 'blog_url' => get_bloginfo('url'),
             );
         }
+
         $template_data = isset($template_data) ? $template_data : NULL;
-        $document = isset($document) ? $document : NULL;
+        //$document = isset($document) ? $document : NULL;
 
         $template_data = apply_filters('esig-shortcode-display-owner-signature', $template_data, array('document' => $document));
         // If additional data is sent, append it
@@ -741,9 +831,9 @@ class WP_E_Shortcode {
         // Render
 
         if ($return) {
-            return $this->view->renderPartial($template, $template_data, false, "documents");
+            return WP_E_View::instance()->renderPartial($template, $template_data, false, "documents");
         } else {
-            $this->view->render("documents", $template, $template_data, false);
+            WP_E_View::instance()->render("documents", $template, $template_data, false);
         }
 
         do_action('esig_agreement_after_display', array('document_id' => $document_id));
@@ -758,51 +848,77 @@ class WP_E_Shortcode {
      *  Since 1.0.0 
      * */
 
-    public function auditReport($id, &$document_data = null, $return_type = false) {
-        
-        global $audit_trail_data;
+    public function auditReport($id, &$document_data = null, $return_type = false, $is_pdf = false) {
+
+        global $audit_trail_data, $document, $audit_trail_html, $invitations, $pdf_audit_trail;
+
         $audit_trail_data = new stdClass();
+        $audit_trail_helper = new WP_E_AuditTrail();
 
-        if (!$document_data) {
-            $document_data = $this->document->getDocument($id);
-        }
+        if (is_null($document)) {
+        $document = WP_E_Sig()->document->getDocument($id);
+         }
 
-        $audittrail = $this->audit_trail_helper->get_audit_trail_timeline($this, $id, $document_data);
+
+
+        $audittrail = $audit_trail_helper->get_audit_trail_timeline($this, $id, $document);
+
 
         $hash = wp_hash($audittrail->audittrail);
 
         if ($return_type) {
-            $doc_timezone = $this->document->esig_get_document_timezone($document_data->document_id);
+            $doc_timezone = WP_E_Sig()->document->esig_get_document_timezone($document_data->document_id);
             if (empty($doc_timezone)) {
-                return $this->document->get_audit_signature_id($id, $document_data);
+                return WP_E_Sig()->document->get_audit_signature_id($id, $document);
             } else {
                 return $hash;
             }
         } else {
-            $document_owner_id = $this->document->get_document_owner_id($id);
-            $all_invitations = $this->invite->getInvitations($id);
+
+             if (!is_null($audit_trail_html)) {
+              return $audit_trail_html;
+              }
+
+              if (!is_null($pdf_audit_trail) && $is_pdf) {
+              return $pdf_audit_trail;
+              } 
+
+            // $document_owner_id = WP_E_Sig()->document->get_document_owner_id($id);
+            //if(is_null($doc_timezone))
+            if (is_null($invitations)) {
+            $invitations = WP_E_Sig()->invite->getInvitations($id);
+            }
             $audit_trail_data->users = array();
-            foreach ($all_invitations as $invitation) {
-                $user = $this->audit_trail_helper->get_signer_user($invitation->user_id, $id);
-                $user->security_levels = $this->audit_trail_helper->get_security_levels($id);
-                $user->signer_ip = $this->audit_trail_helper->get_signer_ip($user->ID, $id);
-                $user->dfc = $this->audit_trail_helper->get_digital_fingerprint_checksum($user->ID, $id);
-                $user->dfc_qr_code_image_data = $this->audit_trail_helper->generate_qr_code($user->dfc, 'PDF417,8');
-                $user->signature_view = $this->audit_trail_helper->get_signature_view($user->ID, $id);
+
+            foreach ($invitations as $invitation) {
+                $user = $audit_trail_helper->get_signer_user($invitation->user_id, $id);
+                $user->security_levels = $audit_trail_helper->get_security_levels($id);
+                $user->signer_ip = $audit_trail_helper->get_signer_ip($user->ID, $id);
+                $user->dfc = $audit_trail_helper->get_digital_fingerprint_checksum($user->ID, $id);
+                $user->dfc_qr_code_image_data = $audit_trail_helper->generate_qr_code($user->dfc, 'PDF417,8');
+
+                $user->signature_view = $audit_trail_helper->get_signature_view($user->ID, $id);
                 $audit_trail_data->users[$invitation->user_id] = $user;
             }
 
-            $audit_trail_data->current_url_qr = $this->audit_trail_helper->get_current_url_qr();
+            $audit_trail_data->current_url_qr = $audit_trail_helper->get_current_url_qr();
             $audit_trail_data->unique_document_id = $document_data->document_checksum;
             $audit_trail_data->site_url = WP_E_Sig()->document->get_site_url($document_data->document_id);
             $audit_trail_data->document_name = $document_data->document_title;
             $audit_trail_data->timeline = $audittrail->html;
-            $audit_trail_data->audit_signature_id = $this->document->getSignedresult($id) ? $hash : false;
-            
+            $audit_trail_data->audit_signature_id = WP_E_Sig()->document->getSignedresult($id) ? $hash : false;
+
             ob_start();
             include ESIGN_PLUGIN_PATH . "/views/documents/audit-trail.php";
             $audit_trail_html = ob_get_contents();
             ob_end_clean();
+
+            if ($is_pdf) {
+                $pdf_audit_trail = $audit_trail_html;
+                $audit_trail_html = null;
+                return $pdf_audit_trail;
+            }
+
             return $audit_trail_html;
         }
     }
@@ -819,7 +935,7 @@ class WP_E_Shortcode {
         // TODO: Should authors be able to preview their own docs?
         //current_user_can('edit_pages') &&
 
-        $esig_preview = isset($_GET['esigpreview']) ? $this->validation->esig_clean($_GET['esigpreview']) : NULL;
+        $esig_preview = isset($_GET['esigpreview']) ? WP_E_Sig()->validation->esig_clean($_GET['esigpreview']) : NULL;
 
         $allow = apply_filters("can_view_preview_document", false);
 
@@ -835,7 +951,7 @@ class WP_E_Shortcode {
             } else {
 
                 $esigrole = new WP_E_Esigrole();
-                $doc_id = $this->validation->esig_valid_int($_GET['document_id']);
+                $doc_id = WP_E_Sig()->validation->esig_valid_int($_GET['document_id']);
                 if ($esigrole->user_can_view_document($doc_id)) {
                     return true;
                 } else {
@@ -859,7 +975,7 @@ class WP_E_Shortcode {
 
         // Editors and above can preview documents
         // TODO: Should authors be able to preview their own docs?
-        $document_id = $this->validation->esig_valid_int($_GET['document_id']);
+        $document_id = WP_E_Sig()->validation->esig_valid_int($_GET['document_id']);
 
         if (current_user_can('edit_pages') && isset($document_id)) {
 
@@ -885,14 +1001,14 @@ class WP_E_Shortcode {
         if ($print_option == 0) {
             return $display = "display";
         } elseif ($print_option == 1) {
-            if ($this->document->getSignedresult($doc_id))
+            if (WP_E_Sig()->document->getSignedresult($doc_id))
                 return $display = "display";
         }
         elseif ($print_option == 2) {
             return $display = "none";
         } elseif ($print_option == 4) {
 
-            if ($this->document->getStatus($doc_id) == 'awaiting') {
+            if (WP_E_Sig()->document->getStatus($doc_id) == 'awaiting') {
                 return $display = "display";
             } else {
                 return $display = "none";
@@ -966,6 +1082,7 @@ class WP_E_Shortcode {
         $scripts[] = 'jquery-ui-tooltip';
         $scripts[] = 'esig-tooltip';
         $scripts[] = 'esig-bootstrap-js';
+        $scripts[] = 'esig-jquery-formerror-js';
 
 
         $scripts[] = 'esig-smarttab-js';
@@ -1012,7 +1129,7 @@ class WP_E_Shortcode {
         $styles[] = 'esig-thickbox-css';
 
         /*         * ********* main theme styels ********* */
-        
+
         $styles[] = 'esig-icon-css';
         $styles[] = 'esig-updater-css';
         $styles[] = 'esig-mail-css';
@@ -1062,7 +1179,7 @@ class WP_E_Shortcode {
         wp_register_style('esig-notices-css', plugins_url('assets/css/esig-notices.css', dirname(__FILE__)), array(), esigGetVersion(), 'screen');
         wp_register_style('esig-access-code-css', plugins_url('assets/css/esig-access-code.css', dirname(__FILE__)), array(), esigGetVersion(), 'screen');
         wp_register_style('esig-dialog-css', plugins_url('assets/css/esig-dialog.css', dirname(__FILE__)), array(), esigGetVersion(), 'screen');
-        
+
         wp_register_style('esig-style-css', plugins_url('assets/css/style.css', dirname(__FILE__)), array(), esigGetVersion(), 'screen');
         wp_register_style('esig-style-main-css', plugins_url('assets/css/esig-main.css', dirname(__FILE__)), array(), esigGetVersion(), 'screen');
 
@@ -1083,6 +1200,7 @@ class WP_E_Shortcode {
         wp_register_script('esig-tooltip', plugins_url('assets/js/tooltip.js?ver=3.9.1', dirname(__FILE__)), array(), esigGetVersion(), false);
 
         wp_register_script('esig-bootstrap-js', plugins_url('assets/js/bootstrap/bootstrap.min.js', dirname(__FILE__)), array(), esigGetVersion(), false);
+        wp_register_script('esig-jquery-formerror-js', plugins_url('assets/js/jquery.formError.js', dirname(__FILE__)), array(), esigGetVersion(), false);
 
         wp_register_script('esig-smarttab-js', plugins_url('assets/js/jquery.smartTab.js', dirname(__FILE__)), array('jquery'), esigGetVersion(), false);
 
@@ -1093,6 +1211,8 @@ class WP_E_Shortcode {
         wp_register_script('esig-signdoc-js', plugins_url('assets/js/signdoc.js', dirname(__FILE__)), array('jquery'), esigGetVersion(), false);
 
         wp_register_script('esig-common-js', plugins_url('assets/js/common.js?ver=1.0.1', dirname(__FILE__)), array('jquery'), esigGetVersion(), false);
+
+        do_action("esig_register_scripts");
     }
 
     public static function esig_header_style() {
@@ -1111,8 +1231,9 @@ class WP_E_Shortcode {
 
     public static function esig_header_scripts() {
 
-        $scripts = array('jquery-ui-slider',
+        $scripts = array(
             'jquery',
+            'jquery-ui-slider',
             'jquery-migrate',
             'esig-jquery-validate',
             'esig-core-object-scirpts',
@@ -1120,7 +1241,22 @@ class WP_E_Shortcode {
         );
 
         $scripts = apply_filters('esig_print_header_scripts', $scripts);
+
         return $scripts;
+    }
+
+    /*     * *
+     *  Removing print filters and hooks from e-signature page to prevent minification.
+     *  @Since 1.5.3.6
+     */
+
+    public static function remove_some_core_filters() {
+        remove_all_filters("print_scripts_array");
+        remove_all_actions("wp_print_scripts");
+
+        // removing style filters from e-signature page  
+        remove_all_filters("print_styles_array");
+        remove_all_actions("wp_print_styles");
     }
 
     /*
@@ -1130,9 +1266,14 @@ class WP_E_Shortcode {
 
     public static function esig_head() {
 
-        wp_print_styles(self::esig_header_style());
 
-        wp_print_scripts(self::esig_header_scripts());
+        self::remove_some_core_filters();
+
+        wp_print_styles(self::esig_header_style());
+        // wp_print_scripts(self::esig_header_scripts());
+
+        wp_scripts()->do_items(self::esig_header_scripts());
+
         //add_action("wp_enqueue_scripts",array(__CLASS__,"esig_header_scripts"));
         do_action('esig_head');
     }
@@ -1145,8 +1286,11 @@ class WP_E_Shortcode {
     public static function esig_footer() {
 
         remove_all_actions('wp_footer');
+        self::remove_some_core_filters();
+
         wp_print_styles(self::esig_footer_styles());
-        wp_print_scripts(self::esig_footer_scripts());
+        // wp_print_scripts(self::esig_footer_scripts());
+        wp_scripts()->do_items(self::esig_footer_scripts());
 
         do_action('esig_footer');
         // delete transient after loading footer

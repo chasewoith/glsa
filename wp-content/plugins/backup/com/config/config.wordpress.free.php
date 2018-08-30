@@ -1,10 +1,10 @@
 <?php
 
 define('SG_FEATURE_DOWNLOAD_FROM_CLOUD', 0);
-define('SG_FEATURE_STORAGE', 0);
+define('SG_FEATURE_STORAGE', 1);
 define('SG_FEATURE_FTP', 0);
 define('SG_FEATURE_AMAZON', 0);
-define('SG_FEATURE_DROPBOX', 0);
+define('SG_FEATURE_DROPBOX', 1);
 define('SG_FEATURE_GOOGLE_DRIVE', 0);
 define('SG_FEATURE_ONE_DRIVE', 0);
 define('SG_FEATURE_SCHEDULE', 0);
@@ -23,10 +23,19 @@ define('SG_FEATURE_BACKUP_DELETION_WILL_ALSO_DELETE_FROM_CLOUD', 0);
 define('SG_FEATURE_SLECTIVE_RESTORE', 0);
 define('SG_FEATURE_HIDE_ADS', 0);
 
+//Storage
 define('SG_STORAGE_FTP', 1);
 define('SG_STORAGE_DROPBOX', 2);
 define('SG_STORAGE_GOOGLE_DRIVE', 3);
 define('SG_STORAGE_AMAZON', 4);
 define('SG_STORAGE_ONE_DRIVE', 5);
 
+define('SG_STORAGE_DROPBOX_KEY', 'n3yhajm64h88m9t');
+define('SG_STORAGE_DROPBOX_SECRET', 's8crjkls7f9wqtd');
+define('SG_STORAGE_DROPBOX_CLIENT_ID', 'backup-guard');
+define('SG_STORAGE_DROPBOX_REDIRECT_URI', 'https://backup-guard.com/dropbox/');
+
 define('SG_PRODUCT_IDENTIFIER', 'backup-guard-wp-free');
+
+//BackupGuard Support URL
+define('SG_BACKUP_SUPPORT_URL', 'https://backup-guard.com/products/backup-wordpress/support-free');

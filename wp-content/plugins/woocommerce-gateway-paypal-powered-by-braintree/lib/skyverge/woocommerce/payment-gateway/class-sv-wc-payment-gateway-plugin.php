@@ -84,6 +84,9 @@ abstract class SV_WC_Payment_Gateway_Plugin extends SV_WC_Plugin {
 	/** @var boolean true if this gateway requires SSL for processing transactions, false otherwise */
 	private $require_ssl;
 
+	/** @var SV_WC_Payment_Gateway_Privacy payment gateway privacy handler instance */
+	protected $privacy_handler;
+
 	/** @var SV_WC_Payment_Gateway_Admin_User_Edit_Handler adds admin user edit payment gateway functionality */
 	private $admin_user_edit_handler;
 
@@ -257,6 +260,12 @@ abstract class SV_WC_Payment_Gateway_Plugin extends SV_WC_Plugin {
 		// pre-orders
 		if ( $this->is_pre_orders_active() ) {
 			require_once( $payment_gateway_framework_path . '/integrations/class-sv-wc-payment-gateway-integration-pre-orders.php' );
+		}
+
+		// privacy
+		if ( SV_WC_Plugin_Compatibility::is_wc_version_gte( '3.4' ) && class_exists( 'WC_Abstract_Privacy' ) ) {
+			require_once( "{$payment_gateway_framework_path}/class-sv-wc-payment-gateway-privacy.php" );
+			$this->privacy_handler = new SV_WC_Payment_Gateway_Privacy( $this );
 		}
 
 		// Admin user handler
@@ -840,11 +849,24 @@ abstract class SV_WC_Payment_Gateway_Plugin extends SV_WC_Plugin {
 	 * @return boolean true if the gateway supports the charge capture operation and it can be invoked
 	 */
 	public function can_capture_charge( $gateway ) {
-		return $this->supports( self::FEATURE_CAPTURE_CHARGE ) && $this->get_gateway()->is_available() && $gateway->supports( self::FEATURE_CAPTURE_CHARGE );
+		return $this->supports( self::FEATURE_CAPTURE_CHARGE ) && $gateway->is_available() && $gateway->supports_credit_card_capture();
 	}
 
 
 	/** Getter methods ******************************************************/
+
+
+	/**
+	 * Gets the privacy handler instance.
+	 *
+	 * @since 2.1.2
+	 *
+	 * @return SV_WC_Payment_Gateway_Privacy
+	 */
+	public function get_privacy_instance() {
+
+		return $this->privacy_handler;
+	}
 
 
 	/**

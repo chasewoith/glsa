@@ -1,10 +1,10 @@
 ﻿=== Math Captcha ===
 Contributors: dfactory
 Donate link: http://www.dfactory.eu/
-Tags: antispam, capcha, captcha, captha, catcha, comment, comments, spam, security, login, lost password, math captcha, registration, cf7, contact, contact forms, form, contact form 7, bbpress
+Tags: antispam, capcha, captcha, spam, security, cf7, contact form 7
 Requires at least: 4.0
-Tested up to: 4.7
-Stable tag: 1.2.7
+Tested up to: 4.9.8
+Stable tag: 1.2.9
 License: MIT License
 License URI: http://opensource.org/licenses/MIT
 
@@ -45,6 +45,17 @@ A. Chances are, someone else has asked it. Check out the support forum at: http:
 1. screenshot-1.png
 
 == Changelog ==
+
+
+
+= 1.2.9 =
+* Fix: Potential vulnerability bugs
+* Tweak: Improve getting server host name for comment blocking
+
+= 1.2.8 =
+* Fix: Potential vulnerability bug
+
+* Tweak: Contact Form 7 compatibility
 
 = 1.2.7 =
 * Fix: Contact form 7 compatibility fix
@@ -125,5 +136,6 @@ A. Chances are, someone else has asked it. Check out the support forum at: http:
 
 == Upgrade Notice ==
 
-= 1.2.7 =
-* Fix: Contact form 7 compatibility fix * Tweak: Removed local translation files in favor of WP repository translations.
+= 1.2.9 =
+* Fix: Potential vulnerability bugs
+* Tweak: Improve getting server host name for comment blocking

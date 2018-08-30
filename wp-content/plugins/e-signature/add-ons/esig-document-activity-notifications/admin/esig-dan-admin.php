@@ -99,7 +99,7 @@ if (!class_exists('ESIG_DAN_Admin')) :
 
 
             $display = "none";
-            $html = '<p style="padding-left:100px;display:' . $display . ';" id="esig-notification-settings"><input type="checkbox" id="esig_stop_email_after_sign" name="esig_stop_email_after_sign" ' . $checked . ' value="1">' . __('Before the document is signed continue emailing me whenever it is viewed', 'esig-dan') . '</p>';
+            $html = '<p style="padding-left:100px;display:' . $display . ';" id="esig-notification-settings"><input type="checkbox" id="esig_stop_email_after_sign" name="esig_stop_email_after_sign" ' . $checked . ' value="1">' . __('After the document is signed, STOP sending me emails when it is viewed.', 'esig') . '</p>';
             return $html;
         }
 

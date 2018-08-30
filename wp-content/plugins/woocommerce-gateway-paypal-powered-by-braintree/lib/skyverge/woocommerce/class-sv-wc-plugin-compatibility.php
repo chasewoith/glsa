@@ -279,6 +279,20 @@ class SV_WC_Plugin_Compatibility {
 	}
 
 
+	/**
+	 * Determines if the installed version of WooCommerce meets or exceeds the
+	 * passed version.
+	 *
+	 * @since 2.1.2
+	 *
+	 * @param string $version version number to compare
+	 * @return bool
+	 */
+	public static function is_wc_version_gte( $version ) {
+		return self::get_wc_version() && version_compare( self::get_wc_version(), $version, '>=' );
+	}
+
+
 	/** WordPress core ******************************************************/
 
 

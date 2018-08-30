@@ -198,6 +198,9 @@ class Cf7_Grid_Layout {
     $this->loader->add_filter('post_submitbox_misc_actions', $plugin_admin, 'cf7_post_submit_action' ,10);
     //cusotm sanitation rules for forms
     $this->loader->add_filter('wp_kses_allowed_html', $plugin_admin, 'custom_kses_rules' ,10, 2);
+    /**
+    * @since 2.1.0 make sure our dependent plugins exists.*/
+    $this->loader->add_action( 'admin_init', $plugin_admin, 'check_plugin_dependency');
     /*
     CF7 Hooks
     */
@@ -207,7 +210,7 @@ class Cf7_Grid_Layout {
     $this->loader->add_action( 'wpcf7_admin_misc_pub_section', $plugin_admin, 'dynamic_select_choices' , 10, 1);
     $this->loader->add_action( 'wpcf7_admin_init', $plugin_admin, 'cf7_shortcode_tags' );
     //modify the default form template
-  	$this->loader->add_filter( 'wpcf7_default_template', $plugin_admin, 'default_cf7_form' , 10,2);
+  	$this->loader->add_filter( 'wpcf7_default_template', $plugin_admin, 'default_cf7_form' , 5,2);
 
 	}
 
@@ -239,8 +242,8 @@ class Cf7_Grid_Layout {
     //disable autloading of cf7 plugin scripts
     //add_filter( 'wpcf7_load_js',  '__return_false' );
     //add_filter( 'wpcf7_load_css', '__return_false' );
-    //add hidden toggle status field when form loads
-    $this->loader->add_filter( 'wpcf7_form_hidden_fields',  $plugin_public, 'add_hidden_fields' );
+    //add hidden toggle status field when form loads, load after postion 10 to overcome Conditional Fields bug.
+    $this->loader->add_filter( 'wpcf7_form_hidden_fields',  $plugin_public, 'add_hidden_fields', 20 );
     //instroduced a dynamic taxonomy droppdown tag for forms
     $this->loader->add_action( 'wpcf7_init', $plugin_public, 'register_cf7_shortcode' );
     //setup individual tag filers
@@ -250,6 +253,9 @@ class Cf7_Grid_Layout {
     //benchmark validation
     $this->loader->add_filter( 'wpcf7_validate_dynamic_select*', $plugin_public, 'validate_required', 30, 2 );
     $this->loader->add_filter( 'wpcf7_validate_benchmark*', $plugin_public, 'validate_required', 30, 2 );
+    /**
+    * @since 2.1 filter mail tags for tables and tabs.*/
+    $this->loader->add_filter( 'wpcf7_mail_tag_replaced', $plugin_public, 'filter_table_tab_mail_tag', 30, 4 );
     //Post My CF7 Form hooks
     $this->loader->add_filter('cf7_2_post_echo_field_mapping_script', $plugin_public, 'load_tabs_table_field', 10, 6 );
     $this->loader->add_action('cf7_2_post_form_posted', $plugin_public, 'save_select2_custom_options', 10, 5 );

@@ -677,9 +677,7 @@ function esig_auto_update() {
 
    
     
-    if (!current_user_can('install_plugins')) {
-        return;
-    }
+    
 
 
     $settings = new WP_E_Setting();
@@ -694,9 +692,11 @@ function esig_auto_update() {
         return;
     }
    
-    
-    
     if (!get_transient('esign-auto-downloads')) {
+        return;
+    }
+    
+    if (!current_user_can('install_plugins')) {
         return;
     }
      

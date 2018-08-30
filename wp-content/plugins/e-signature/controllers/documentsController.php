@@ -216,7 +216,8 @@ class WP_E_DocumentsController extends WP_E_appController {
                         if ($this->user->hasSignedDocument($invite->user_id, $doc->document_id)) {
                             $latest_activity .= __("Signed", "esig") . "</br>";
                             $invitation_date = $this->signature->GetSignatureDate($invite->user_id, $doc->document_id);
-                        } elseif (!WP_E_Invite::is_invite_sent($doc->document_id)) {
+                        } elseif (!WP_E_Invite::is_invite_sent($doc->document_id) && $doc->document_status == "awaiting") {
+
                             $latest_activity .= '<span class="esig-sent-error">' . __("Error: Signer invite not sent <br>Configure sending options", "esig") . '</span> ' .
                                     '<a href="admin.php?page=esign-resend_invite-document&document_id=' . $doc->document_id . '" class="button-primary">' . __("Resend Invite", "esig") . '</a>';
                             $template_data['sent-error'] = "esig-invite-sent-error";
@@ -582,6 +583,7 @@ class WP_E_DocumentsController extends WP_E_appController {
                 "user_email" => isset($user_email),
                 "user_fullname" => isset($userfull_name),
                 "notify_check" => $document->notify ? 'checked="checked"' : '',
+                "document_owner" => $document->user_id,
                 "add_signature_check" => apply_filters('esig_add_signature_check', $document->add_signature, $document) ? 'checked="checked"' : '',
                 "document_editor" => $this->get_editor($document_content, 'document_content'),
             );
@@ -999,17 +1001,21 @@ class WP_E_DocumentsController extends WP_E_appController {
             // delete all meta 
             $meta = new WP_E_Meta();
             $meta->delete_all($id);
-            esignSifData::deleteValue($id);
+
+            if (class_exists("esignSifData")) {
+                esignSifData::deleteValue($id);
+            }
+
             // delete all invitation associated with this document. 
             $this->invitation->deleteDocumentInvitations($id);
             // delete all events associated with this document. 
             $this->model->deleteEvents($id);
             // delete all signers info associated with this document. 
-             $signer_obj = new WP_E_Signer();
-             $signer_obj->delete($id);
+            $signer_obj = new WP_E_Signer();
+            $signer_obj->delete($id);
             // Delete all signature join with document
-             $this->signature->deleteJoins($id);
-            
+            $this->signature->deleteJoins($id);
+
             wp_redirect("admin.php?page=esign-docs&document_status=trash&message=delete_success");
         } else {
             wp_redirect("admin.php?page=esign-docs&document_status=trash&message=delete_fail");

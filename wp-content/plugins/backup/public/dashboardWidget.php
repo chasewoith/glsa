@@ -1,7 +1,7 @@
 <?php
 require_once(SG_BACKUP_PATH.'SGBackup.php');
 // Function that outputs the contents of the dashboard widget
-function dashboard_widget_function( $post, $callback_args ) {
+function backup_guard_dashboard_widget_function( $post, $callback_args ) {
 
 	$banner = backupGuardGetBanner(SG_ENV_WORDPRESS,"dashboard-widget");
 

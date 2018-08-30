@@ -24,7 +24,7 @@ $w = new wfConfig();
 	</div>
 <?php endif ?>
 
-<p><?php _e("Wordfence Live Traffic shows you what is happening on your site in real-time. This includes a lot of data that javascript based analytics packages like Google analytics do not show you. The reason they can't show you this data is because Wordfence logs your traffic at the server level. So for example, we will show you visits from Google's crawlers, Bing's crawlers, hack attempts and other visits that don't execute javascript. Whereas Google analytics and other analytics packages will only show you visits from web browsers that are usually operated by a human.", 'wordfence') ?></p>
+<p><?php _e("Wordfence Live Traffic shows you what is happening on your site in real-time. Traffic is logged at the server level which means it includes visits that don't execute JavaScript. Google and other JavaScript-based analytics packages will typically only show visits from browsers that are operated by a human. Live Traffic shows visits from crawlers like Google and Bing. It also shows hack attempts and requests that were blocked by the Wordfence Firewall.", 'wordfence') ?></p>
 
 <div class="wordfenceModeElem" id="wordfenceMode_liveTraffic"></div>
 
@@ -34,6 +34,19 @@ echo wfView::create('tools/options-group-live-traffic', array(
 	'showControls' => true,
 ))->render();
 ?>
+
+<?php
+$overridden = false;
+if (!wfConfig::liveTrafficEnabled($overridden)):
+	?>
+	<div id="wordfenceLiveActivityDisabled"><p>
+			<strong><?php _e('Live activity is disabled', 'wordfence') ?><?php
+				if ($overridden) {
+					_e(' by the host', 'wordfence');
+				} ?>.</strong> <?php _e('Login and firewall activity will still appear below.', 'wordfence') ?></p>
+	</div>
+<?php endif ?>
+
 <div id="wf-live-traffic" class="wf-row<?php echo wfConfig::get('liveTraf_displayExpandedRecords') ? ' wf-live-traffic-display-expanded' : '' ?>">
 	<div class="wf-col-xs-12">
 		<div class="wf-block wf-active">
@@ -45,17 +58,6 @@ echo wfView::create('tools/options-group-live-traffic', array(
 						// echo $rightRail;
 						?>
 						<div class="<?php echo wfStyle::contentClasses(); ?>">
-							<?php
-							$overridden = false;
-							if (!wfConfig::liveTrafficEnabled($overridden)):
-								?>
-								<div id="wordfenceLiveActivityDisabled"><p>
-										<strong><?php _e('Live activity is disabled', 'wordfence') ?><?php
-											if ($overridden) {
-												_e(' by the host', 'wordfence');
-											} ?>.</strong> <?php _e('Login and firewall activity will still appear below.', 'wordfence') ?></p>
-								</div>
-							<?php endif ?>
 							<div id="wf-live-traffic-legend">
 								<ul>
 									<li class="wfHuman"><?php _e('Human', 'wordfence') ?></li>
@@ -223,10 +225,10 @@ echo wfView::create('tools/options-group-live-traffic', array(
 													<!-- ko if: $root.groupBy().param() == 'ip' -->
 													<div class="wf-add-top-small">
 														<span data-bind="if: blocked()">
-															<a href="#" class="wf-btn wf-btn-default wf-btn-sm" data-bind="click: unblockIP">Unblock IP</a>
+															<a class="wf-btn wf-btn-default wf-btn-sm" data-bind="click: unblockIP">Unblock IP</a>
 														</span>
 														<span data-bind="if: rangeBlocked()">
-															<a href="#" class="wf-btn wf-btn-default wf-btn-sm" data-bind="click: unblockNetwork">Unblock range</a>
+															<a class="wf-btn wf-btn-default wf-btn-sm" data-bind="click: unblockNetwork">Unblock range</a>
 														</span>
 														<span data-bind="if: !blocked() && !rangeBlocked()">
 															<a class="wf-btn wf-btn-default wf-btn-sm" data-bind="click: blockIP">Block IP</a>
@@ -307,8 +309,8 @@ echo wfView::create('tools/options-group-live-traffic', array(
 															<h2>Activity Detail</h2>
 															<div>
 																<span data-bind="if: action() != 'loginOK' && action() != 'loginFailValidUsername' && action() != 'loginFailInvalidUsername' && user()">
-																	<span data-bind="html: user.avatar" class="wfAvatar"></span>
-																	<a data-bind="attr: { href: user.editLink }, text: user().display_name"
+																	<span data-bind="attr: {'data-userid': user().ID}" class="wfAvatar"></span>
+																	<a data-bind="attr: { href: user().editLink }, text: user().display_name"
 																			target="_blank" rel="noopener noreferrer"></a>
 																</span>
 																<span data-bind="if: loc()">
@@ -345,7 +347,10 @@ echo wfView::create('tools/options-group-live-traffic', array(
 																<span data-bind="if: statusCode() == 200 && !action()">
 																	visited
 																</span>
-																<span data-bind="if: statusCode() == 403 || statusCode() == 503">
+																<span data-bind="if: (statusCode() == 301 || statusCode() == 302) && !action()">
+																	was redirected when visiting
+																</span>
+																<span data-bind="if: ((statusCode() == 403 || statusCode() == 503) && action() != 'loginFailValidUsername' && action() != 'loginFailInvalidUsername')">
 																	was <span data-bind="text: firewallAction" style="color: #F00;"></span> at
 																</span>
 
@@ -359,10 +364,10 @@ echo wfView::create('tools/options-group-live-traffic', array(
 																	requested a password reset.
 																</span>
 																<span data-bind="if: action() == 'loginFailValidUsername'">
-																	attempted a failed login as "<strong data-bind="text: username"></strong>".
+																	attempted a <span style="color: #F00;">failed login</span> as "<strong data-bind="text: username"></strong>".
 																</span>
 																<span data-bind="if: action() == 'loginFailInvalidUsername'">
-																	attempted a failed login using an invalid username "<strong
+																	attempted a <span style="color: #F00;">failed login</span> using an invalid username "<strong
 																			data-bind="text: username"></strong>".
 																</span>
 																<span data-bind="if: action() == 'user:passwordReset'">
@@ -382,13 +387,13 @@ echo wfView::create('tools/options-group-live-traffic', array(
 																	<span data-bind="text: IP" style="display:none;"></span>
 																</span>
 																<span data-bind="if: blocked()">
-																	<a href="#" class="wf-btn wf-btn-default wf-btn-sm wf-block-ip-btn"
+																	<a class="wf-btn wf-btn-default wf-btn-sm wf-block-ip-btn"
 																			data-bind="click: unblockIP">
 																		Unblock IP
 																	</a>
 																</span>
 																<span data-bind="if: rangeBlocked()">
-																	<a href="#" class="wf-btn wf-btn-default wf-btn-sm wf-block-ip-btn"
+																	<a class="wf-btn wf-btn-default wf-btn-sm wf-block-ip-btn"
 																			data-bind="click: unblockNetwork">Unblock range
 																	</a>
 																</span>
@@ -399,7 +404,7 @@ echo wfView::create('tools/options-group-live-traffic', array(
 																	</a>
 																</span>
 															</div>
-															<div data-bind="visible: (jQuery.inArray(parseInt(statusCode(), 10), [403, 503, 404]) !== -1)">
+															<div data-bind="visible: (jQuery.inArray(parseInt(statusCode(), 10), [403, 503, 404]) !== -1 || action() == 'loginFailValidUsername' || action() == 'loginFailInvalidUsername')">
 																<strong>Human/Bot:</strong> <span data-bind="text: (jsRun() === '1' ? 'Human' : 'Bot')"></span>
 															</div>
 															<div data-bind="if: browser() && browser().browser != 'Default Browser'">
@@ -412,37 +417,36 @@ echo wfView::create('tools/options-group-live-traffic', array(
 															<div class="wf-split-word" data-bind="text: UA"></div> 
 															<div class="wf-live-traffic-actions">
 																<span data-bind="if: blocked()">
-																	<a href="#" class="wf-btn wf-btn-default wf-btn-sm"
+																	<a class="wf-btn wf-btn-default wf-btn-sm"
 																			data-bind="click: unblockIP">
 																		Unblock IP
 																	</a>
 																</span>
 																<span data-bind="if: rangeBlocked()">
-																	<a href="#" class="wf-btn wf-btn-default wf-btn-sm"
+																	<a class="wf-btn wf-btn-default wf-btn-sm"
 																			data-bind="click: unblockNetwork">Unblock range
 																	</a>
 																</span>
 																<span data-bind="if: !blocked() && !rangeBlocked()">
-																	<a href="#" class="wf-btn wf-btn-default wf-btn-sm"
+																	<a class="wf-btn wf-btn-default wf-btn-sm"
 																			data-bind="click: blockIP">
 																		Block IP
 																	</a>
 																</span>
-																<a class="wf-btn wf-btn-default wf-btn-sm" data-bind="click: showWhoisOverlay,
-																attr: { href: 'admin.php?page=WordfenceTools&whoisval=' + IP() + '#top#whois' }"
+																<a class="wf-btn wf-btn-default wf-btn-sm" data-bind="click: showWhoisOverlay"
 																		target="_blank" rel="noopener noreferrer">Run Whois</a>
 																<a class="wf-btn wf-btn-default wf-btn-sm"
-																		data-bind="click: showRecentTraffic, attr: { href: WFAD.makeIPTrafLink(IP()) }" target="_blank" rel="noopener noreferrer">
+																		data-bind="click: showRecentTraffic" target="_blank" rel="noopener noreferrer">
 																	<span class="wf-hidden-xs"><?php _e('See recent traffic', 'wordfence'); ?></span><span class="wf-visible-xs"><?php _e('Recent', 'wordfence'); ?></span>
 																</a>
 																<span data-bind="if: action() == 'blocked:waf'">
-																	<a href="#" class="wf-btn wf-btn-default wf-btn-sm"
+																	<a class="wf-btn wf-btn-default wf-btn-sm"
 																			data-bind="click: function () { $root.whitelistWAFParamKey(actionData().path, actionData().paramKey, actionData().failedRules) }"
 																			title="If this is a false positive, you can exclude this parameter from being filtered by the firewall">
 																		Whitelist param from Firewall
 																	</a>
 																	<?php if (WFWAF_DEBUG): ?>
-																		<a href="#" class="wf-btn wf-btn-default wf-btn-sm"
+																		<a class="wf-btn wf-btn-default wf-btn-sm"
 																				data-bind="attr: { href: '<?php echo esc_js(home_url()) ?>?_wfsf=debugWAF&nonce=' + WFAD.nonce + '&hitid=' + id() }" target="_blank" rel="noopener noreferrer">
 																			Debug this Request
 																		</a>
