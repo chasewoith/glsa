@@ -60,10 +60,10 @@
                                                                                                     _e('Hi','esig');?>  <?php echo esigHtml($data->user_info->first_name); ?>,
   <p>                                                                                                   
 <?php                                                                                                      
-          echo sprintf(__('Just heads up that %s copied you on %s; which is public document to collect signature.','esig'),$data->owner_email,$data->doc->document_title) ; ?></p>
+          echo sprintf(__('You have been copied on <b>%s</b> by %s, which is a public document sent to collect a signature.','esig'),$data->doc->document_title,$data->owner_email) ; ?></p>
             
    
-        <p>    <?php _e("There's nothing you need to do.  We will email you the final version once document has been signed.","esig") ; ?></p>
+        <p>    <?php _e("There's nothing you need to do. We will email you the final version once the document has been signed.","esig") ; ?></p>
         
          <hr> 
          

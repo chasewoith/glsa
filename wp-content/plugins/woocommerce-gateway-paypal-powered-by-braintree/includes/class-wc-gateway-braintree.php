@@ -105,7 +105,7 @@ class WC_Gateway_Braintree extends WC_Braintree_Framework\SV_WC_Payment_Gateway_
 		if ( $this->is_available() ) {
 
 			// braintree.js library
-			wp_enqueue_script( 'braintree-js-client', 'https://js.braintreegateway.com/web/3.26.0/js/client.min.js', array(), WC_Braintree::VERSION, true );
+			wp_enqueue_script( 'braintree-js-client', 'https://js.braintreegateway.com/web/3.34.0/js/client.min.js', array(), WC_Braintree::VERSION, true );
 
 			parent::enqueue_gateway_assets();
 		}

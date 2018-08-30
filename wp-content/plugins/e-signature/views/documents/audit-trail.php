@@ -36,7 +36,8 @@ global $audit_trail_data, $esig_pdf_export;
     </div>
     
     <section class="main">
-        <?php foreach($audit_trail_data->users as $user): ?>
+        <?php foreach($audit_trail_data->users as $user): 
+        ?>
             <div class="signer-view">
                 <div class="row info clearfix">
                     <div class="col user left rtl-user-image">
@@ -109,7 +110,7 @@ global $audit_trail_data, $esig_pdf_export;
                 </div>
             </div>
             <div class="col text left pdf-right rtl-weapper-text">
-               <?php _e("This audit trail report provides a detailed record of the online activity and events recorded for this contract.","esig"); ?>
+               <?php _e("This audit trail report provides a detailed record of the online activity and events recorded for this document.","esig"); ?>
             </div>
             <div class="col right">
             </div>

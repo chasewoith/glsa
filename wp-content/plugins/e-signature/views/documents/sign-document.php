@@ -41,9 +41,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 		
 			<input type="hidden" id="invite_hash" name="invite_hash" value="<?php if (array_key_exists('invite_hash', $data)) { echo $data['invite_hash'];} ?>" />
 			<input type="hidden" name="checksum" value="<?php if (array_key_exists('checksum', $data)) { echo $data['checksum']; } ?>" />
-                        <input type="hidden" name="esig_nonce" value="<?php echo  esigget('nonce',$data); ?>" />
+                        <input type="hidden" name="esig_nonce" autocomplete="off"  value="<?php echo  esigget('nonce',$data); ?>" />
+                        <input type="hidden" id="esig-screen-width" name="esig_screen_width" value="" />
                         
-                        <p class="esig-anti-spam">Leave this empty: <input type="text" name="esig_sp_url" /></p>
+                        <p class="esig-anti-spam">Leave this empty: <input type="hidden" autocomplete="off" name="esig_sp_url" /></p>
 			
 			<p >
 					<?php if (array_key_exists('recipient_first_name', $data)) { 
@@ -54,85 +55,68 @@ if ( ! defined( 'ABSPATH' ) ) {
                                             $fname = apply_filters("esig_sad_legal_fname","");
                                         }
                                         $legalName = (WP_E_Sig()->document->isFormIntegration(esigget('invite_hash', $data)))? "text" : "esiglegalname" ; 
+                                        $classFormIntregation =(!WP_E_Sig()->document->isFormIntegration(esigget('invite_hash', $data)))? "esig-no-form-integration" : null ; 
                                         ?>
-						<input  type="<?php echo $legalName; ?>" required class="form-control" id="recipient_first_name" name="recipient_first_name" value="<?php echo $fname; ?>"  <?php echo $data['extra_attr']; ?>   placeholder="<?php _e('Your legal name','esig') ; ?>"/>
+						<input  type="<?php echo $legalName; ?>" required class="form-control <?php echo $classFormIntregation;?>" id="recipient_first_name" name="recipient_first_name" value="<?php echo $fname; ?>"  <?php echo $data['extra_attr']; ?>   placeholder="<?php _e('Your legal name','esig') ; ?>"/>
 					</p>
 				
 					<?php if (array_key_exists('signer_sign_pad_before', $data)) { echo $data['signer_sign_pad_before']; } ?>
 
 			<div class="col-sm-6" id="signature-wrapper" >
-				
-					<div class="signature-wrapper-displayonly recipient" data-rel="popup">
-						<span id="esig-signature-added rtl-sign-arrow" >
-						<img src="<?php echo $data['ESIGN_ASSETS_URL']; ?>/images/sign-arrow.svg" class="sign-arrow rtl-sign-arrow" width="80px" height="70px"/>
-                                                <canvas id="signatureCanvas2" class="sign-here pad <?php if(array_key_exists('signature_classes', $data)) echo $data['signature_classes']; ?>" height="100"></canvas>
-						<input type="hidden" name="recipient_signature" class="output" value=''>
-						</span>
-					</div>
-					
-					
-
-
-					<?php  if (!wp_is_mobile()): ?>
-
-					<div id="signer-signature" style="display:none">
-					
-						<div id="tabs">
-					
-						<div class="signature-tab">
-								
-								<article id="adopt">
-      
-											<header class="ds-title p">
-											<label for="full-name"><?php _e('Please Confirm full name and signature.','esig'); ?></label>
-											</header>
-											<div class="full-name">
-											  <div class="wrapper">
-												<div class="text-input-wrapper">
-												  <input id="esignature-in-text" value="<?php if (array_key_exists('recipient_first_name', $data)) { echo $data['recipient_first_name']; } ?>" name="esignature_in_text" class="esignature-in-text" maxlength="64" type="text">
-												</div>
-											  </div>
-											</div>
-											<a href="#" id="esig-type-in-change-fonts"><?php _e('Change fonts','esig'); ?></a>
-									 <div class="clear-float"></div>
-								</article>
-							
-  								<ul>
-  										<li><a href="#tabs-1" id="esig-tab-draw" class="selected"><?php _e('Draw Signature','esig') ; ?> <br />	
-									</a></li>
-  										<li><a href="#tabs-2" id="esig-tab-type"><?php _e('Type In Signature','esig'); ?><br />
-									</a></li>
-  				
-  								</ul>
-						</div> <!-- type signature end here -->
+                            <div class="signature-wrapper-displayonly recipient" data-rel="popup">
+                                <span id="esig-signature-added rtl-sign-arrow" >
+                                    <img src="<?php echo $data['ESIGN_ASSETS_URL']; ?>/images/sign-arrow.svg" class="sign-arrow rtl-sign-arrow" width="80px" height="70px"/>
+                                    <canvas id="signatureCanvas2" class="sign-here pad <?php if(array_key_exists('signature_classes', $data)) echo $data['signature_classes']; ?>" height="100"></canvas>
+                                    <input type="hidden" name="recipient_signature" class="output" value=''>
+                                </span>
+                            </div>
+                                <?php  if (!wp_is_mobile()): ?>
+                            <div id="signer-signature" style="display:none">
+                                <div id="tabs">
+                                    <div class="signature-tab">
+                                        <article id="adopt">
+                                            <header class="ds-title p">
+                                                <label for="full-name"><?php _e('Please Confirm full name and signature.','esig'); ?></label>
+                                            </header>
+                                            <div class="full-name">
+                                                <div class="wrapper">
+                                                    <div class="text-input-wrapper">
+                                                        <input id="esignature-in-text" value="<?php if (array_key_exists('recipient_first_name', $data)) { echo $data['recipient_first_name']; } ?>" name="esignature_in_text" class="esignature-in-text" maxlength="64" type="text">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <a href="#" id="esig-type-in-change-fonts"><?php _e('Change fonts','esig'); ?></a>
+                                            <div class="clear-float"></div>
+                                        </article>
+                                        <ul>
+                                            <li>
+                                                <a href="#tabs-1" id="esig-tab-draw" class="selected"><?php _e('Draw Signature','esig') ; ?> <br /></a>
+                                            </li>
+                                            <li>
+                                                <a href="#tabs-2" id="esig-tab-type"><?php _e('Type In Signature','esig'); ?><br /></a>
+                                            </li>
+                                        </ul>
+                                    </div> <!-- type signature end here -->
   			<div id="tabs-1">
-
-					<div class="signature-wrapper">
-						
-						<span class="instructions"><?php _e('Draw your signature with <strong>your mouse, tablet or smartphone</strong>', 'esig' );?></span>
-						<a href="#clear" class="clearButton" style="margin-bottom:25px;"><?php _e('Clear', 'esig' );?></a>
-                                                <canvas  id="signatureCanvas" class="sign-here pad <?php if(array_key_exists('signature_classes', $data)) echo $data['signature_classes']; ?>" width="500" height="100" ></canvas>
-						<input type="hidden" name="output" class="output" value='<?php if (array_key_exists('output', $data)) { echo $data['output']; } ?>'/>
-
-<div class="description">
-
-						<?php _e('I agree that I am <span id="esig-iam-draw"></span> and I agree this is a legal representation of my signature for all purposes 
+                            <div class="signature-wrapper">
+                                <span class="instructions">
+                                    <?php _e('Draw your signature with <strong>your mouse, tablet or smartphone</strong>', 'esig' );?>
+                                </span>
+                                <a href="#clear" class="clearButton" style="margin-bottom:25px;"><?php _e('Clear', 'esig' );?></a>
+                                <canvas  id="signatureCanvas" class="sign-here pad <?php if(array_key_exists('signature_classes', $data)) echo $data['signature_classes']; ?>" width="500" height="100" ></canvas>
+                                <input type="hidden" name="output" class="output" value='<?php if (array_key_exists('output', $data)) { echo $data['output']; } ?>'/>
+                                <div class="description">
+                                    <?php _e('I agree that I am <span id="esig-iam-draw"></span> and I agree this is a legal representation of my signature for all purposes 
 						just the same as a pen-and-paper signature','esig'); ?>
-
-</div>
-
-                                                <button class="button saveButton" data-nonce="<?php if(array_key_exists('nonce', $data)) echo $data['nonce']; ?>"><?php _e('Insert Signature','esig');?></button>
-
-				
-					</div>
-			</div>
+                                </div>
+                                <button class="button saveButton" data-nonce="<?php if(array_key_exists('nonce', $data)) echo $data['nonce']; ?>"><?php _e('Insert Signature','esig');?></button>
+                            </div>
+                        </div>
   			<div id="tabs-2">
-			
-					<div > 
-							<!-- type esignature start here -->
-						 <div id="type-in-signature">
-				
-							<div id="esig-type-in-preview" class="pad" width="450px" height="100px">
+                            <div>
+                                <!-- type esignature start here -->
+                                <div id="type-in-signature">
+                                    <div id="esig-type-in-preview" class="pad" width="450px" height="100px">
 						
 							<?php 
 							
@@ -147,38 +131,37 @@ if ( ! defined( 'ABSPATH' ) ) {
 										} 
 									
 							?>
-
-</div>
-
-<div id="esig-type-in-controls">
-
-<div>
-<div  id="type-in-text-accept-signature-statement">
-<label for="type-in-text-accept-signature">
-									<?php _e('I agree that I am <span id="esig-iam-type"></span> and','esig'); ?><span class="signature"><?php _e(' I understand this is a legal representation of my signature','esig'); ?></span>
-									</label>
-								</div>
-								<div>
-									<a id="esig-type-in-text-accept-signature" class="blue-sub alt button-appme button" href="#">
-										
-										<span class="esig-signature-type-add"><?php _e('Adopt & Sign','esig'); ?></span>
-					</a>	
-					</div>
-					</div>
-					</div>
-					<div class="clearfix error"></div>
-
-					</div> 
-
-					</div>
-
-					</div>
-
-					</div>    
-					<!-- -->
-					</div>
-
-					</div> 
+                                    </div>
+                                    <div id="esig-type-in-controls">
+                                        <div>
+                                            <div  id="type-in-text-accept-signature-statement">
+                                                <label for="type-in-text-accept-signature">
+                                                    <?php _e('I agree that I am <span id="esig-iam-type"></span> and','esig'); ?>
+                                                    <span class="signature">
+                                                        <?php _e(' I understand this is a legal representation of my signature','esig'); ?>
+                                                    </span>
+                                                </label>
+                                            </div>
+                                            <div>
+                                                <a id="esig-type-in-text-accept-signature" class="blue-sub alt button-appme button" href="#">
+                                                    <span class="esig-signature-type-add"><?php _e('Adopt & Sign','esig'); ?></span>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="clearfix error"></div>
+                                        
+                                </div>
+                                    
+                            </div>
+                                
+                        </div>
+                            
+                            </div>
+                                <!-- -->
+                        </div>
+                                
+                     </div> 
 					
 			<?php endif; ?>
 			
@@ -192,7 +175,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 		
 		
 		<div id="esig-mob-input"></div>	
-
 			<span style="display:none;">
 				<input type="submit" name="submit-signature" value="Submit signature" />
 			</span>

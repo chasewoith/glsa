@@ -15,6 +15,7 @@ require_once(SG_CORE_PATH.'SGConfig.php');
 require_once(SG_NOTICE_PATH.'SGNotice.php');
 require_once(SG_NOTICE_PATH.'SGNoticeHandler.php');
 @include_once(SG_BACKUP_PATH.'SGBackupSchedule.php');
+@include_once(SG_EXTENSION_PATH.'SGExtension.php');
 
 class SGBoot
 {
@@ -165,7 +166,8 @@ class SGBoot
 				throw new SGExceptionDatabaseError('Could not install config table');
 			}
 
-			if (!self::installScheduleTable($sgdb)) {
+			$isScheduleAvailable = self::isFeatureAvailable('SCHEDULE');
+			if ($isScheduleAvailable && !self::installScheduleTable($sgdb)) {
 				throw new SGExceptionDatabaseError('Could not install schedule table');
 			}
 

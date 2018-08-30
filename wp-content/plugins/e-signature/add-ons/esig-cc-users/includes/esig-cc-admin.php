@@ -100,11 +100,16 @@ class ESIG_CC_Admin extends Cc_Settings {
         if (!self::is_cc_enabled($document_id)) {
             return false;
         }
+        
 
         $signers = self::get_cc_information($document_id, false);
 
         $doc = WP_E_Sig()->document->getDocument($document_id);
+        
         if ($doc->document_status == 'draft') {
+            return false;
+        }
+        if($doc->document_type=="esig_template"){
             return false;
         }
         //global $cc_users ;
@@ -127,10 +132,13 @@ class ESIG_CC_Admin extends Cc_Settings {
             if ($doc->document_type == "stand_alone") {
                 $email_temp = WP_E_Sig()->view->renderPartial('', $cc_users, false, '', ESIGN_CC_PATH . '/views/stand-alone-cc-email-template.php');
             } else {
-                $email_temp = WP_E_Sig()->view->renderPartial('', $cc_users, false, '', ESIGN_CC_PATH . '/views/cc-email-template.php');
+               $email_temp = WP_E_Sig()->view->renderPartial('', $cc_users, false, '', ESIGN_CC_PATH . '/views/cc-email-template.php');
+             
             }
-            WP_E_Sig()->email->esig_mail($cc_users->owner_name, $cc_users->owner_email, $user_info->email_address, $subject, $email_temp);
-
+            
+   
+           $email= WP_E_Sig()->email->esig_mail($cc_users->owner_name, $cc_users->owner_email, $user_info->email_address, $subject, $email_temp);
+           
             self::cc_record_event($document_id, $cc_users->owner_name, $cc_users->owner_email, $user_info->first_name, $user_info->email_address);
         }
     }

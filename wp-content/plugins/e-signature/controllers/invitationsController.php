@@ -51,6 +51,7 @@ class WP_E_invitationsController extends WP_E_appController {
         );
 
         $subject = sprintf(__("%s - Signature requested by %s", 'esig'), $invitation['document_title'], $sender);
+       
         // emails array 
         $mailsent = WP_E_Sig()->email->send(array(
             'from_name' => $sender, // Use 'posts' to get standard post objects
@@ -63,6 +64,7 @@ class WP_E_invitationsController extends WP_E_appController {
             'document' => $document,
         ));
 
+     
         //$mailsent=$this->mail->esig_mail($sender,$admin_user->user_email,$invitation['recipient_email'], $subject, $invite_message);
         // send Email
         // Record event: Document sent
@@ -72,6 +74,7 @@ class WP_E_invitationsController extends WP_E_appController {
 
         // record event when document sent for sign\
         if ($mailsent) {
+           
             WP_E_Invite::invite_sent_record($invitation['recipient_name'], $invitation['recipient_email'], $document->document_id);
         }
 

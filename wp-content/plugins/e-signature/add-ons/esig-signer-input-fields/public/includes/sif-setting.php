@@ -37,7 +37,7 @@ class esigSifSetting {
         $path = $this->uploadDir() . $fileName;
         if ($fileName && file_exists($this->uploadDir() . $fileName)) {
             $fileSize = $this->formatSizeUnits(filesize($path));
-            $fileCreateTime = date(get_option('date_format'). " " . get_option('time_format') , filemtime($path));
+            $fileCreateTime = date(get_option('date_format') . " " . get_option('time_format'), filemtime($path));
         }
         if ($docType == 'stand_alone') {
             $signer = WP_E_Sig()->user->getUserdetails($userId, $docId);
@@ -57,6 +57,30 @@ class esigSifSetting {
         WP_E_Sig()->document->recordEvent($docId, 'sif_upload', $eventText, $date = null, esig_get_ip());
     }
 
+    private function createFormat($date) {
+
+        $dateConvert = date_create($date);
+       
+        if ($dateConvert) {
+           
+            $stringToDate= date_format($dateConvert, "Y-m-d");
+            return $stringToDate;
+        }
+
+        $dateConvert = DateTime::createFromFormat('d/m/Y', $date);
+        if ($dateConvert) {
+            
+             return $dateConvert->format('Y-m-d');
+        }
+        
+        $dateConvert = DateTime::createFromFormat('m/d/Y', $date);
+        if ($dateConvert) {
+            return $dateConvert->format('Y-m-d');
+        }
+
+        return date("Y-m-d", strtotime($date));
+    }
+
     private function formatSizeUnits($bytes) {
         if ($bytes >= 1073741824) {
             $bytes = number_format($bytes / 1073741824, 2) . ' GB';
@@ -73,6 +97,61 @@ class esigSifSetting {
         }
 
         return $bytes;
+    }
+
+    private function getMinDate($startDate) {
+
+        if (empty($startDate) || $startDate == "undefined") {
+            return false;
+        }
+
+        $currentDate = new DateTime(date("Y-m-d"));
+
+        $datetime = $this->createFormat($startDate);
+
+        $minDate = new DateTime($datetime);
+
+        $interval = date_diff($currentDate, $minDate);
+//echo $interval->y;
+        return $interval->format('%R%yY%R%mM%R%dD');
+    }
+
+    private function getMaxDate($endDate) {
+
+        if (empty($endDate) || $endDate == "undefined") {
+            return false;
+        }
+
+        $currentDate = new DateTime(date("Y-m-d"));
+
+
+        $newDateString = $this->createFormat($endDate);
+
+        $maxDate = new DateTime($newDateString);
+
+        $interval = date_diff($currentDate, $maxDate);
+
+        return $interval->format('%R%yY%R%mM%R%dD');
+    }
+
+    public function getDateRange($startDate, $endDate) {
+        $minDateQuery = $this->getMinDate($startDate);
+        $maxDateQuery = $this->getMaxDate($endDate);
+        $retText = '';
+        if (!$minDateQuery) {
+            //$retText = '{ minDate:"0", maxDate: "0" }';
+            $minDate = "0";
+        } else {
+            $minDate = $minDateQuery;
+        }
+
+        if (!$maxDateQuery) {
+            $retText = '{ minDate:"' . $minDate . '"}';
+        } else {
+            $retText = '{ minDate:"' . $minDate . '", maxDate: "' . $maxDateQuery . '" }';
+        }
+
+        return $retText;
     }
 
 }

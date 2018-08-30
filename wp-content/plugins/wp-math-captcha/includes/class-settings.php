@@ -13,9 +13,9 @@ class Math_Captcha_Settings {
 
 	public function __construct() {
 		// actions
-		add_action( 'init', array( &$this, 'load_defaults' ) );
-		add_action( 'admin_init', array( &$this, 'register_settings' ) );
-		add_action( 'admin_menu', array( &$this, 'admin_menu_options' ) );
+		add_action( 'init', array( $this, 'load_defaults' ) );
+		add_action( 'admin_init', array( $this, 'register_settings' ) );
+		add_action( 'admin_menu', array( $this, 'admin_menu_options' ) );
 	}
 
 	/**
@@ -52,7 +52,7 @@ class Math_Captcha_Settings {
 	 */
 	public function admin_menu_options() {
 		add_options_page(
-			__( 'Math Captcha', 'math-captcha' ), __( 'Math Captcha', 'math-captcha' ), 'manage_options', 'math-captcha', array( &$this, 'options_page' )
+			__( 'Math Captcha', 'math-captcha' ), __( 'Math Captcha', 'math-captcha' ), 'manage_options', 'math-captcha', array( $this, 'options_page' )
 		);
 	}
 
@@ -109,16 +109,16 @@ class Math_Captcha_Settings {
 	 */
 	public function register_settings() {
 		// general settings
-		register_setting( 'math_captcha_options', 'math_captcha_options', array( &$this, 'validate_settings' ) );
+		register_setting( 'math_captcha_options', 'math_captcha_options', array( $this, 'validate_settings' ) );
 		add_settings_section( 'math_captcha_settings', __( 'Math Captcha settings', 'math-captcha' ), '', 'math_captcha_options' );
-		add_settings_field( 'mc_general_enable_captcha_for', __( 'Enable Math Captcha for', 'math-captcha' ), array( &$this, 'mc_general_enable_captcha_for' ), 'math_captcha_options', 'math_captcha_settings' );
-		add_settings_field( 'mc_general_hide_for_logged_users', __( 'Hide for logged in users', 'math-captcha' ), array( &$this, 'mc_general_hide_for_logged_users' ), 'math_captcha_options', 'math_captcha_settings' );
-		add_settings_field( 'mc_general_mathematical_operations', __( 'Mathematical operations', 'math-captcha' ), array( &$this, 'mc_general_mathematical_operations' ), 'math_captcha_options', 'math_captcha_settings' );
-		add_settings_field( 'mc_general_groups', __( 'Display captcha as', 'math-captcha' ), array( &$this, 'mc_general_groups' ), 'math_captcha_options', 'math_captcha_settings' );
-		add_settings_field( 'mc_general_title', __( 'Captcha field title', 'math-captcha' ), array( &$this, 'mc_general_title' ), 'math_captcha_options', 'math_captcha_settings' );
-		add_settings_field( 'mc_general_time', __( 'Captcha time', 'math-captcha' ), array( &$this, 'mc_general_time' ), 'math_captcha_options', 'math_captcha_settings' );
-		add_settings_field( 'mc_general_block_direct_comments', __( 'Block Direct Comments', 'math-captcha' ), array( &$this, 'mc_general_block_direct_comments' ), 'math_captcha_options', 'math_captcha_settings' );
-		add_settings_field( 'mc_general_deactivation_delete', __( 'Deactivation', 'math-captcha' ), array( &$this, 'mc_general_deactivation_delete' ), 'math_captcha_options', 'math_captcha_settings' );
+		add_settings_field( 'mc_general_enable_captcha_for', __( 'Enable Math Captcha for', 'math-captcha' ), array( $this, 'mc_general_enable_captcha_for' ), 'math_captcha_options', 'math_captcha_settings' );
+		add_settings_field( 'mc_general_hide_for_logged_users', __( 'Hide for logged in users', 'math-captcha' ), array( $this, 'mc_general_hide_for_logged_users' ), 'math_captcha_options', 'math_captcha_settings' );
+		add_settings_field( 'mc_general_mathematical_operations', __( 'Mathematical operations', 'math-captcha' ), array( $this, 'mc_general_mathematical_operations' ), 'math_captcha_options', 'math_captcha_settings' );
+		add_settings_field( 'mc_general_groups', __( 'Display captcha as', 'math-captcha' ), array( $this, 'mc_general_groups' ), 'math_captcha_options', 'math_captcha_settings' );
+		add_settings_field( 'mc_general_title', __( 'Captcha field title', 'math-captcha' ), array( $this, 'mc_general_title' ), 'math_captcha_options', 'math_captcha_settings' );
+		add_settings_field( 'mc_general_time', __( 'Captcha time', 'math-captcha' ), array( $this, 'mc_general_time' ), 'math_captcha_options', 'math_captcha_settings' );
+		add_settings_field( 'mc_general_block_direct_comments', __( 'Block Direct Comments', 'math-captcha' ), array( $this, 'mc_general_block_direct_comments' ), 'math_captcha_options', 'math_captcha_settings' );
+		add_settings_field( 'mc_general_deactivation_delete', __( 'Deactivation', 'math-captcha' ), array( $this, 'mc_general_deactivation_delete' ), 'math_captcha_options', 'math_captcha_settings' );
 	}
 
 	public function mc_general_enable_captcha_for() {

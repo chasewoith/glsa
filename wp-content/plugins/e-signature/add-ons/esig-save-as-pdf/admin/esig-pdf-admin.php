@@ -35,7 +35,7 @@ if (!class_exists('ESIG_PDF_Admin')) :
              * Call $plugin_slug from public plugin class.
              */
 
-            $this->plugin_slug = "esig-pdf";
+            $this->plugin_slug = "esig";
 
             // action list start here 
             add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_styles'));
@@ -92,11 +92,11 @@ if (!class_exists('ESIG_PDF_Admin')) :
                 }
             }
             if ($signed && $esig_pdf_button == 1) {
-                return "<a href=\"$pdfurl\" $target class=\"agree-button esig-pdf-button\" id=\"esig-pdf-download\">" . __("Save As PDF", "esig-pdf") . "</a>";
+                return "<a href=\"$pdfurl\" $target class=\"agree-button esig-pdf-button\" id=\"esig-pdf-download\">" . __("Save As PDF", "esig") . "</a>";
             } elseif ($esig_pdf_button == 2) {
                 return false;
             } elseif ($esig_pdf_button == 3) {
-                return "<a href=\"$pdfurl\" $target class=\"agree-button esig-pdf-button\" id=\"esig-pdf-download\">" . __("Save As PDF", "esig-pdf") . "</a>";
+                return "<a href=\"$pdfurl\" $target class=\"agree-button esig-pdf-button\" id=\"esig-pdf-download\">" . __("Save As PDF", "esig") . "</a>";
             } else {
                 return false;
             }
@@ -134,7 +134,7 @@ if (!class_exists('ESIG_PDF_Admin')) :
 
             $file_name = $this->esig_sanitize_file_name($file_name);
 
-            return apply_filters("esig_pdf_file_name",$file_name,$document_id);
+            return apply_filters("esig_pdf_file_name", $file_name, $document_id);
         }
 
         public function esig_sanitize_file_name($filename) {
@@ -189,32 +189,39 @@ if (!class_exists('ESIG_PDF_Admin')) :
                 $content = apply_filters('the_content', $unfiltered_content);
 
                 //$dt = new DateTime($document->date_created);
-                
-                $date4sort =$this->document->esig_date_format($document->date_created,$document_id) ; //$dt->format(get_option('date_format'));
-                
+
+                $date4sort = $this->document->esig_date_format($document->date_created, $document_id); //$dt->format(get_option('date_format'));
+
                 $blogname = get_bloginfo('name');
                 $blog_url = WP_E_Sig()->document->get_site_url($doc_id);
 
 
                 $header = "<div class=\"document-sign-page\"><div class='document_id'>" . __("Document ID:", "esig") . " {$document->document_checksum}</div>
 
-<div class='document_date'>". __("Generated on: ","esig") ."{$date4sort}</div>";
+<div class='document_date'>" . __("Generated on: ", "esig") . "{$date4sort}</div>";
+
+
 
 
                 $html = "
-<div class='signed_on'>". __("Signed On","esig") . ":  {$blog_url}</div>
-<div class='document-sign-page'>
-	<p align='left' class='doc_title'>" . esig_unslash($document->document_title) . "</p>
-	<br />
-	{$content}
-</div>
+<div class='signed_on'>" . __("Signed On", "esig") . ":  {$blog_url}</div>
+<div class='document-sign-page'>";
 
-<div class='signatures row'>
-	
-	";
+                $document_title_display = apply_filters("esig_document_title_display", true,$document_id);
+                if ($document_title_display) {
+                    $html .= "<p align='left' class='doc_title'>" . esig_unslash($document->document_title) . "</p>";
+                }
+                
+                $html .= "<br />
+                            {$content}
+                            </div>
+
+                            <div class = 'signatures row'>
+
+                            ";
                 $allinvitaions = $this->invitation->getInvitations($doc_id);
                 if (!empty($allinvitaions)) {
-                    $small_img = ESIGN_PLUGIN_PATH  . "/assets/images/sign-here_blank_pdf.jpg";
+                    $small_img = ESIGN_PLUGIN_PATH . "/assets/images/sign-here_blank_pdf.jpg";
 
                     foreach ($allinvitaions as $invite) {
 
@@ -225,10 +232,10 @@ if (!class_exists('ESIG_PDF_Admin')) :
                         if (!$this->signature->userHasSignedDocument($invite->user_id, $doc_id)) {
                             $sign = '<div width="255px" height="100px"></div>';
                             $sign_bottom_text = $fullname . "<br>";
-                            $sign_bottom_text .= __("(Awaiting Signature)", "esig");
+                            $sign_bottom_text .= __("(Awaiting Signature) ", "esig");
                         } else {
-                            $sign_bottom_text = sprintf(__("Signed By %s", "esig"), $fullname);
-                            $sign_bottom_text .= "<br>" . __("Signed On:","esig") . $this->document->esig_date_format($date,$document_id);
+                            $sign_bottom_text = sprintf(__("Signed By %s ", "esig"), $fullname);
+                            $sign_bottom_text .= "<br>" . __("Signed On: ", "esig") . $this->document->esig_date_format($date, $document_id);
                         }
 
                         $signature_type = $this->signature->getDocumentSignature_Type($invite->user_id, $doc_id);
@@ -237,20 +244,27 @@ if (!class_exists('ESIG_PDF_Admin')) :
                             $sign_data = $this->signature->getDocumentSignature($invite->user_id, $doc_id);
                             $font = $this->signature->get_font_type($doc_id, $invite->user_id);
                             //echo strlen($sign_data);
-                            $font_size = abs(50 - strlen($sign_data)*1.2);
-                           
+                            $font_size = abs(50 - strlen($sign_data) * 1.2);
+
                             $sign = '<div class="sign-text-pdf" >
 						
-						<span class="esig-signature-type-font" style="font-family:' . $font . ';font-size:' . $font_size . ';" width="400">' . $sign_data . '</span></div>';
+						<span class="esig-signature-type-font" style="font-family:' . $font . ';
+                            font-size:' . $font_size . ';
+                            " width="400">' . $sign_data . '</span></div>';
                         } elseif ($signature_type == "full") {
 
                             $signature_url = $this->get_signature_image_url($invite->user_id, $document->document_checksum);
                             $sign = '<img src="' . $signature_url . '" width="255px" height="100px">';
                         }
 
-                        $html .='<div class="signature-left" align="left">
+                        $html .= '<div class="signature-left" align="left">
                                         
-					<div class="signature-top" style="width:300px;text-align:left;background-image:transparent url(' . $small_img . ');background-position: left bottom;background-repeat:no-repeat;">
+					<div class="signature-top" style="width:300px;
+                            text-align:left;
+                            background-image:transparent url(' . $small_img . ' );
+                            background-position: left bottom;
+                            background-repeat:no-repeat;
+                            ">
 					
 					    ' . $sign . '
 					
@@ -261,18 +275,31 @@ if (!class_exists('ESIG_PDF_Admin')) :
                 } else {
                     $small_img2 = ESIGN_PLUGIN_PATH . "/assets/images/sign-here_blank_pdf.jpg";
 
-                    $html .='<div class="signature-left" align="left">
-					<div class="signature-top" style="width:300px;text-align:left;background-image:transparent url(' . $small_img2 . ') left bottom;height:100px;">
+                    $html .= '<div class="signature-left" align="left">
+					<div class="signature-top" style="width:300px;
+                            text-align:left;
+                            background-image:transparent url(' . $small_img2 . ' ) left bottom;
+                            height:100px;
+                            ">
 					
 					
 					 </div><div class="signature-top">';
 
-                    $html .="</div></div>";
+                    $html .= "</div></div>";
                 }
                 //admin signature start here 
                 if ($document->add_signature) {
 
-                    $owner = $api->user->getUserBy('wp_user_id', $document->user_id);
+
+                    $owner_id = WP_E_Sig()->meta->get($document->document_id, 'auto_add_signature');
+                    if (!$owner_id) {
+                        $owner_id = $document->user_id;
+                    } else {
+                        $esig_users = WP_E_Sig()->user->getUserBy('user_id', $owner_id);
+                        $owner_id = $esig_users->wp_user_id;
+                    }
+
+                    $owner = $api->user->getUserBy('wp_user_id', $owner_id);
 
 
                     $signature_id = $this->signature->GetSignatureId($owner->user_id, $doc_id);
@@ -282,48 +309,54 @@ if (!class_exists('ESIG_PDF_Admin')) :
                         $sign_data = $this->signature->getDocumentSignature($owner->user_id, $doc_id);
                         $font = $api->setting->get_generic('esig-signature-type-sa-font' . $owner->user_id . $doc_id);
 
-                        $font_size = abs(50 - strlen($sign_data)*1.2);
+                        $font_size = abs(50 - strlen($sign_data) * 1.2);
                         if (!empty($font_family)) {
                             $font = "sun-extA";
                         }
                         $sign_admin = '<div class="sign-text-pdf">
 						
-						<span class="esig-signature-type-font" style="font-family:' . $font . ';font-size:' . $font_size . ';" width="400" >' . $sign_data . '</span></div>';
+						<span class="esig-signature-type-font" style="font-family:' . $font . ';
+                            font-size:' . $font_size . ';
+                            " width="400" >' . $sign_data . '</span></div>';
                     } elseif ($signature_type == "full") {
                         $signature_url = $this->get_signature_image_url($owner->user_id, $document->document_checksum);
                         $sign_admin = '<img src="' . $signature_url . '" width="255px" height="100px">';
                     } else {
                         $this->esign_set_json($owner->user_id, 'old-aams', true);
-                        $sign_admin = '<img src="' . plugins_url() . 'e-signature/add-ons/esig-save-as-pdf/includes/sigtoimage.php?uid=' . $owner->user_id . '&doc_id=old-aams&owner_id=1" width="255px" height="100px">';
+                        $sign_admin = '<img src="' . plugins_url() . 'e-signature/add-ons/esig-save-as-pdf/includes/sigtoimage.php?uid = ' . $owner->user_id . ' & doc_id = old-aams&owner_id = 1" width="255px" height="100px">';
                     }
 
                     $small_img1 = ESIGN_PLUGIN_PATH . "/add-ons/esig-save-as-pdf/admin/assets/images/sign-here_blank_pdf.jpg";
 
-                    $html .='<div class="signature-left" align="left">
-					<div class="signature-top" style="width:300px;text-align:left;background:transparent url(' . $small_img1 . ') left bottom;background-repeat:no-repeat;height:100px;vertical-align:bottom;">
+                    $html .= '<div class="signature-left" align="left">
+					<div class="signature-top" style="width:300px;
+                            text-align:left;
+                            background:transparent url(' . $small_img1 . ' ) left bottom;
+                            background-repeat:no-repeat;
+                            height:100px;
+                            vertical-align:bottom;
+                            ">
 					
 					' . $sign_admin . '
 					
 					</div><div class="signature-top">';
-                    $html .= sprintf(__("Signed By %s %s", "esig-pdf"), $owner->first_name, $owner->last_name);
-                    $html .= "<br>".__("Signed On","esig") .": " . $this->document->esig_date_format($document->last_modified,$document_id) . "</div></div>";
-                   
-                  
-                   
+                    $html .= sprintf(__("Signed By %s %s ", "esig"), $owner->first_name, $owner->last_name);
+                    $html .= "<br>" . __("Signed On ", "esig") . " : " . $this->document->esig_date_format($document->last_modified, $document_id) . "</div></div>";
                 }
+
                 // admin signature end here
 
                 $html .= "
-						
-</div></div> ";
+
+                            </div></div> ";
 
 
-                $footer = "<div class='pdf-footer'>
+               $footer = "<div class='pdf-footer'>
 		<div class='footer-left'>
 			<img src='" . ESIGN_ASSETS_DIR_URI . "/images/verified-approveme-gray.svg' alt='WP E-Signature'/>
 		</div>
 		<div class='footer-right'>
-			{$blogname} <br>". __("Page","esig") ." {PAGENO}". __("of","esig")." {nb}
+			{$blogname} <br>" . __("Page", "esig") . " {PAGENO}" . __("of", "esig") . " {nb}
 			<br/> {$this->get_audit_trail_serial($doc_id, $document)}
 		</div>
 	</div>";
@@ -360,7 +393,8 @@ if (!class_exists('ESIG_PDF_Admin')) :
                 $pdf->WriteHTML($html);
                 $pdf->SetHTMLHeader('');
                 //$page_count = $pdf->docPageNum($pdf->page, true) - 1;
-                $audit_trail_html = "{$api->shortcode->auditReport($doc_id, $document)}";
+
+                $audit_trail_html = "{$api->shortcode->auditReport($doc_id, $document, false, true)}";
                 //$audit_trail_html = str_replace('{PAGENO}', $page_count + $this->get_audit_trail_page_count($audit_trail_html), $audit_trail_html);
 
                 $pdf->WriteHTML($audit_trail_html);
@@ -370,20 +404,23 @@ if (!class_exists('ESIG_PDF_Admin')) :
 
                 // delete all signature json files 
                 $fullPath = __DIR__ . "/assets/";
-                array_map('unlink', glob("$fullPath*.txt"));
+                array_map('unlink', glob(" $fullPath*.txt"));
                 // after generating pdf set global pdf export false for web loads
+
                 $esig_pdf_export = false;
+
                 // output pdf file
                 return $pdf->Output($pdf_name, 'S');
             }
         }
 
-        private function get_audit_trail_serial($doc_id, $document) {
+        private function get_audit_trail_serial(
+        $doc_id, $document) {
             $all_signed = WP_E_Sig()->document->getSignedresult($doc_id);
             if ($all_signed) {
                 $shortcode = new WP_E_Shortcode();
                 $serial = $shortcode->auditReport($doc_id, $document, true);
-                return "<img src='" . ESIGN_ASSETS_DIR_URI . "/images/lock.png' width='8' height='12' alt='Audit Lock'/> " . __("Audit Trail Serial#", "esig") . " {$serial}";
+                return "<img src = '" . ESIGN_ASSETS_DIR_URI . "/images/lock.png' width = '8' height = '12' alt = 'Audit Lock'/> " . __("Audit Trail Serial#", "esig") . " {$serial}";
             }
             return '';
         }
@@ -406,14 +443,14 @@ if (!class_exists('ESIG_PDF_Admin')) :
         public function document_save_as_pdf_action($more_actions, $args) {
             $doc = $args['document'];
             if ($doc->document_status == 'signed')
-                $more_actions .= '| <span class="save_as_pdf_link"><a href="admin.php?page=esigpdf&document_id=' . $doc->document_id . '" title="Save as pdf">' . __('Save As PDF', 'esig-pdf') . '</a></span>';
+                $more_actions .= '| <span class="save_as_pdf_link"><a href="admin.php?page=esigpdf&document_id=' . $doc->document_id . '" title="Save as pdf">' . __('Save As PDF', 'esig') . '</a></span>';
 
 
             return $more_actions;
         }
 
         public function pdf_document_footer($template_data) {
-           
+
 
             $document_id = ESIG_GET('document_id');
 
@@ -442,13 +479,13 @@ if (!class_exists('ESIG_PDF_Admin')) :
 
             if ($this->document->getSignedresult($document_id) && $esig_pdf_button == 1) {
 
-                $template_data['pdf_button'] = "<a href=\"$pdfurl\" $target class=\"agree-button\" id=\"downloadLink\">" . __("Save As PDF", "esig-pdf") . "</a>";
+                $template_data['pdf_button'] = "<a href=\"$pdfurl\" $target class=\"agree-button\" id=\"downloadLink\">" . __("Save As PDF", "esig") . "</a>";
 
                 return $template_data;
             } elseif ($esig_pdf_button == 2) {
                 return $template_data;
             } elseif ($esig_pdf_button == 3) {
-                $template_data['pdf_button'] = "<a href=\"$pdfurl\" $target class=\"agree-button\" id=\"downloadLink\">" . __("Save As PDF", "esig-pdf") . "</a>";
+                $template_data['pdf_button'] = "<a href=\"$pdfurl\" $target class=\"agree-button\" id=\"downloadLink\">" . __("Save As PDF", "esig") . "</a>";
                 return $template_data;
             } else {
                 return $template_data;
@@ -578,7 +615,7 @@ if (!class_exists('ESIG_PDF_Admin')) :
 
         public function misc_settings_save() {
             $misc_data = array();
-            
+
             if (isset($_POST['pdfname'])) {
                 foreach ($_POST['pdfname'] as $key => $value) {
                     $misc_data[$key] = $value;
@@ -589,7 +626,7 @@ if (!class_exists('ESIG_PDF_Admin')) :
             $settings->set_generic("esign_misc_pdf_name", $misc_ready);
 
             if (isset($_POST['esig_pdf_option']))
-                        $settings->set_generic("esig_pdf_option", $_POST['esig_pdf_option']);
+                $settings->set_generic("esig_pdf_option", $_POST['esig_pdf_option']);
         }
 
         /**
@@ -721,15 +758,17 @@ if (!class_exists('ESIG_PDF_Admin')) :
             //$current_error_reporting = error_reporting(0);
 
             if (file_exists(WP_CONTENT_DIR . "/esign_customization/mpdf/mpdf.php")) {
+
                 require_once ( WP_CONTENT_DIR . "/esign_customization/mpdf/mpdf.php" );
-                
             } else {
                 require_once ( ESIG_MPDF_PATH . '/mpdf.php' );
             }
 
             $pdf = new mPDF('', 'A4', '', '', 10, 10, 25, 35);
+
             $pdf->autoLangToFont = true;
-            $pdf->debug= false;
+            $pdf->debug = false;
+            $pdf->SetProtection(array());
             $pdf->autoScriptToLang = true;
             $pdf->baseScript = 1;
             $pdf->autoVietnamese = true;
@@ -752,5 +791,11 @@ if (!class_exists('ESIG_PDF_Admin')) :
         }
 
     }
+
+    
+
+        
+
+    
 
 endif;

@@ -6,7 +6,7 @@
  * Plugin Name:       Contact Form 7 digital signature add-ons 
  * Plugin URI:
  * Description:       Contact Form 7 digital signature add-ons
- * Version:           1.5.3
+ * Version:           1.5.3.6
  * Author:            Approve Me
  * Author URI:        http://aprv.me/2l9DMvA
  * License:           GPLv2+
@@ -37,7 +37,7 @@
 /**
  * Define constants
  */
-define( 'CF7_WPESIGNATURE_VER', '1.5.3' );
+define( 'CF7_WPESIGNATURE_VER', '1.5.3.4' );
 define( 'CF7_WPESIGNATURE_URL',     plugin_dir_url( __FILE__ ) );
 define( 'CF7_WPESIGNATURE_PATH',    dirname( __FILE__ ) . '/' );
 define( 'CF7_WPESIGNATURE_CORE',    dirname( __FILE__ )  );

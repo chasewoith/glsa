@@ -1,6 +1,3 @@
-
-
-
 <div marginwidth="0" marginheight="0">
     <table  border="0" cellpadding="0"
            cellspacing="0" width="100%">
@@ -9,7 +6,6 @@
                 <td height="20"><br>
                 </td>
             </tr>
-            
             <tr>
                 <td align="center">
                     <table bgcolor="e4e8eb" border="0" cellpadding="0"
@@ -19,7 +15,6 @@
                                 <td height="30"><br>
                                 </td>
                             </tr>
-
                             <tr>
                                 <td align="center">
                                     <table bgcolor="cdd0d3" border="0"
@@ -55,29 +50,24 @@
                                                                                                 <td
                                                                                                     style="font-size:14px;font-family:Helvetica,Arial,sans-serif;line-height:24px"
                                                                                                     align="left">
-                                                                                                    <p><?php _e('Hi','esig');?>  <?php echo esigHtml($data->user_info->first_name); ?>,
-  <p>                                                                                                   
-<?php                                                                                                      
-          echo sprintf(__('Just heads up that %s copied you on %s; which is currently sent out for signature.','esig'),$data->owner_email,$data->doc->document_title) ; ?></p>
-            
-  <p>    <?php  _e('The Document is being sent to the following signers:','esig'); ?></p>
-          
-            <?php 
+                                                                                                    <p><?php _e('Hi','esig');?>  <?php echo esigHtml($data->user_info->first_name); ?>,</p>
+  <p>
+<?php
+          echo sprintf(__('You have been copied on <b>%s</b> by %s, which is a public document sent to collect a signature.','esig'),$data->doc->document_title,$data->owner_email) ; ?></p>
+  <p>    <?php  _e('The document is being sent to the following signers:','esig'); ?></p>
+            <?php
             foreach($data->signers as $signers){
-                 echo esigHtml($signers->first_name) . " (" . $signers->user_email . ")<br>" ; 
-            } 
+                 echo esigHtml($signers->first_name) . " (" . $signers->user_email . ")<br>" ;
+            }
           ?>
-            
-        <p>    <?php _e("There's nothing you need to do.  We will email you the final version once everyone has signed.","esig") ; ?></p>
-        
-         <hr> 
-         
+		  
+        <p>    <?php _e("There's nothing you need to do. We will email you the final version once the document has been signed.","esig") ; ?></p>
+         <hr>
+		 <div>
              <?php
-            
              $background_color_bg = apply_filters('esig-invite-button-background-color','#0083c5',esigget('wpUserId',$data));
-             $background_color = !empty( $background_color_bg) ?  $background_color_bg : '#0083c5' ; 
+             $background_color = !empty( $background_color_bg) ?  $background_color_bg : '#0083c5' ;
              ?>
-         
         <!--[if mso]>
   <v:rect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="<?php echo $data->signed_link ;?>" style="height:50px;v-text-anchor:middle;width:200px;" arcsize="10%" stroke="f" fillcolor="<?php echo $background_color; ?>">
     <w:anchorlock/>
@@ -87,20 +77,11 @@
   </v:rect>
   <![endif]-->
   <![if !mso]>
-  <table cellspacing="0" cellpadding="0"> <tr> 
-  <td align="center" width="200" height="50" bgcolor="<?php echo $background_color ?>" style="color: #ffffff; display: block;">
-    <a href="<?php echo $data->signed_link ;?>" style="font-size:14px;font-family:sans-serif; text-decoration: none; line-height:50px; width:100%; display:inline-block">
-    <span style="color: #ffffff;">
-      <?php _e('View Document','esig'); ?>
-    </span>
-    </a>
-  </td> 
-  </tr> </table> 
+  <table cellspacing="0" cellpadding="0"> <tr><td align="center" width="200" height="50" bgcolor="<?php echo $background_color ?>" style="color: #ffffff; display: block;"><a href="<?php echo $data->signed_link ;?>" style="font-size:14px;font-family:sans-serif; text-decoration: none; line-height:50px; width:100%; display:inline-block"><span style="color: #ffffff;"><?php _e('View Document','esig'); ?></span></a></td></tr></table>
   <![endif]>
-
-                                                                                                    <hr> 
-
-                                                                                                    <?php echo $data->owner_name ?><br>
+  </div>
+                                                                                                    <hr>
+                                                                                                  <p>  <?php echo $data->owner_name ?><br>
                                                                                                     <?php echo $data->organization_name; ?></p>
                                                                                                 </td>
                                                                                             </tr>
@@ -125,7 +106,6 @@
                                 </td>
                             </tr>
                             <tr>
-
                             </tr>
                             <tr>
                                 <td align="center">&nbsp;</td>
@@ -141,4 +121,3 @@
         </tbody>
     </table>
 </div>
-

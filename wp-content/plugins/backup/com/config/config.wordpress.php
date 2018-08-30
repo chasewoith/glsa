@@ -63,7 +63,7 @@ define('SG_PING_FILE_PATH', $upload_dir['basedir'].'/backup-guard/ping.json');
 define('SG_SYMLINK_PATH', $upload_dir['basedir'].'/sg_symlinks/');
 define('SG_SYMLINK_URL', $upload_dir['baseurl'].'/sg_symlinks/');
 
-define('SG_APP_ROOT_DIRECTORY', dirname(WP_CONTENT_DIR)."/"); //Wordpress Define
+define('SG_APP_ROOT_DIRECTORY', realpath(dirname(WP_CONTENT_DIR)."/")); //Wordpress Define
 
 $sgBackupFilePathsExclude = array(
 	$wpContent.'/'.$wpPlugins.'/backup/',
@@ -93,7 +93,9 @@ $sgBackupFilePathsExclude = array(
 	$wpContent.'/managewp/backups/',
 	$wpContent.'/'.$wpUploads.'/backupbuddy_temp/',
 	$wpContent.'/'.$wpUploads.'/pb_backupbuddy/',
-	$wpContent.'/'.$wpUploads.'/snapshots/'
+	$wpContent.'/'.$wpUploads.'/snapshots/',
+	$wpContent.'/debug.log',
+	$wpContent.'/backup-db/'
 );
 
 define('SG_BACKUP_FILE_PATHS_EXCLUDE', implode(',', $sgBackupFilePathsExclude));
@@ -113,3 +115,5 @@ define('SG_SUBDOMAIN_INSTALL', defined('SUBDOMAIN_INSTALL')?SUBDOMAIN_INSTALL:fa
 
 
 define('SG_BACKUP_PRODUCTS_URL', 'https://backup-guard.com/admin/products/view');
+
+define('SG_BACKUP_GUARD_SECURITY_EXTENSION', 'backup-guard-security');

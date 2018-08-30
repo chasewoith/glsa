@@ -108,7 +108,7 @@ class WC_Gateway_Braintree_PayPal extends WC_Gateway_Braintree {
 			parent::enqueue_gateway_assets();
 
 			wp_enqueue_script( 'braintree-js-paypal', 'https://www.paypalobjects.com/api/checkout.js', array(), WC_Braintree::VERSION, true );
-			wp_enqueue_script( 'braintree-js-paypal-checkout', 'https://js.braintreegateway.com/web/3.26.0/js/paypal-checkout.min.js', array(), WC_Braintree::VERSION, true );
+			wp_enqueue_script( 'braintree-js-paypal-checkout', 'https://js.braintreegateway.com/web/3.34.0/js/paypal-checkout.min.js', array(), WC_Braintree::VERSION, true );
 		}
 	}
 

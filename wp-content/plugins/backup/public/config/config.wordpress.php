@@ -17,9 +17,6 @@ define('SG_BACKUP_SITE_URL', 'https://backup-guard.com/products/backup-wordpress
 
 define('SG_BACKUP_UPGRADE_URL', 'https://backup-guard.com/products/backup-wordpress/0');
 
-//BackupGuard Support URL
-define('SG_BACKUP_SUPPORT_URL', 'https://backup-guard.com/products/backup-wordpress/support');
-
 define('SG_BACKUP_SITE_PRICING_URL', 'https://backup-guard.com/products/backup-wordpress#pricing');
 
 define('SG_BACKUP_ADMIN_LOGIN_URL', 'https://backup-guard.com/admin');

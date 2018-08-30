@@ -1,9 +1,9 @@
 === Product Open Pricing (Name Your Price) for WooCommerce ===
-Contributors: algoritmika, anbinder
+Contributors: algoritmika, anbinder, karzin
 Tags: woocommerce, product open pricing, open pricing, name your price
 Requires at least: 4.4
 Tested up to: 4.9
-Stable tag: 1.1.1
+Stable tag: 1.2.1
 License: GNU General Public License v3.0
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -32,6 +32,48 @@ You can also customize price step, frontend label, template and user messages.
 
 == Changelog ==
 
+= 1.2.1 - 18/08/2018 =
+* Fix input sanitizing
+
+= 1.2.0 - 17/08/2018 =
+* Fix woocommerce_loop_add_to_cart_link filter with correct args quantity
+
+= 1.1.9 - 16/08/2018 =
+* Add option to include open input field on loop
+* Add option to overwrite frontend template option if input field is displayed on loop
+* Improve open price input sanitizing
+* Add compatibility with ajax add to cart if loop option is enabled
+* Remove Frontend Label option
+* Fix min/max prices when using currency switcher
+* Rearrange message options on admin
+
+= 1.1.8 - 06/08/2018 =
+* Improve compatibility with Currency Switcher for WooCommerce plugin converting min and max value
+
+= 1.1.7 - 06/08/2018 =
+* Change the way to override product prices, replacing 'get_cart_item_open_price_from_session()' by 'override_product_price()' and replacing 'woocommerce_get_cart_item_from_session' filter by 'woocommerce_before_calculate_totals'
+* Fix compatibility with Currency Switcher for WooCommerce plugin
+
+= 1.1.6 - 26/07/2018 =
+* Add compatibility with Currency Switcher for WooCommerce plugin
+* Add 'aopwc_frontend_input_filter' filter to setup where the frontend field is going to be displayed. Default is 'woocommerce_before_add_to_cart_button'
+
+= 1.1.5 - 21/06/2018 =
+* Add option to remove up/down ticker buttons from the input field
+
+= 1.1.4 - 18/06/2018 =
+* Add %minimum_price% and %max_price% to frontend template
+* Add span to %currency_symbol% template
+* Update WC tested up to
+
+= 1.1.3 - 07/05/2018 =
+* Add min and max attributes for price input
+
+= 1.1.2 - 10/04/2018 =
+* Dev - "Price step" step decreased to `0.000000001`.
+* Dev - Admin settings descriptions updated.
+* Dev - Plugin settings array stored as main class property.
+
 = 1.1.1 - 02/01/2018 =
 * Dev - "Disable Quantity Selector" option added.
 * Dev - Admin settings restyled.
@@ -51,5 +93,5 @@ You can also customize price step, frontend label, template and user messages.
 
 == Upgrade Notice ==
 
-= 1.0.0 =
-This is the first release of the plugin.
+= 1.2.1 =
+* Fix input sanitizing

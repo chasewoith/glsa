@@ -15,7 +15,7 @@ body {
     font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif !important;
     font-size: 13px;
    /* line-height: 1.4em;*/
-    min-width: 600px;
+   /* min-width: 600px; */
 }
 /* Form styles */
 label
@@ -564,7 +564,6 @@ label
     list-style-type: none;
     /*margin: 4em 4em 0em 1.2em;*/
     position: relative;
-    display: none!important;
 }
 .esign-form-document-panel
 {
@@ -1437,7 +1436,7 @@ span.deleteicon input
 label.esig-error
 {
     color: #FFFFFF;
-    max-width:150px;
+    max-width:100%;
     height:100%;
     background-color:#CB3B3B;
 }
@@ -2739,13 +2738,14 @@ input.form-control{
 }
 #titlediv #document-title {
     padding: 3px 8px;
-    font-size: 1.7em;
+    font-size: 2vw;
     line-height: 100%;
     height: 1.7em;
     width: 100%;
     outline: 0px none;
     margin: 0px 0px 3px;
     background-color: #FFF;
+    overflow: hidden;
 }
 
 /*Custom Date Picker CSS for Signer INput Fields*/

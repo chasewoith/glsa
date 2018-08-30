@@ -480,7 +480,7 @@ class SGArchive
 				if ($extra['method'] != SG_BACKUP_METHOD_MIGRATE) {
 					if ($extra['siteUrl'] == SG_SITE_URL) {
 						if ($extra['dbPrefix'] != SG_ENV_DB_PREFIX) {
-							throw new SGExceptionMigrationError("Seems you have changed database prefix. You should keep it constant to be able to restore this backup. Setup your WordPress installation with ".$extra['dbPrefix']." datbase prefix.");
+							throw new SGException("Seems you have changed database prefix. You should keep it constant to be able to restore this backup. Setup your WordPress installation with ".$extra['dbPrefix']." datbase prefix.");
 						}
 					}
 					else {

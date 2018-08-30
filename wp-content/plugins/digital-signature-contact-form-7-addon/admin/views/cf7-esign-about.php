@@ -42,7 +42,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 <?php add_thickbox();  ?>
 
 
-<a href="http://www.youtube.com/embed/oUQKP6i-ukU?&autoplay=1&rel=0&theme=light&hd=1&autohide=1&showicf7o=0&color=white&showicf7o=0?TB_iframe=true&width=960&height=540" class="thickbox">
+<a href="//www.youtube.com/embed/oUQKP6i-ukU?&autoplay=1&rel=0&theme=light&hd=1&autohide=1&showicf7o=0&color=white&showicf7o=0?TB_iframe=true&width=960&height=540" class="thickbox">
 
 
 <img src="<?php echo plugins_url('../assets/images/getting-started-video-thumb.jpg',__FILE__); ?>" align="center" width="70%">

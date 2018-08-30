@@ -348,11 +348,34 @@
 
     $(".esigactive").click(function () {
         $('.esigactiveinside').toggle(400);
+        if(!$('#esig-esigactive-box').hasClass('closed')){
+            $('#esig-esigactive-box').addClass('closed');
+        }
+        else {
+           $('#esig-esigactive-box').removeClass('closed'); 
+        }
         return false;
     });
 
     $(".urlredirect").click(function () {
         $('.urlredirectbody').toggle(400);
+         if(!$('#esig-urlredirect-box').hasClass('closed')){
+            $('#esig-urlredirect-box').addClass('closed');
+        }
+        else {
+           $('#esig-urlredirect-box').removeClass('closed'); 
+        }
+        return false;
+    });
+    
+    $(".acesscontrol").click(function () {
+        $('.acesscontrolbody').toggle(400);
+         if(!$('#esig-acesscontrol-box').hasClass('closed')){
+            $('#esig-acesscontrol-box').addClass('closed');
+        }
+        else {
+           $('#esig-acesscontrol-box').removeClass('closed'); 
+        }
         return false;
     });
 

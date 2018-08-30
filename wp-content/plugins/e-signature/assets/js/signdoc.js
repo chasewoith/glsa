@@ -3,7 +3,7 @@
 (function ($) {
 
     "use strict";
-    
+
     var popup_contenat_id = 'signer-signature'; //Id of the pop-up content
 
     var sender_input = $('input[name="sender_signature"]');
@@ -38,11 +38,16 @@
         $('#esig-mobile-footer').hide();
     }
 
+    // fill the screen width input 
+
+    $("#esig-screen-width").val(screen.width);
     // tab start here
     $('#tabs').smartTab({autoProgress: false, stopOnFocus: true, transitionEffect: 'vSlide'});
 
     // If read-only form is present, the doc has been signed. Show signatures
+
     if (document.forms['readonly']) {
+
         if (esigAjax.esig_mobile == '1')
         {
             $('#esig-footer').hide();
@@ -58,6 +63,7 @@
 
         //console.log('reci:'+$('input[name="recipient_signature"]').val());
         recipient_input = recipient_input[0];
+
         if (recipient_input) {
 
             var sig = recipient_input.value;
@@ -68,6 +74,7 @@
 
 
             if (sig != "") {
+
                 if (signatureDisplayRecipient) {
                     signatureDisplayRecipient.regenerate(sig);
                 }
@@ -88,6 +95,10 @@
                     return;
                 }
 
+                if ($("#signatureCanvas2").hasClass("esig-signing-disabled")) {
+
+                    return false;
+                }
 
 
                 if (esigAjax.esig_mobile == '1')
@@ -100,6 +111,7 @@
                         $('#recipient_first_name').focus();
                         return false;
                     }
+
                     $('#esignature-in-text').val(fname);
 
                     $("#esig-mobile-dialog").modal('show');
@@ -161,7 +173,18 @@
                     $("#esignature-in-text").css('border', '1px solid #ff0000');
                     return false;
                 }
+                
+                if (!esign.isFullName(signature_type) && $("#recipient_first_name").hasClass("esig-no-form-integration"))
+                {
+                    //alert("A full name including your first and last name is required.");
+                    $("#esignature-in-text").formError("A full name including your first and last name is required.");
+                    $("input[name='esignature_in_text']").focus();
+                    $("#esignature-in-text").css('border', '1px solid #ff0000');
+                    return false;
+                }
 
+
+                $("input[name='recipient_first_name']").val(signature_type);
                 // signature adding removing type and enabling draw
                 $('#esig-signature-added').show();
                 $('.signature-wrapper-displayonly .esig-sig-type').remove();
@@ -183,6 +206,7 @@
                 if (validator.numberOfInvalids() == 0) {
                     $('#esig-print-button').remove();
                     $('#esig-pdf-download').remove();
+
                     $('#esig-agree-button').removeClass('disabled').trigger('showtip');
                 }
 
@@ -322,6 +346,14 @@
             $("input[name='esignature_in_text']").focus();
             return false;
         }
+        if (!esign.isFullName(signature_type) && $("#recipient_first_name").hasClass("esig-no-form-integration"))
+        {
+            //alert("A full name including your first and last name is required.");
+            $("#esignature-in-text").formError("A full name including your first and last name is required.");
+            $("input[name='esignature_in_text']").focus();
+            $("#esignature-in-text").css('border', '1px solid #ff0000');
+            return false;
+        }
 
         validator.form();
 
@@ -334,6 +366,11 @@
             var fname = $("input[name='recipient_first_name']").val();
             $('#esig-iam').html(Esign_localize.iam + ' ' + fname + ' ' + Esign_localize.and + ' ');
         }
+    });
+
+
+    $('#esignature-in-text').keypress(function () {
+        $(this).formError({remove: true});
     });
 
     // Validate form when user has signed
@@ -492,13 +529,20 @@
         var fname = $("input[name='recipient_first_name']").val();
         if (!fname)
         {
-            alert("Your legal name can not be empty");
+            alert("Your legal name can not be empty.");
             return false;
         }
 
         if (fname.replace(/\s+/g, '').length == 0)
         {
-            alert("Your legal name can not be empty");
+            alert("Your legal name can not be empty.");
+            $("input[name='esignature_in_text']").focus();
+            return false;
+        }
+
+        if (!esign.isFullName(fname) && $("#recipient_first_name").hasClass("esig-no-form-integration"))
+        {
+            alert("A full name including your first and last name is required.");
             $("input[name='esignature_in_text']").focus();
             return false;
         }
@@ -511,8 +555,7 @@
 
         if ($(this).hasClass('already-signed')) {
             return false;
-        }
-        else {
+        } else {
             $(this).addClass('already-signed');
             $(this).html('Signing...');
         }
@@ -583,28 +626,28 @@ jQuery(".esig-template-page .agree-button").tooltips();
  */
 
 (function ($) {
-    
+
     $(document).ready(function () {
         makeSignatureKeyboardAccessible();
     });
 
     function makeSignatureKeyboardAccessible() {
-        
+
         var signaturePopup = $('.signature-wrapper-displayonly');
-        
+
         if (signaturePopup) {
             signaturePopup.attr('tabindex', 0);
         }
-        
+
         $(document).on('keypress', signaturePopup, function (e) {
             var code = e.keyCode || e.which;
-            
+
             if (code == 13) {
                 signaturePopup.click();
             }
         });
     }
-    
+
 })(jQuery);
 
 

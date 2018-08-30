@@ -23,7 +23,7 @@ if(backupGuardIsAjax() && count($_POST)) {
 			}
 		}
 
-		die('0');
+		die(json_encode(array()));
 	}
 	catch(Exception $e) {
 		die(json_encode(array(

@@ -33,7 +33,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
        if($result->license !='valid' && $result->license !== 'inactive') { ?>
 
-       <p><h3 class="activate-license esign-feedback-alert"><span class="icon-esig-alert"></span> <?php
+       <p><h3 class="esig-activate-license esign-feedback-alert"><span class="icon-esig-alert"></span> <?php
         Esign_licenses::esig_super_admin(true); ?>, <?php _e('You will need to activate your license to get started!','esig');?></h3></p>
 
        	<?php  } // invalid end here

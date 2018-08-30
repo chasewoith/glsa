@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_i
 Tags: contact form 7, contact form 7 module, form layout, styling, contact form 7 extension, responsive layout
 Requires at least: 4.7
 Requires PHP: 5.6
-Tested up to: 4.9.4
+Tested up to: 4.9.5
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -74,13 +74,13 @@ This plugin would not have been possible without the following open-source effor
 
 == Frequently Asked Questions ==
 
-= How do I drag and sort columns in the grid editor ? =
+= 1.How do I drag and sort columns in the grid editor ? =
 
 Columns can be rearranged within a row by simply dragging and dropping using the handled icon in the columns head.  You can also drag and drop a column into another row, if the target row has sufficient space to receive the column, else a warning msg will appear.  In that case, make some room in the target row and/or resize the column so as to ensure it will fit in the row.
 
 Similarly you can re-organise your rows within a given grid.  Your initial form is grid.  You can convert an existing column into a grid.
 
-= How do I create a dynamic dropdown list ?=
+= 2.How do I create a dynamic dropdown list ?=
 
 simply create a new dynamic dropdown field using the added tag in the list of available tags and select the type of dynamic list you want to populate with.  You create a list which will appear in the Information metabox in your edit page once you save your form.  It uses the taxonomy management functionality of WordPress but is not associated with any posts as such.  Simply edit the list by adding new terms to your list.  These will appear in your dropdown field.
 
@@ -88,22 +88,22 @@ Alternatively select an existing posts from your dashboard and the post titles w
 
 You also have the option to select a dynamic filter, and then the plugin will hook your functionality in your functions.php file to get your custom list.
 
-=How do I make nice dropdown selects? =
+= 3.How do I make nice dropdown selects? =
 
 When you create a dynamic dropdown, or a cf7 dropdown field, you add `class:nice-select` to your tag or 'nice-select' in the class text field option.  The plugin will convert your dropdown into a beautiful [nice-select](http://hernansartorio.com/jquery-nice-select/) field.
 
-=How do I make powerful select2 dropdowns? =
+= 4.How do I make powerful select2 dropdowns? =
 
 When you create a dynamic dropdown, or a cf7 dropdown field, you add `class:select2` to your tag or 'select2' in the class text field option.  The plugin will convert your dropdown into a powerful and searchable [JQuery Select2](https://select2.org/) field.  You can also enable select custom user options (known as tagging in the plugin documentation: https://select2.org/tagging) by adding the 'tags' class to your cf7 tag, `class:tags`.
 
-= How do I display a pretty toggle switch on my collapsible section? =
+= 5.How do I display a pretty toggle switch on my collapsible section? =
 
 When you convert a row into a collapsible section (see [Screenshot 8](https://wordpress.org/plugins/cf7-grid-layout/#screenshots)), you can check the toggle option which will insert 2 data attributes into your html row, with labels for the toggle switch on/off state.  The default labels are 'yes' for on and 'no' for off.  You can change the `data-on` and `data-off` attributes in the html text editor.  Your form will display a [toggle switch](https://simontabor.com/labs/toggles/).
 
-= How do I reset a form?=
+= 6.How do I reset a form?=
 Navigate to the 'text' editor of the form, select all the html and delete the editor content.  The plugin will create 1 default row with a single column in the 'grid' editor from which you can design your form afresh.
 
-= The columns are filled with default html field wrappers, how do I change this ?=
+= 7.The columns are filled with default html field wrappers, how do I change this ?=
 
 The plugin wraps each cf7 tag with the following html,
 `
@@ -126,21 +126,35 @@ function filter_pre_html($html, $cf7_key){
   //the $cf7_key is a unique string key to identify your form, which you can find in your form table in the dashboard.
 }`
 
-= How can I customise my form ?=
+= 8.How can I customise my form ?=
+**Custom scripts**
+The plugin will look for a javascript file `js/{$cf7key}.js` from the base of your theme root folder and load it on the page where your form is displayed.  Create a `js/` subfolder in your theme (or child theme folder), and create a file called `<your-form-cf7key>.js` in which you place your custom javascript code.
 
-The plugin will look for a javascript file `js/{$cf7key}.js` from the base of your theme root folder and load it on the page where your form is displayed.  Create a `js` subfolder in your theme (or child theme folder), and create a file called ''<cf7key>.js' in which you place your custom javascript code.  The '<cf7key>' is the unique key associated with your form which you can find in the Information metabox of your form edit page.
+The `$cf7key` is the unique key associated with your form which you can find in the Information metabox of your form edit page.
 
-Similarly you can create a `css` subfolder in your theme folder and create a file in it called '<cf7key>.css' and place your custom styling for your form.  The plugin will then load this css file on the page where your form is displayed.
+If you wish to [wp_enqueue_script](https://developer.wordpress.org/reference/functions/wp_enqueue_script/) a general javascript file for all your forms, you can use the hook `smart_grid_register_scripts`,
+`add_action('smart_grid_register_scripts', 'add_js_to_forms');
+function add_js_to_forms(){
+   wp_enqueue_script('my-custom-script', '<path to your custom js file>', array(), null, true);
+}`
+**custom styling**
+Similarly you can create a `css/` subfolder in your theme folder and create a file in it called `<your-form-cf7key>.css` and place your custom styling for your form.  The plugin will then load this css file on the page where your form is displayed.
 
-= Can I have required fields in toggled sections? =
+If you wish to [wp_enqueue_styles](https://developer.wordpress.org/reference/functions/wp_enqueue_style/) a general css stylesheet file for all your forms, you can use the hook `smart_grid_register_styles`,
+`add_action('smart_grid_register_styles', 'add_css_to_forms');
+function add_css_to_forms(){
+   wp_enqueue_style('my-custom-style', '<path to your custom sheet>', array(), null, 'all');
+}`
+
+= 9.Can I have required fields in toggled sections? =
 Yes, as of v1.1 of this plugin, toggled sections input fields are disabled when collapsed/unused, and therefore any fields within these sections are not submitted.  So you can design fields to be required when toggled sections are used, and the fields will be validated accordingly too.
 
 Please note that in the back-end, these fields which are listed in the form layout but are not submitted are set eventually set as null in the filtered submitted data.  So if you hook a functionality post the form-submission, be aware that you also need to test submitted values for `NULL` as opposed to empty.
 
-= Can I group toggled sections so as to have either/or sections ?=
+= 10.Can I group toggled sections so as to have either/or sections ?=
 Yes, with v1.1 you can the `data-group` attribute which by default is empty to regroup toggled sections and therefore ensure that only 1 of these grouped sections is used by a user.  Edit your form in the html editor (Text tab) and fill the `data-group` attribute with the same value (no spaces) for each toggled section (`div.container.with-toggle`) you wish to re-group.
 
-= I am using Post My CF7 Form plugin, how are toggles status saved in the database? =
+= 11.I am using Post My CF7 Form plugin, how are toggles status saved in the database? =
 When you install Post My CF7 Form plugin to map your form submissions to posts in the dashboard, this plugin will automatically save the toggle status, so that draft forms can be re-loaded as well accessing the data for later use.  The status of the toggle is saved to the custom meta-field `cf7sg_toggles_status`,
 `
 $toggles = get_post_meta($post->ID, 'cf7sg_toggles_status', true);
@@ -152,8 +166,16 @@ this will retrieve an array with the following `key=>value` pairs,
 the key is the unique id of your toggle `.container` element.  If you navigate to the element in the text editor you will notice that a random 'id' attribute has already been set, you can change this to something more meaningful.
 The value of the array if set at the text string comprised of the toggle label (which you filled in), followed by the positive selection string (toggle open status) which is 'Yes' by default, and separated by the '|' (pipe) character.  If the toggle has not been opened, no key/value pairs will be saved in the array for that toggle.
 
-= How can I navigate/search the text editor? =
+= 12.How can I navigate/search the text editor? =
 As of v1.3 a search functionality has been introduced.  Click anywhere in the text editor and press your search key combination (for example 'Ctrl+F' on windows/linux), you will see a search box at the top of the editor.  This is useful if you want to edit a specific field, so once you have added a new cf7 field tag with the name say 'your-email', you can then search for it on the text editor to locate the code.
+
+= 13. Can the text editor highlighting be turned off? =
+yes, you can use the following filters to either switch off only the shortcode highlighting, (add the following line to your functions.php file)
+
+`add_filter('cf7sg_admin_editor_mode', function($mode, $form_key){return '';}, 10, 2);`
+
+and you can also turn off highlight altogether by inserting this additional line to your functions.php file,
+`add_filter('cf7sg_admin_editor_theme', function($theme, $form_key){return '';}, 10, 2);`
 
 == Screenshots ==
 
@@ -174,60 +196,34 @@ As of v1.3 a search functionality has been introduced.  Click anywhere in the te
 15. A column can be converted into an entire existing cf7 form by editing the column ('pencil' button) and selecting the option 'Insert Form'.  This will convert the column into a dropdown field from which you can select an existing form that you have previously designed.  This makes for modular design of forms.
 16. This plugin introduces dynamic dropdowns, which allow you to manage dropdown field options using various content managed in your WordPress dashboard.  For example you can use taxonomy terms as options, or you can use existing post types' allowing your users to select/link existing content from your WordPress CMS managed data to their submission.  The dynamic dropdown can also be programmatically populated using a hook filter with the last option 'Custom'.
 17. A benchmark field is available which allows you to display warning when certain input values breach the benchmark limit.  The benchmark field also emits a javascript event when the limit is breached so that custom javascript action can be executed.
-
+18. Click on the code icon in any given column cell of the grid UI editor and it will take you to the equivalent code lines in the text editor.
+19. v2.0 of the plugin introduces inline field hooks helpers.  These are specific hooks which allow to filter custom aspect of the field.  Not all tags have field specific hooks, so if any are defined they will show up with the icon in the control bar.
 
 == Changelog ==
-= 1.5.2 =
-* fix bug on sub-forms grid fields.
-= 1.5.1 =
-* fix js/css script loading issue for other cf7 extensions that use global page_plugin.
-= 1.5.0 =
-* fix js/css script loading issue for other cf7 extensions.
-= 1.4.6 =
-* bug fix on subform inclusion in UI grid.
-= 1.4.5 =
-* bug fix on editor content for non sg forms.
-= 1.4.4 =
-* toggle status js error fix.
-= 1.4.3 =
-* bug fix on sub-form updates.
-* select2 search icon.
-= 1.4.2 =
-* bug fix on converting columns to grids.
-* bug fix on editing custom code in grid mode.
-= 1.4.1 =
-* removed jquery-ui styling, loading from cloudflare.
-* use of html5 datepicker is browser supports.
-= 1.4.0 =
-* added filter cf7sg_dynamic_dropdown_filter_options
-= 1.3.0 =
-* updated CodeMirror editor to v5.32
-* enabled search functionality in the editor.
-= 1.2.4 =
-* fix WP_GURUS_DEBUG constant warning.
-= 1.2.3 =
-* bug fix no plugin css/js for existing cf7 forms.
-* bug fix sortable columns in new rows.
-= 1.2.2 =
-* copy-to-click css for helper hooks.
-= 1.2.1 =
-* bug fix sorting external form rows.
-= 1.2.0 =
-* enable sortable drag and drop columns.
-* enable sortable rows.
-= 1.1.1 =
-* bug fix table button label.
-= 1.1.0 =
-* minor bug fix for post-my-cf7-form compatibility
-* introduction of grouped toggled sections
-* disabling of all fields in closed toggled sections
-* validation of dynamic forms with toggled sections.
-= 1.0.3 =
-* bug fix on mixed grid ui mode.
-* bug fix on saving form from text mode with no changes.
-= 1.0.2 =
-* bug fix on double field entries.
-= 1.0.1 =
-* minor bug fix
-= 1.0 =
-* A working plugin that plays nice with Post My CF7 Form plugin.
+= 2.2.0 =
+* allows custom filtered dynamic dropdown options to be html string.
+= 2.1.6 =
+* fix bug find form key by id
+= 2.1.5 =
+* better tracking of toggled fields to fix checkbox/radio validation bug.
+* fix recaptcha field bug.
+= 2.1.4 =
+* fix new form template setup for polylang managed translated forms.
+= 2.1.3 =
+* delay loading of cf7 hidden fields to overcome CF7 Conditional Fields plugin [bug](https://wordpress.org/support/topic/bug-plugin-overwrite-cf7-hidden-fields/).
+= 2.1.2 =
+* bug fix click event on toggled titles.
+= 2.1.1 =
+* bug fix on helper classes for dynamic dropdowns.
+= 2.1.0 =
+* fix grid UI css issue.
+* added hook to deactivate plugin when cf7 plugin is deactivated.
+* improved email tag display for html mails for table and tab field values.
+= 2.0.1 =
+* bug fix inline helper for multiple tags in single cell.
+* inline helper cleanup.
+= 2.0.0 =
+* cleanup of helpers.
+* added dynamic dropdown field filter 'cf7sg_dynamic_dropdown_option_attributes'.
+* added dynamic dropdown field filter 'cf7sg_dynamic_dropdown_option_label'.
+* added dynamic inline filter helpers on grid UI cells.

@@ -48,7 +48,7 @@ class Cc_Settings {
 
         $esig_cc_user_info = array();
 
-        for ($i = 0; count($esig_cc_recipient_emails) > $i; $i++) {
+        for ($i = 0; count((array)$esig_cc_recipient_emails) > $i; $i++) {
             $esig_cc_user_info[] = array(
                 'first_name' => $esig_cc_recipient_fnames[$i],
                 'email_address' => $esig_cc_recipient_emails[$i]
@@ -61,11 +61,11 @@ class Cc_Settings {
     }
 
     public static function get_cc_preview($checksum) {
-        return add_query_arg(array('ccpreview' => 1, 'csum' => $checksum), get_permalink(WP_E_Sig()->setting->get_default_page()));
+        return add_query_arg(array('ccpreview' => 1, 'csum' => $checksum), _get_page_link(WP_E_Sig()->setting->get_default_page()));
     }
 
     public static function cc_preview_url($document_id) {
-        return add_query_arg(array('esigpreview' => 1, 'document_id' => $document_id, 'cc_user_preview' => 1), get_permalink(WP_E_Sig()->setting->get_default_page()));
+        return add_query_arg(array('esigpreview' => 1, 'document_id' => $document_id, 'cc_user_preview' => 1), _get_page_link(WP_E_Sig()->setting->get_default_page()));
     }
     
     public static function signerList($docId){

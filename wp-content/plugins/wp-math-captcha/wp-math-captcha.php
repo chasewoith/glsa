@@ -2,7 +2,7 @@
 /*
 Plugin Name: Math Captcha
 Description: Math Captcha is a <strong>100% effective CAPTCHA for WordPress</strong> that integrates into login, registration, comments, Contact Form 7 and bbPress.
-Version: 1.2.7
+Version: 1.2.9
 Author: dFactory
 Author URI: http://www.dfactory.eu/
 Plugin URI: http://www.dfactory.eu/plugins/math-captcha/
@@ -12,7 +12,7 @@ Text Domain: math-captcha
 Domain Path: /languages
 
 Math Captcha
-Copyright (C) 2013-2015, Digital Factory - info@digitalfactory.pl
+Copyright (C) 2013-2018, Digital Factory - info@digitalfactory.pl
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -38,7 +38,7 @@ include_once(MATH_CAPTCHA_PATH . 'includes/class-settings.php');
  * Math Captcha class.
  * 
  * @class Math_Captcha
- * @version 1.2.7
+ * @version 1.2.8
  */
 class Math_Captcha {
 
@@ -73,7 +73,7 @@ class Math_Captcha {
 			'deactivation_delete'		 => false,
 			'flush_rules'				 => false
 		),
-		'version'	 => '1.2.7'
+		'version'	 => '1.2.9'
 	);
 
 	public static function instance() {
@@ -90,8 +90,8 @@ class Math_Captcha {
 	 * Class constructor.
 	 */
 	public function __construct() {
-		register_activation_hook( __FILE__, array( &$this, 'activation' ) );
-		register_deactivation_hook( __FILE__, array( &$this, 'deactivation' ) );
+		register_activation_hook( __FILE__, array( $this, 'activation' ) );
+		register_deactivation_hook( __FILE__, array( $this, 'deactivation' ) );
 
 		// settings
 		$this->options = array(
@@ -99,14 +99,14 @@ class Math_Captcha {
 		);
 
 		// actions
-		add_action( 'plugins_loaded', array( &$this, 'load_textdomain' ) );
-		add_action( 'admin_enqueue_scripts', array( &$this, 'admin_comments_scripts_styles' ) );
-		add_action( 'wp_enqueue_scripts', array( &$this, 'frontend_comments_scripts_styles' ) );
-		add_action( 'login_enqueue_scripts', array( &$this, 'frontend_comments_scripts_styles' ) );
+		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'admin_comments_scripts_styles' ) );
+		add_action( 'wp_enqueue_scripts', array( $this, 'frontend_comments_scripts_styles' ) );
+		add_action( 'login_enqueue_scripts', array( $this, 'frontend_comments_scripts_styles' ) );
 
 		// filters
-		add_filter( 'plugin_action_links', array( &$this, 'plugin_settings_link' ), 10, 2 );
-		add_filter( 'plugin_row_meta', array( &$this, 'plugin_extend_links' ), 10, 2 );
+		add_filter( 'plugin_action_links', array( $this, 'plugin_settings_link' ), 10, 2 );
+		add_filter( 'plugin_row_meta', array( $this, 'plugin_extend_links' ), 10, 2 );
 	}
 
 	/**

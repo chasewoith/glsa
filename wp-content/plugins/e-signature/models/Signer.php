@@ -89,6 +89,15 @@ class WP_E_Signer extends WP_E_Model {
                         )
         );
     }
+    
+     public function all_signer_documents($user_id) {
+
+        return $this->wpdb->get_results(
+                        $this->wpdb->prepare(
+                                "SELECT * FROM " . $this->table . " WHERE user_id = %d", $user_id
+                        )
+        );
+    }
 
     public function display_signers() {
 

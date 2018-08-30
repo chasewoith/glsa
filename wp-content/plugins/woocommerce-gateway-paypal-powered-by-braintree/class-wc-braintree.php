@@ -88,7 +88,7 @@ class WC_Braintree extends WC_Braintree_Framework\SV_WC_Payment_Gateway_Plugin {
 
 
 	/** plugin version number */
-	const VERSION = '2.1.1';
+	const VERSION = '2.1.3';
 
 	/** @var WC_Braintree single instance of this plugin */
 	protected static $instance;
@@ -431,7 +431,7 @@ class WC_Braintree extends WC_Braintree_Framework\SV_WC_Payment_Gateway_Plugin {
 		if ( isset( $paypal_settings['enabled'] ) && 'yes' == $paypal_settings['enabled'] ) {
 			if ( isset( $paypal_settings['environment'] ) && 'production' == $paypal_settings['environment'] ) {
 
-				if ( 'no' === get_option( 'woocommerce_force_ssl_checkout' ) && ! $this->get_admin_notice_handler()->is_notice_dismissed( 'ssl-recommended-notice' ) ) {
+				if ( ! WC_Braintree_Framework\SV_WC_Plugin_Compatibility::wc_checkout_is_https() && ! $this->get_admin_notice_handler()->is_notice_dismissed( 'ssl-recommended-notice' ) ) {
 
 					$this->get_admin_notice_handler()->add_admin_notice( __( 'WooCommerce is not being forced over SSL -- Using PayPal with Braintree requires that checkout to be forced over SSL.', 'woocommerce-gateway-paypal-powered-by-braintree' ), 'ssl-recommended-notice' );
 				}

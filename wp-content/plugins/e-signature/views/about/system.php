@@ -162,7 +162,8 @@ SOAP Client:             <?php echo ( class_exists('SoapClient') ? 'Installed' :
 Suhosin:                 <?php echo ( extension_loaded('suhosin') ? 'Installed' : 'Not Installed' ) . "\n"; ?>
 Openssl Encryption:      <?php echo ( function_exists('openssl_encrypt') ? 'Supported' : 'Not Supported***' ) . "\n"; ?>
 MCrypt:                  <?php echo ( function_exists('mcrypt_create_iv') ? 'Supported' : 'Not Supported***' ) . "\n"; ?>
-MbString:                <?php echo ( function_exists('mb_split') ? 'Supported' : 'Not Supported***' ) . "\n"; ?>
+MbString:                <?php echo ( function_exists('mb_split') ? 'Supported' : 'Not Supported' ) . "\n"; ?>
+BCMath:                  <?php echo ( function_exists('bcmod') ? 'Supported' : 'Not Supported***' ) . "\n"; ?>
 
 
 ===== Session Configuration =====

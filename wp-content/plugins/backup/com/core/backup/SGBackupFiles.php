@@ -30,7 +30,7 @@ class SGBackupFiles implements SGArchiveDelegate
 
 	public function __construct()
 	{
-		$this->rootDirectory = rtrim(realpath(SGConfig::get('SG_APP_ROOT_DIRECTORY')), '/').'/';
+		$this->rootDirectory = rtrim(SGConfig::get('SG_APP_ROOT_DIRECTORY'), '/').'/';
 		$this->progressUpdateInterval = SGConfig::get('SG_ACTION_PROGRESS_UPDATE_INTERVAL');
 	}
 
@@ -166,23 +166,25 @@ class SGBackupFiles implements SGArchiveDelegate
 
 		$this->cursor = $state->getCursor();
 
-		$fileTreeHandle = fopen(dirname($this->filePath).'/'.SG_TREE_FILE_NAME, 'r');
-		if ($fileTreeHandle) {
-			fseek($fileTreeHandle, $this->cursor);
-			while (($fileTreeLine = fgets($fileTreeHandle)) !== false) {
-				$file = unserialize($fileTreeLine);
+		if (file_exists(dirname($this->filePath).'/'.SG_TREE_FILE_NAME)) {
+			$fileTreeHandle = fopen(dirname($this->filePath).'/'.SG_TREE_FILE_NAME, 'r');
+			if ($fileTreeHandle) {
+				fseek($fileTreeHandle, $this->cursor);
+				while (($fileTreeLine = fgets($fileTreeHandle)) !== false) {
+					$file = unserialize($fileTreeLine);
 
-				if (!$state->getInprogress()) {
-					SGBackupLog::writeAction('backup file: '.$file['path'], SG_BACKUP_LOG_POS_START);
+					if (!$state->getInprogress()) {
+						SGBackupLog::writeAction('backup file: '.$file['path'], SG_BACKUP_LOG_POS_START);
+					}
+
+					$path = $file['path'];
+					$this->addFileToArchive($path);
+					SGBackupLog::writeAction('backup file: '.$file['path'], SG_BACKUP_LOG_POS_END);
+
+					$this->cursor = ftell($fileTreeHandle);
+					$this->cdrSize = $this->sgbp->getCdrFilesCount();
+					$this->saveStateData(SG_STATE_ACTION_COMPRESSING_FILES, array(), 0, 0, false, $state->getFileOffsetInArchive());
 				}
-
-				$path = $file['path'];
-				$this->addFileToArchive($path);
-				SGBackupLog::writeAction('backup file: '.$file['path'], SG_BACKUP_LOG_POS_END);
-
-				$this->cursor = ftell($fileTreeHandle);
-				$this->cdrSize = $this->sgbp->getCdrFilesCount();
-				$this->saveStateData(SG_STATE_ACTION_COMPRESSING_FILES, array(), 0, 0, false, $state->getFileOffsetInArchive());
 			}
 		}
 
@@ -313,8 +315,9 @@ class SGBackupFiles implements SGArchiveDelegate
 	private function prepareFileTree($allItems)
 	{
 		$entries = array();
+
 		foreach ($allItems as $item) {
-			$path = realpath($this->rootDirectory.$item);
+			$path = $this->rootDirectory.$item;
 			$this->addDirectoryEntriesInFileTree($path, $entries);
 		}
 
@@ -362,11 +365,14 @@ class SGBackupFiles implements SGArchiveDelegate
 		if (is_dir($path)) {
 			if ($handle = @opendir($path)) {
 				while (($file = readdir($handle)) !== false) {
-					if ($file === '.') {
+					if ($file === '.' || $file === '..') {
 						continue;
 					}
-					if ($file === '..') {
-						continue;
+
+					if (SG_ENV_ADAPTER == SG_ENV_WORDPRESS) {
+						if (($path == $this->rootDirectory || $path == $this->rootDirectory.'wp-content') && strpos($file, 'backup') !== false) {
+							continue;
+						}
 					}
 
 					$this->addDirectoryEntriesInFileTree($path.'/'.$file, $entries);

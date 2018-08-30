@@ -210,7 +210,7 @@ if (!function_exists('esig_verify_nonce')) {
         // wp nonce verification does not work for non logged in user with page cache and woocommerce. 
         if (function_exists('wc')) {
             global $woocommerce;
-            if (!is_null(WC()->session) && sizeof($woocommerce->cart->cart_contents) > 0) {
+             if (!is_null(WC()->session)) {
                 return true;
             }
         }
@@ -225,6 +225,14 @@ if (!function_exists('esig_verify_nonce')) {
 if (!function_exists('esig_verify_not_spam')) {
 
     function esig_verify_not_spam() {
+        
+        
+        $check_spam= apply_filters("esig_check_spam",true);
+        
+        if(!$check_spam){
+            return true;
+        }
+        
         $sp = esigpost('esig_sp_url');
         if (empty($sp)) {
             return true;
@@ -358,14 +366,14 @@ if (!function_exists('esig_strip_shortcodes')) {
  */
 if (!function_exists('esig_strip_other_shortcodes')) {
 
-    function esig_strip_other_shortcodes($content) {
+    function esig_strip_other_shortcodes($content, $document_Type = "normal") {
 
 
         global $shortcode_tags;
 
         $tags_to_keep = array("esigget", "esigtextfield", "esigtextarea", "esigtodaydate", "esigdatepicker", "esigradio", "esigcheckbox", "esigdropdown", "esigfile",
-            "esigcf7", "esigformidable", "esigninja", "esigcaldera","esigwpform", "esig-woo-order-details", "esig-edd-order-details","esigtemptextfield",
-            "esigtemptextarea","esigtempdatepicker","esigtempradio","esigtempcheckbox","esigtempdropdown","esiggravity");
+            "esigcf7", "esigformidable", "esigninja", "esigcaldera", "esigwpform", "esig-woo-order-details", "esig-edd-order-details", "esigtemptextfield",
+            "esigtemptextarea", "esigtempdatepicker","esigtempfile","esigtemptodaydate", "esigtempradio", "esigtempcheckbox", "esigtempdropdown", "esiggravity","esig-page-break");
 
         if (false === strpos($content, '[')) {
             return $content;
@@ -388,7 +396,7 @@ if (!function_exists('esig_strip_other_shortcodes')) {
         if (empty($tagnames)) {
             return $content;
         }
-        
+
         $tags_to_remove = array();
 
         foreach ($tagnames as $key => $name) {
@@ -405,12 +413,15 @@ if (!function_exists('esig_strip_other_shortcodes')) {
         }
 
         $adminName = WP_E_Sig()->user->getUserFullName();
-        
+
         // striping non exist shortcode 
         if (!empty($tags_to_remove)) {
 
-            $msg = sprintf(__("Hey %s! :-) Looks like you inserted a non e-signature shortcode into your document, which is not active and has been removed automatically.", "esig"), $adminName);
-            WP_E_Notice::instance()->set("error striped", $msg);
+            if ($document_Type == "normal") {
+               
+                $msg = sprintf(__("Hey %s! :-) Looks like you inserted a non e-signature shortcode into your document, which is not active and has been removed automatically.", "esig"), $adminName);
+                WP_E_Notice::instance()->set("error striped", $msg);
+            }
 
             $content = do_shortcodes_in_html_tags($content, true, $tags_to_remove);
 
@@ -418,19 +429,20 @@ if (!function_exists('esig_strip_other_shortcodes')) {
             $nonPattern = get_shortcode_regex($tags_to_remove);
             $content = preg_replace_callback("/$nonPattern/", 'strip_shortcode_tag', $content);
         }
-       
-        if (!empty($tagnames)) {
 
-            $msg = sprintf(__("Hey %s! :-) Looks like you inserted a non e-signature shortcode into your document, which we have rendered and stored into database permanently.", "esig"), $adminName);
-            WP_E_Notice::instance()->set("error stored", $msg);
-        }else {
+        if (!empty($tagnames)) {
+            if ($document_Type == "normal") {
+                
+                $msg = sprintf(__("Hey %s! :-) Looks like you inserted a non e-signature shortcode into your document, which we have rendered and stored into database permanently.", "esig"), $adminName);
+                WP_E_Notice::instance()->set("error stored", $msg);
+            }
+        } else {
             return $content;
         }
         // rendering non e-signature shortcode. 
         $content = do_shortcodes_in_html_tags($content, true, $tagnames);
         $pattern = get_shortcode_regex($tagnames);
-
-
+        
         $content = preg_replace_callback("/$pattern/", 'do_shortcode_tag', $content);
         // Always restore square braces so we don't break things like <!--[if IE ]>
         $content = unescape_invalid_shortcodes($content);

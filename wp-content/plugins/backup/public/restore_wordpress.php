@@ -44,6 +44,29 @@ if ($action == 'finalize') { //finalize action needs WordPress functions to work
 		activate_plugin($freePluginFile);
 	}
 }
+else {
+	//require anything we need for only wpdb to run
+	require_once(ABSPATH.'wp-includes/version.php');
+	require_once(ABSPATH.'wp-includes/formatting.php');
+	require_once(ABSPATH.'wp-includes/plugin.php');
+	require_once(ABSPATH.'wp-includes/class-wp-error.php');
+
+	//starting from WordPress 4.7.1 is_wp_error() has been moved to another location
+	//wpdb needs it, so we create it here
+	if (!function_exists('is_wp_error')) {
+		function is_wp_error($thing) {
+			return ($thing instanceof WP_Error);
+		}
+	}
+
+	require_once(ABSPATH.'wp-includes/wp-db.php');
+	global $wpdb;
+	$wpdb = new wpdb(DB_USER, DB_PASSWORD, DB_NAME, DB_HOST);
+	$wpdb->db_connect();
+}
+
+//the mysql version is needed for the charset handler
+define('SG_MYSQL_VERSION', $wpdb->db_version());
 
 $dbCharset = 'utf8';
 if (@constant("DB_CHARSET")) {

@@ -21,7 +21,7 @@ if (!isset($collapseable)) {
 					<div class="wf-block-title">
 						<strong><?php _e('Email Alert Preferences', 'wordfence'); ?></strong>
 					</div>
-					<?php if ($collapseable): ?><div class="wf-block-header-action"><div class="wf-block-header-action-disclosure"></div></div><?php endif; ?>
+					<?php if ($collapseable): ?><div class="wf-block-header-action"><div class="wf-block-header-action-disclosure" role="checkbox" aria-checked="<?php echo (wfPersistenceController::shared()->isActive($stateKey) ? 'true' : 'false'); ?>" tabindex="0"></div></div><?php endif; ?>
 				</div>
 			</div>
 			<div class="wf-block-content">
@@ -90,6 +90,17 @@ if (!isset($collapseable)) {
 							'disabledValue' => 0,
 							'value' => wfConfig::get('alertOn_loginLockout') ? 1 : 0,
 							'title' => __('Alert when someone is locked out from login', 'wordfence'),
+						))->render();
+						?>
+					</li>
+					<li>
+						<?php
+						echo wfView::create('options/option-toggled', array(
+							'optionName' => 'alertOn_breachLogin',
+							'enabledValue' => 1,
+							'disabledValue' => 0,
+							'value' => wfConfig::get('alertOn_breachLogin') ? 1 : 0,
+							'title' => __('Alert when someone is blocked from logging in for using a password found in a breach', 'wordfence'),
 						))->render();
 						?>
 					</li>

@@ -18,8 +18,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 		
 		if(isset($data['signature']) && $data['signature']=="yes")
 		{
-			
-			echo '<img class="signature-image" src="'. $esignature->display_signature($data['user_id'],$data['signed_doc_id'],$data['esig_sig_nonce']) . '" width="320px" height="100px">'; 
+			$width = $esignature->getScreenWidth($data['user_id'],$data['signed_doc_id']);
+			echo '<img class="signature-image" src="'. $esignature->display_signature($data['user_id'],$data['signed_doc_id'],$data['esig_sig_nonce']) . '" width="'. $width .'" height="100px">'; 
 			
 		}
 		elseif(isset($data['signature']) && $data['signature']=="old-aams")

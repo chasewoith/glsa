@@ -33,7 +33,7 @@ class WP_E_Signature extends WP_E_Model {
         } else {
             $json = $this->getDocumentSignature($user_id, $doc_id);
         }
-       
+
         $file_name = ESIGN_PLUGIN_PATH . '/assets/temps/' . $user_id . '-' . $csum_id . '.txt';
 
         if (!@file_put_contents($file_name, $json)) {
@@ -110,6 +110,11 @@ class WP_E_Signature extends WP_E_Model {
             curl_close($ch);
         }
 
+        if (!$data) {
+            
+        }
+
+
         return $data;
     }
 
@@ -120,7 +125,11 @@ class WP_E_Signature extends WP_E_Model {
         if ($owner_id) {
             $user_id = $owner_id;
         }
+
+
+
         $image_url = (ESIGN_DIRECTORY_URI . 'lib/sigtoimage.php?uid=' . $user_id . '&doc_id=' . $check_sum_id . '&esig_verify=' . $nonce);
+
         $image_content = $this->esig_get_contents($image_url);
         // delete signature files 
         $this->unlink_signature_files($user_id, $check_sum_id);
@@ -199,6 +208,21 @@ class WP_E_Signature extends WP_E_Model {
         return $this->wpdb->get_var($this->wpdb->prepare("SELECT sign_date FROM {$this->joinTable} WHERE document_id=%d AND signature_id=%d", $document_id, $signature_id));
     }
 
+    public function signatureIpAddress($user_id, $document_id) {
+
+
+
+        /* $signature_id = $this->wpdb->get_var(
+
+          $this->wpdb->prepare("SELECT max(signature_id) FROM {$this->table} WHERE user_id = %d", $user_id)
+
+          ); */
+
+        $signature_id = $this->GetSignatureId($user_id, $document_id);
+
+        return $this->wpdb->get_var($this->wpdb->prepare("SELECT ip_address FROM {$this->joinTable} WHERE document_id=%d AND signature_id=%d", $document_id, $signature_id));
+    }
+
     public function GetSignatureId($user_id, $document_id) {
 
 
@@ -209,6 +233,24 @@ class WP_E_Signature extends WP_E_Model {
         } else {
             return FALSE;
         }
+    }
+
+    public function getScreenWidth($user_id, $check_sum_id) {
+
+        $document_id = WP_E_Sig()->document->document_id_by_csum($check_sum_id);
+        $signatureId = $this->GetSignatureId($user_id, $document_id);
+        $screen_width = WP_E_Sig()->meta->get($document_id, "signer-screen-width-" . $signatureId);
+        $width = 500;
+        if ($screen_width > 1100) {
+            $width = "auto";
+        } elseif ($screen_width > 600 && $screen_width < 1100) {
+            $width = "320px";
+        } elseif ($screen_width < 600 && $screen_width>0) {
+            $width = "auto";
+        } else {
+            $width = "320px";
+        }
+        return $width;
     }
 
     public function add($signatureJSON, $user_id, $signature_type = false) {
@@ -226,7 +268,7 @@ class WP_E_Signature extends WP_E_Model {
         $newdoc = new WP_E_Document();
         $date = $newdoc->esig_date();
 
-        $salt = hash('sha1', openssl_random_pseudo_bytes(32,$this->cryptoStrong)); // 40 chars
+        $salt = hash('sha1', openssl_random_pseudo_bytes(32, $this->cryptoStrong)); // 40 chars
 
         $signature_hash = hash('sha256', $signatureJSON);
 
@@ -290,7 +332,11 @@ class WP_E_Signature extends WP_E_Model {
     public function encrypt($salt, $data) {
 
         if (method_exists($this, "openEncrypt")) {
-            return $this->openEncrypt($data,$salt);
+            return $this->openEncrypt($data, $salt);
+        }
+
+        if (!function_exists("mcrypt_get_iv_size")) {
+            return false;
         }
 
         $iv = mcrypt_create_iv(mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_CBC), MCRYPT_DEV_URANDOM);
@@ -311,8 +357,12 @@ class WP_E_Signature extends WP_E_Model {
             $data = base64_decode($encrypted);
             $esig = substr($data, 0, 4);
             if ($esig == 'esig' && method_exists($this, "openDecrypt")) {
-                return $this->openDecrypt($data,$salt);
+                return $this->openDecrypt($data, $salt);
             }
+        }
+
+        if (!function_exists("mcrypt_get_iv_size")) {
+            return false;
         }
 
         $iv = substr($data, 0, mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_CBC));
@@ -330,10 +380,9 @@ class WP_E_Signature extends WP_E_Model {
     }
 
     public function openEncrypt($data, $salt = false) {
-        if($salt){
-            $key = $salt ; 
-        }
-        else {
+        if ($salt) {
+            $key = $salt;
+        } else {
             $key = $this->encryptKey;
         }
         $ivlen = openssl_cipher_iv_length($this->encryptionMethod);
@@ -367,7 +416,7 @@ class WP_E_Signature extends WP_E_Model {
                         )
         );
     }
-    
+
     public function getSignatureData_by_type($user_id, $signature_type) {
 
         return $this->wpdb->get_row(
@@ -400,7 +449,7 @@ class WP_E_Signature extends WP_E_Model {
     public function getDocumentSignature($user_id, $document_id) {
 
         $sig = $this->getDocumentSignatureData($user_id, $document_id);
-        
+
         if (!empty($sig)) {
             //echo '<h1>,'.stripslashes($this->decrypt($sig->signature_salt, $sig->signature_data)).'</h1>';
             return stripslashes($this->decrypt($sig->signature_salt, $sig->signature_data));
@@ -415,8 +464,8 @@ class WP_E_Signature extends WP_E_Model {
                         )
         );
     }
-    
-     /**
+
+    /**
      * Delete signature join with document id. 
      * @param type $id
      * @return type
@@ -425,6 +474,14 @@ class WP_E_Signature extends WP_E_Model {
         return $this->wpdb->query(
                         $this->wpdb->prepare(
                                 "DELETE FROM " . $this->joinTable . " WHERE document_id=%d", $id
+                        )
+        );
+    }
+
+    public function deleteSignature($user_id) {
+        return $this->wpdb->query(
+                        $this->wpdb->prepare(
+                                "DELETE FROM " . $this->table . " WHERE user_id=%d", $user_id
                         )
         );
     }

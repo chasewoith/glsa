@@ -14,6 +14,7 @@ abstract class Esign_Query {
     public static $table_fields ='documents_fields';
     public static $table_fields_meta = 'documents_fields_meta';
     public static $table_fields_data = 'documents_fields_data';
+    public static $table_signer_fields_data = 'documents_signer_field_data';
     public static $table_users = 'users' ; 
     public static $table_sad = 'documents_stand_alone_docs';
 

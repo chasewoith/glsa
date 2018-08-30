@@ -27,8 +27,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 <div class="document_date"><?php echo $data['document_date']; ?></div>
 <div class="signed_on"><?php _e('Signed On :', 'esig'); ?>  <?php echo $data['blog_url']; ?></div>
 <div class="document-sign-page">
-    
+         
+         <?php 
+         $document_title_display = apply_filters("esig_document_title_display",true,$data['document_id']);
+         if($document_title_display){
+         ?>
 	<p class="doc_title" id="doc_title"><?php echo $data['document_title']; ?></p>
+         <?php } ?>
  
 	<br />
 	<?php echo $data['document_content']; ?>

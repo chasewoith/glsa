@@ -96,7 +96,7 @@
                     </div>
                     <div class="sif_popup_right">
                         <!-- textbox advanced area -->
-                        <div class="sif_advanced_button_area" align="right">
+                        <div id="sif-file-advanced-button" class="sif_advanced_button_area" align="right">
                             <button id="sif_file_advanced_button" class="advanced-button icon-settings">
                                 <?php _e('Advanced','esig'); ?>
                             </button>
@@ -218,12 +218,26 @@
                         
                     </div>       
                 </div>
+                
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <?php _e('Enter your field label (Optional)','esig');?><br><br>
+                            <input type="text"  name="datepickerlabel" value="">
+                        </div>
+                        <div class="col-sm-6">
+                           <?php _e('Custom date range (Optional)','esig');?><br><br>
+                           <?php _e('Min date:','esig');?> <input type="text" placeholder="mm/dd/yyyy"  name="datepickerstartdate" value=""><br><br>
+                           <?php _e('Max date:','esig');?> <input type="text" placeholder="mm/dd/yyyy"  name="datepickerenddate" value="">
+                        </div>
+                    </div>
+                </div>
                 <p>
-                    <?php _e('Enter your field label (Optional)','esig');?><br>
-                    <input type="text"  name="datepickerlabel" value="">
+                    
                 </p>
                 <p>
                     <input type="checkbox" class="required" name="required" checked ><?php _e('Required', 'esig'); ?>
+                     <input type="checkbox" class="esig-picker-readonly" name="esig_datepicker_readonly" checked ><?php _e('Read only', 'esig'); ?>
                 </p>
                 
                 <div class="" align="left">
@@ -248,6 +262,45 @@
             </div>
         <!-- ************* date panel end here ************ -->
 		
+        
+        
+        <!-- ################## signed date panel start here ##############  -->
+        
+            <div class="esigpanel esig-sif-panel-todaydate" style="display:none;">
+                <div align="center" class="esig-sif-popup-logo">
+                    <img src="<?php echo ESIGN_ASSETS_DIR_URI ; ?>/images/logo.svg">
+                </div>
+                <p align="center" class="esig-sif-instructions">
+                    <?php _e('Add a date field to fill automatically.', 'esig' );?>
+                </p>
+                <div class="sif_popup_main_todaydate">
+                    <div class="sif_popup_left">
+                        
+                    </div>       
+                </div>
+                <p></p>
+                
+                <div class="" align="left">
+                   
+                    <select id="todaydate_display_type" style="width:460px">
+                        <option value="border"><?php _e('Create a border around submitted results','esig'); ?></option>
+                        <option value="underline"><?php _e('Underline submitted results','esig'); ?></option>
+                        <option value="plaintext"><?php _e('Display the submitted results as plain text(no border or underline)','esig'); ?></option>
+                    </select>
+                    
+                </div>
+                
+                <p align="center">
+                    <a class="esig-mini-btn esig-blue-btn insert-todaydate display-type">
+                        <?php _e('Insert signed date', 'esig' );?>
+                    </a>
+                </p>
+                <div id="esign-sif-signer-msg" class="esig-sif-signer-message" style="display:none;">
+                    <?php  _e('*You must assign this field to a specific signer.','esig'); ?></br>
+                    <?php  _e('Please select a signer from the dropdown and try again.','esig'); ?>
+                </div>
+            </div>
+        <!-- ************* signed date panel end here ************ -->
 		
 	
         
@@ -339,7 +392,7 @@
                     </div>
                     <div class="sif_popup_right" valign="top">
                         <!-- textbox advanced area -->
-                        <div class="sif_advanced_button_area">
+                        <div  id="sif-checkbox-advanced-button" class="sif_advanced_button_area">
                             <button id="sif_checkbox_advanced_button" class="advanced-button icon-settings">
                                 <?php _e('Advanced','esig'); ?>
                             </button>

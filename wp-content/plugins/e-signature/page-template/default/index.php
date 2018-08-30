@@ -10,7 +10,7 @@
 
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
 
         <meta name="description" content="">
 
@@ -32,12 +32,11 @@
         ?>
         <!--/noptimize-->
 
-
     </head>
 
 
 
-    <body <?php body_class(array('esig-template-page ')); ?> oncontextmenu="return true;">
+    <body class="esig-template-page" oncontextmenu="return true;">
 
         <div id="page_loader" style="display:none;">
 
@@ -70,7 +69,7 @@
 
 
 
-                <div class="nav navbar-nav navbar-right doclogo-right">
+                <div class="nav navbar-nav <?php if(!is_rtl()) { echo 'navbar-right';}?> doclogo-right">
 
                     <span class="hint--bottom  hint--rounded hint--bounce" data-hint="Click here to learn more about the security and protection of the document you are signing.">
 
@@ -185,7 +184,7 @@
 
 
 
-                <div class="nav navbar-nav navbar-right footer-btn">
+                <div class="nav navbar-nav <?php if(!is_rtl()) { echo 'navbar-right';}?> footer-btn">
 
                     <?php
                     $defalut_page_id = WP_E_Sig()->setting->get_generic('default_display_page');
@@ -222,6 +221,7 @@
 
         <?php
         if (wp_is_mobile()):
+            
             ?>
             <div id="esig-mobile-footer" class="footer-agree">
 

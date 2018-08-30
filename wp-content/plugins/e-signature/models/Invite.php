@@ -231,26 +231,26 @@ class WP_E_Invite extends WP_E_Model {
      * @return string
      */
     public static function get_invite_url($invite_hash, $invite_checksum) {
-          $inviteUrl= esc_url_raw(add_query_arg(apply_filters("esig_invite_url_filter", array('invite' => $invite_hash, 'csum' => $invite_checksum)), get_permalink(WP_E_Sig()->setting->get_default_page())));
+          $inviteUrl= esc_url_raw(add_query_arg(apply_filters("esig_invite_url_filter", array('invite' => $invite_hash, 'csum' => $invite_checksum)), WP_E_Sig()->setting->default_link()));
  	  return apply_filters( 'esig_invite_url', $inviteUrl );
     }
 
     public static function get_preview_url($document_id, $hash = false) {
         if ($hash) {
-            $previewUrl= esc_url_raw(add_query_arg(array('esigpreview' => 1, 'document_id' => $document_id, 'hash' => $hash), get_permalink(WP_E_Sig()->setting->get_default_page())));
+            $previewUrl= esc_url_raw(add_query_arg(array('esigpreview' => 1, 'document_id' => $document_id, 'hash' => $hash), WP_E_Sig()->setting->default_link()));
         } else {
-            $previewUrl=esc_url_raw(add_query_arg(array('esigpreview' => 1, 'document_id' => $document_id), get_permalink(WP_E_Sig()->setting->get_default_page())));
+            $previewUrl=esc_url_raw(add_query_arg(array('esigpreview' => 1, 'document_id' => $document_id), WP_E_Sig()->setting->default_link()));
         }
         return apply_filters( 'esig_preview_url', $previewUrl );
     }
 
     public static function adminPreviewUrl() {
-        $adminPreviewUrl= esc_url_raw(add_query_arg(array('esigpreview' => 1, 'mode' => 1), get_permalink(WP_E_Sig()->setting->get_default_page())));
+        $adminPreviewUrl= esc_url_raw(add_query_arg(array('esigpreview' => 1, 'mode' => 1), WP_E_Sig()->setting->default_link()));
         return apply_filters( 'esig_admin_preview_url', $adminPreviewUrl );
     }
 
     public static function get_signed_doc_url($check_sum, $invite_hash) {
-        $signendUrl= esc_url_raw(add_query_arg(apply_filters("esig_signed_url_filter", array('invite' => $invite_hash, 'csum' => $check_sum)), get_permalink(WP_E_Sig()->setting->get_default_page())));
+        $signendUrl= esc_url_raw(add_query_arg(apply_filters("esig_signed_url_filter", array('invite' => $invite_hash, 'csum' => $check_sum)), WP_E_Sig()->setting->default_link()));
         return apply_filters( 'esig_signed_url', $signendUrl );
     }
 

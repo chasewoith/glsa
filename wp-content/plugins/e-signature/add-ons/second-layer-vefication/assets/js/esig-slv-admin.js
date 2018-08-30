@@ -29,7 +29,7 @@
             $("#esig-slv-email-address").val(email_address);
 
             var accessCode = $(this).data('accesscode');
-           
+
             if (accessCode) {
                 $('#esig_access_code').val(accessCode);
             } else {
@@ -95,6 +95,11 @@
             $("#esig_access_code").parent().parent().parent().append('<div class="esig-error-box" style="margin:40px;">*You must fill valid access code.</div>');
             return false;
         }
+        if (/\s/.test(access_security_code)) {
+            $('.esig-error-box').remove();
+            $("#esig_access_code").parent().parent().parent().append('<div class="esig-error-box" style="margin:40px;">*Space is not allowed.</div>');
+            return false;
+        }
 
         slv_meta_save(email_address, access_security_code);
 
@@ -133,13 +138,23 @@
         }
 
         var email_address = $(this).closest('div').parent().find('input[name="recipient_emails\\[\\]"]').val();
-       
+
         if (esig_validation.is_email(email_address)) {
 
             // passing email address to dialog 
             $("#esig-slv-email-address").val(email_address);
             // $('#esig_access_code').val("");
             //show dialog
+           
+                //show dialog
+                var code = slv_meta_get(email_address);
+                if (code) {
+                    $('#esig_access_code').val(code);
+                } else {
+                    $('#esig_access_code').val("");
+                }
+           
+            
             $("#esig-access-code-verification").dialog({
                 dialogClass: 'esig-access-dialog',
                 height: 400,

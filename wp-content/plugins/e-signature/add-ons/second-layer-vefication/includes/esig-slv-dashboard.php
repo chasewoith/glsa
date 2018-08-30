@@ -6,23 +6,29 @@ if (!class_exists('Esig_Slv_Dashboard')):
 
         public static function Init() {
 
-            add_action("esig_footer", array(__CLASS__, "enqueue_scripts"));
+            add_filter("esig_print_footer_scripts", array(__CLASS__, "enqueue_scripts"), 10, 1);
+            add_action('esig_register_scripts', array(__CLASS__, 'register_scripts'));
 
             // add_action("esig_document_loading",array(__CLASS__,"esig_verify_access"),-9,1);
             add_action("esig_document_complate", array(__CLASS__, "sad_document_complete"), 10, 1);
             // add security lebels 
             add_filter("esig_security_levels", array(__CLASS__, "security_levels"), 10, 2);
-            add_filter('esig_check_referer', array(__CLASS__, 'allow_set_password'), 10,2);
+            add_filter('esig_check_referer', array(__CLASS__, 'allow_set_password'), 10, 2);
+        }
+
+        public static function register_scripts() {
+             
+            wp_register_script('esig-slv-js', ESIGN_SLV_URL . "/assets/js/esig-slv-dashboard.js", array('jquery'), esigGetVersion(), true);
         }
 
         final static function allow_set_password($ret, $method) {
-           
-            if ($method=='slv_set_password') {
-                
+
+            if ($method == 'slv_set_password') {
+
                 $ret = true;
             }
-            if ($method=='slv_reset_password') {
-                
+            if ($method == 'slv_reset_password') {
+
                 $ret = true;
             }
             return $ret;
@@ -30,13 +36,14 @@ if (!class_exists('Esig_Slv_Dashboard')):
 
         final static function security_levels($security_lebels, $document_id) {
             if (self::is_slv_enabled($document_id)) {
-                $security_lebels .= " , " .  __("Access Code", "esig");
+                $security_lebels .= " , " . __("Access Code", "esig");
             }
             return $security_lebels;
         }
 
-        final static function enqueue_scripts() {
-            echo "<script type='text/javascript' src='" . ESIGN_SLV_URL . "/assets/js/esig-slv-dashboard.js?ver=1.0.0'></script>";
+        final static function enqueue_scripts($scripts) {
+            $scripts[] = 'esig-slv-js';
+            return $scripts;
         }
 
         final static function sad_document_complete($args) {
@@ -60,8 +67,9 @@ if (!class_exists('Esig_Slv_Dashboard')):
 
             $slv_data = new stdClass();
 
+
             $document_id = WP_E_Sig()->document->document_id_by_csum($checksum);
-            
+
             $email_address = self::get_email_address($invite_hash);
 
             // asign global variable properties 
@@ -82,7 +90,9 @@ if (!class_exists('Esig_Slv_Dashboard')):
                     "message" => ''
                 );
                 $esig_shortcode = new WP_E_Shortcode();
-                $esig_shortcode->displayDocumentToSign(null, 'login-form', $template_data);
+
+                $esig_shortcode->displayDocumentToSign($document_id, 'login-form', $template_data);
+
                 return true;
             } else {
 
@@ -95,9 +105,9 @@ if (!class_exists('Esig_Slv_Dashboard')):
 
             $validation = new WP_E_Validation();
             $email_address = ESIG_POST('esig_email_address');
-            $access_code = $validation->esig_clean(ESIG_POST('esig_access_code'));
+            $access_code = ESIG_POST('esig_access_code');
             $checksum = ESIG_POST('checksum');
-            $inviteHash= ESIG_POST('invite_hash');
+            $inviteHash = ESIG_POST('invite_hash');
             $document_id = WP_E_Sig()->document->document_id_by_csum($checksum);
             if (!$validation->esig_valid_email($email_address)) {
                 _e("The E-mail address you entered is not valid.", "esig");
@@ -181,7 +191,7 @@ if (!class_exists('Esig_Slv_Dashboard')):
             $validation = new WP_E_Validation();
             $esig_slv_reset_address = $validation->esig_clean(ESIG_POST('esig_slv_reset_address'));
 
-           $invite_hash = ESIG_POST('invite_hash');
+            $invite_hash = ESIG_POST('invite_hash');
             $checksum = ESIG_POST('checksum');
 
             // checking invite hash and checksum 
@@ -215,9 +225,9 @@ if (!class_exists('Esig_Slv_Dashboard')):
             $admin_user = WP_E_Sig()->user->getUserByWPID($document->user_id);
             $sender = $admin_user->first_name . " " . $admin_user->last_name;
 
-            $subject = $document->document_title . __(" - Password by ","esig") . $sender;
+            $subject = $document->document_title . __(" - Password by ", "esig") . $sender;
 
-            $message = __(' Your Document access password is : ','esig') . self::get_slv_password($document_id, $email_address);
+            $message = __(' Your Document access password is : ', 'esig') . self::get_slv_password($document_id, $email_address);
 
             $mailsent = WP_E_Sig()->email->send(array(
                 'from_name' => $sender, // Use 'posts' to get standard post objects
@@ -234,5 +244,9 @@ if (!class_exists('Esig_Slv_Dashboard')):
         }
 
     }
+
+    
+
+    
 
 endif;

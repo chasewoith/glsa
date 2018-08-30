@@ -344,7 +344,8 @@ label.esig-error
 input.esig-sif-todaydate
 {
     height:2.5em !important;
-    width: 78px;
+    width: 110px;
+    padding: 5px;
 }
 input.esig-sif-todaydate.signed
 {
@@ -553,6 +554,21 @@ input.esig-sif-todaydate.signed
     border-right: 1px solid #ddd;
     padding: 8px;
 }
+
+/** adding table space without border **/
+.document-sign-page .table-spacing {
+    border: 0px solid #ddd;
+     padding: 8px;
+}
+.document-sign-page .table-spacing tr th {
+    padding: 8px;
+}
+.document-sign-page .table-spacing tr td {
+    padding: 8px;
+}
+
+
+
 .document-sign-page .table {
     width: 100%;
     max-width: 100%;
@@ -757,3 +773,8 @@ tr {
     padding: 10px;
 }
 
+/* E-signature tick mark has been added. */
+.esig-checkbox-tick, .esig-checkbox-tick .tick{
+    list-style-type: none;
+}
+/* e-signature tick mark code here  */

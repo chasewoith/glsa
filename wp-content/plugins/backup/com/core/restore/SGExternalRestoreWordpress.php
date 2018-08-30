@@ -56,7 +56,8 @@ class SGExternalRestoreWordpress extends SGExternalRestore
 			$headers = @wp_remote_get($url, array(
 				'sslverify'   => false
 			));
-			if (!empty($headers) && $headers['response']['code'] == '200') {
+			$isWpError = is_wp_error($headers);
+			if (!$isWpError && !empty($headers) && $headers['response']['code'] == '200') {
 				@unlink($path);
 				return true;
 			}
@@ -65,7 +66,8 @@ class SGExternalRestoreWordpress extends SGExternalRestore
 					'sslverify'   => false,
 					'stream'	  => true
 				));
-				if (!empty($headers) && $headers['response']['code'] == '200') {
+				$isWpError = is_wp_error($headers);
+				if (!$isWpError && !empty($headers) && $headers['response']['code'] == '200') {
 					@unlink($path);
 					return true;
 				}

@@ -1,4 +1,5 @@
 <?php
+
 /**
  *
  * @package ESIG_SIF_Admin
@@ -41,7 +42,6 @@ if (!class_exists('ESIG_SIF_Admin')) :
             // Add the options page and menu item.
             add_action('admin_menu', array($this, 'add_plugin_admin_menu'));
             // Add an action link pointing to the options page.
-          
             //add_filter( 'plugin_action_links_' . $plugin_basename, array( $this, 'add_action_links' ) );
             // Text Editor Buttons
             add_action('init', array($this, 'sif_buttons'));
@@ -59,6 +59,23 @@ if (!class_exists('ESIG_SIF_Admin')) :
             //ajax 
             add_action('wp_ajax_signerdefine', array($this, 'signerdefine'));
             add_action('wp_ajax_nopriv_signerdefine', array($this, 'signerdefine'));
+
+            //delete sif data if documents is deleted. 
+            add_action("esig_document_after_delete", array($this, "delete_sif_data"), 10, 1);
+        }
+
+        public function delete_sif_data($args) {
+            
+            $document_id= esigget("document_id",$args);
+            if(!$document_id){
+                return false;
+            }
+            global $wpdb;
+            return $wpdb->query(
+                            $wpdb->prepare(
+                                    "DELETE FROM " . $wpdb->prefix.$this->inputs_table . " WHERE  document_id=%d", $document_id
+                            )
+            );
         }
 
         public function search_sif_document($docs, $esig_document_search) {
@@ -128,11 +145,11 @@ if (!class_exists('ESIG_SIF_Admin')) :
 
                 echo '<select name="sif_invite_select" data-placeholder="Choose a Option..." class="chosen-select" style="width:250px;" id="sif_invite_select" tabindex="2">';
                 $html = '';
-                $html .='<option value="undefined"> Select Signer </option>';
+                $html .= '<option value="undefined"> Select Signer </option>';
                 foreach ($allinvitations as $invite) {
 
                     $userdetails = $api->user->getUserdetails($invite->user_id, $document_id);
-                    $html .='<option value="' . $invite->user_id . "ud" . $document_id . '">' . $userdetails->first_name . ' </option>';
+                    $html .= '<option value="' . $invite->user_id . "ud" . $document_id . '">' . $userdetails->first_name . ' </option>';
                 }
                 echo $html;
                 echo '</select></div>';
@@ -220,17 +237,17 @@ if (!class_exists('ESIG_SIF_Admin')) :
 
             if (in_array($screen->id, $admin_screens)) {
 
-                $sif_menu = '{text:"'. __("Insert Textbox","esig") .'",value: "textfield",onclick: function () {esig_sif_admin_controls.popupMenuShow(this.value());}},
-             {text:"'. __("Insert Paragraph Text","esig") .'",value: "textarea",onclick: function () {esig_sif_admin_controls.popupMenuShow(this.value());}},
-             {text:"'. __("Insert Date Calendar","esig") .'",value:"datepicker",onclick: function () {esig_sif_admin_controls.popupMenuShow(this.value());}},
-             {text:"'. __("Insert Signed Date","esig") .'",value: "todaydate",onclick: function () { esig_sif_admin_controls.popupMenuShow(this.value());}},
-             {text:"'. __("Insert Radio Buttons","esig") .'",value: "radio",onclick: function () {esig_sif_admin_controls.popupMenuShow(this.value());}},
-             {text:"'. __("Insert Checkboxes","esig") .'",value: "checkbox",onclick: function () {esig_sif_admin_controls.popupMenuShow(this.value());}},
-             {text:"'. __("Insert Dropdown","esig") .'",value: "dropdown",onclick: function () {esig_sif_admin_controls.popupMenuShow(this.value());}},
-             {text:"'. __("Insert Upload Form","esig") .'",value: "file",onclick: function () {esig_sif_admin_controls.popupMenuShow(this.value());}},
-             {text:"'. __("Insert Page Break","esig") .'",value: "page_break",onclick: function () {esig_sif_admin_controls.popupMenuShow(this.value());}},';
-             
-             
+                $sif_menu = '{text:"' . __("Insert Textbox", "esig") . '",value: "textfield",onclick: function () {esig_sif_admin_controls.popupMenuShow(this.value());}},
+             {text:"' . __("Insert Paragraph Text", "esig") . '",value: "textarea",onclick: function () {esig_sif_admin_controls.popupMenuShow(this.value());}},
+             {text:"' . __("Insert Date Calendar", "esig") . '",value:"datepicker",onclick: function () {esig_sif_admin_controls.popupMenuShow(this.value());}},
+             {text:"' . __("Insert Signed Date", "esig") . '",value: "todaydate",onclick: function () { esig_sif_admin_controls.popupMenuShow(this.value());}},
+             {text:"' . __("Insert Radio Buttons", "esig") . '",value: "radio",onclick: function () {esig_sif_admin_controls.popupMenuShow(this.value());}},
+             {text:"' . __("Insert Checkboxes", "esig") . '",value: "checkbox",onclick: function () {esig_sif_admin_controls.popupMenuShow(this.value());}},
+             {text:"' . __("Insert Dropdown", "esig") . '",value: "dropdown",onclick: function () {esig_sif_admin_controls.popupMenuShow(this.value());}},
+             {text:"' . __("Insert Upload Form", "esig") . '",value: "file",onclick: function () {esig_sif_admin_controls.popupMenuShow(this.value());}},
+             {text:"' . __("Insert Page Break", "esig") . '",value: "page_break",onclick: function () {esig_sif_admin_controls.popupMenuShow(this.value());}},';
+
+
                 $sif_menu = apply_filters('esig_sif_buttons_filter', $sif_menu);
 
                 echo "<script type='text/javascript'>";
@@ -249,15 +266,15 @@ if (!class_exists('ESIG_SIF_Admin')) :
         public function editorSifTextButton() {
 
             $textMenu = array(
-                "textfield" => array("label" => __("Insert Text Box","esig")),
-                "textarea" => array("label" => __("Insert Paragraph Text","esig")),
-                "datepicker" => array("label" => __("Insert Date Calendar","esig")),
-                "todaydate" => array("label" => __("Insert Signed Date","esig")),
-                "radio" => array("label" => __("Insert Radio Buttons","esig")),
-                "checkbox" => array("label" => __("Insert Checkboxes","esig")),
-                "dropdown" => array("label" => __("Insert Dropdown","esig")),
-                "file" => array("label" => __("Insert Upload Form","esig")),
-                 "page_break" => array("label" => __("Insert Page Break","esig")),
+                "textfield" => array("label" => __("Insert Text Box", "esig")),
+                "textarea" => array("label" => __("Insert Paragraph Text", "esig")),
+                "datepicker" => array("label" => __("Insert Date Calendar", "esig")),
+                "todaydate" => array("label" => __("Insert Signed Date", "esig")),
+                "radio" => array("label" => __("Insert Radio Buttons", "esig")),
+                "checkbox" => array("label" => __("Insert Checkboxes", "esig")),
+                "dropdown" => array("label" => __("Insert Dropdown", "esig")),
+                "file" => array("label" => __("Insert Upload Form", "esig")),
+                "page_break" => array("label" => __("Insert Page Break", "esig")),
             );
 
             $filterMenu = apply_filters("esig_text_editor_sif_menu", $textMenu);
@@ -306,7 +323,7 @@ if (!class_exists('ESIG_SIF_Admin')) :
          * @return    null    Return early if no settings page is registered.
          */
         public function enqueue_admin_scripts() {
-            
+
             $screen = get_current_screen();
             $current = $screen->id;
             // Show if we're adding or editing a document
@@ -314,7 +331,7 @@ if (!class_exists('ESIG_SIF_Admin')) :
 
                 wp_enqueue_script($this->plugin_slug . '-admin-script', ESIGN_SIF_URL . '/admin/assets/js/admin_input.js', array('jquery'), ESIG_SIF::VERSION, true);
 
-                wp_enqueue_script($this->plugin_slug . '-bootstrap-scripts', ESIGN_ASSETS_DIR_URI . '/js/bootstrap/bootstrap.min.js', array('jquery'), '3.2.0', true);
+
 
 
                 // Text Editor Buttons
@@ -325,7 +342,7 @@ if (!class_exists('ESIG_SIF_Admin')) :
                 $sif_signer = isset($_GET['sif_signer']) ? $_GET['sif_signer'] : null;
 
                 $invite = new WP_E_Invite();
-                
+
                 $invitationcount = $invite->getInvitationCount($document_id);
 
                 if (isset($sif_signer) && $invitationcount == 0) {
@@ -353,7 +370,6 @@ if (!class_exists('ESIG_SIF_Admin')) :
         public function add_plugin_admin_menu() {
 
             $this->plugin_screen_hook_suffix = true;
-           
         }
 
         /**
@@ -377,4 +393,6 @@ if (!class_exists('ESIG_SIF_Admin')) :
         }
 
     }
+
+    
 endif;

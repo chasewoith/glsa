@@ -1,4 +1,5 @@
 <?php
+    $extensionAdapter = SGExtension::getInstance();
     $page = $_GET['page'];
 
     $isDisabelAdsEnabled = SGConfig::get('SG_DISABLE_ADS');
@@ -7,16 +8,16 @@
     $upgradeText = 'Website migration, Backup to cloud, automatization, mail notifications, and more in our PRO package!';
     $buttonUrl = SG_BACKUP_SITE_URL;
 
-    $isProVersion = SGBoot::isFeatureAvailable('STORAGE');
-    if ($isProVersion) {
+    $pluginCapabilities = backupGuardGetCapabilities();
+    if ($pluginCapabilities != BACKUP_GUARD_CAPABILITIES_FREE) {
         $buttonText = 'Upgrade to ';
         $buttonUrl = SG_BACKUP_PRODUCTS_URL;
 
-        $isGold = SGBoot::isFeatureAvailable('CUSTOM_BACKUP_NAME');
-        if ($isGold) {
+        $upgradeTo = "";
+        if ($pluginCapabilities == BACKUP_GUARD_CAPABILITIES_GOLD) {
             $upgradeTo = 'Platinum';
         }
-        else {
+        else if ($pluginCapabilities == BACKUP_GUARD_CAPABILITIES_SILVER) {
             $upgradeTo = 'Gold';
         }
 
@@ -68,6 +69,15 @@
                     </a>
                 </li>
             <?php endif; ?>
+            <!-- Will be added in the future release -->
+<!--             <?php if ($extensionAdapter->isExtensionActive(SG_BACKUP_GUARD_SECURITY_EXTENSION)):?>
+                <li class="<?php echo strpos($page,'security')?'active':''?>">
+                    <a href="<?php echo network_admin_url('admin.php?page=backup_guard_security'); ?>">
+                        <span class="glyphicon glyphicon-lock" aria-hidden="true"></span>Security
+                        <span class="badge badge-info">New</span>
+                    </a>
+                </li>
+            <?php endif; ?> -->
         </ul>
     </nav>
     <?php if ($showUpgradeButton && !$isDisabelAdsEnabled):?>

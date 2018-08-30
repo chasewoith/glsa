@@ -20,8 +20,8 @@ if (!class_exists('esigMigrate')):
 
         public function init() {
             add_action("esig_approveme_db_migrate", array($this, 'approveme_db_migrate'));
-            add_action('admin_notices', array($this, 'update_notice'));
-            add_action('esig_display_alert_message', array($this, 'update_notice'));
+            //add_action('admin_notices', array($this, 'update_notice'));
+            //add_action('esig_display_alert_message', array($this, 'update_notice'));
         }
 
         public function update_notice() {

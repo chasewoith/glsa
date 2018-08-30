@@ -30,7 +30,6 @@
         height: 400px !important;
         background-color: #F1F1F1 !important;
         position: relative;
-       // top:0px !important;
         left:2px !important;
     }
     .alert_content{

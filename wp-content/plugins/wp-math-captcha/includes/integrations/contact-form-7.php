@@ -11,7 +11,7 @@ function wpcf7_add_shortcode_mathcaptcha() {
 }
 
 function wpcf7_mathcaptcha_shortcode_handler( $tag ) {
-	if ( ! is_user_logged_in() || (is_user_logged_in() && ! Math_Captcha()->options['general']['hide_for_logged_users']) ) {
+	if ( ! is_user_logged_in() || ( is_user_logged_in() && ! Math_Captcha()->options['general']['hide_for_logged_users'] ) ) {
 		$tag = new WPCF7_FormTag( $tag );
 
 		if ( empty( $tag->name ) )
@@ -40,7 +40,7 @@ function wpcf7_mathcaptcha_shortcode_handler( $tag ) {
 
 		$math_captcha_title = apply_filters( 'math_captcha_title', Math_Captcha()->options['general']['title'] );
 
-		return sprintf( ((empty( $math_captcha_title )) ? '' : $math_captcha_title) . '<span class="wpcf7-form-control-wrap %1$s">' . $mc_form[1] . $mc_form[2] . $mc_form[3] . '%3$s</span><input type="hidden" value="' . (Math_Captcha()->core->session_number - 1) . '" name="' . $tag->name . '-sn" />', $tag->name, $atts, $validation_error );
+		return sprintf( ( ( empty( $math_captcha_title ) ) ? '' : $math_captcha_title ) . ' <span class="wpcf7-form-control-wrap %1$s">' . $mc_form[1] . $mc_form[2] . $mc_form[3] . '%3$s</span><input type="hidden" value="' . ( Math_Captcha()->core->session_number - 1 ) . '" name="' . $tag->name . '-sn" />', $tag->name, $atts, $validation_error );
 	}
 }
 
@@ -51,39 +51,42 @@ function wpcf7_mathcaptcha_validation_filter( $result, $tag ) {
 	$tag = new WPCF7_FormTag( $tag );
 	$name = $tag->name;
 
-	if ( ! is_admin() && isset( $_POST[$name] ) ) {
-		$cf7_version = get_option( 'wpcf7', '1.0.0' );
+	if ( isset( $_POST[$name] ) && $_POST[$name] !== '' && ! is_admin() ) {
+		$val = (int) $_POST[$name];
 
-		if ( is_array( $cf7_version ) && isset( $cf7_version['version'] ) )
-			$cf7_version = $cf7_version['version'];
+		if ( isset( $_POST[$name . '-sn'] ) && $_POST[$name . '-sn'] !== '' ) {
+			$val_sn = (int) $_POST[$name . '-sn'];
 
-		if ( $_POST[$name] !== '' ) {
-			$session_id = (isset( $_POST[$name . '-sn'] ) && $_POST[$name . '-sn'] !== '' ? Math_Captcha()->cookie_session->session_ids['multi'][$_POST[$name . '-sn']] : '');
+			if ( array_key_exists( $val_sn, Math_Captcha()->cookie_session->session_ids['multi'] ) )
+				$session_id = Math_Captcha()->cookie_session->session_ids['multi'][$val_sn];
+			else
+				$session_id = '';
+		} else
+			$session_id = '';
 
-			if ( $session_id !== '' && get_transient( 'cf7_' . $session_id ) !== false ) {
-				if ( strcmp( get_transient( 'cf7_' . $session_id ), sha1( AUTH_KEY . $_POST[$name] . $session_id, false ) ) !== 0 ) {
-					if ( version_compare( $cf7_version, '4.1.0', '>=' ) )
-						$result->invalidate( $tag, wpcf7_get_message( 'wrong_mathcaptcha' ) );
-					else {
-						$result['valid'] = false;
-						$result['reason'][$name] = wpcf7_get_message( 'wrong_mathcaptcha' );
-					}
-				}
-			} else {
-				if ( version_compare( $cf7_version, '4.1.0', '>=' ) )
-					$result->invalidate( $tag, wpcf7_get_message( 'time_mathcaptcha' ) );
+		if ( $session_id !== '' && get_transient( 'cf7_' . $session_id ) !== false ) {
+			if ( strcmp( get_transient( 'cf7_' . $session_id ), sha1( AUTH_KEY . $val . $session_id, false ) ) !== 0 ) {
+				if ( version_compare( WPCF7_VERSION, '4.1.0', '>=' ) )
+					$result->invalidate( $tag, wpcf7_get_message( 'wrong_mathcaptcha' ) );
 				else {
 					$result['valid'] = false;
-					$result['reason'][$name] = wpcf7_get_message( 'time_mathcaptcha' );
+					$result['reason'][$name] = wpcf7_get_message( 'wrong_mathcaptcha' );
 				}
 			}
 		} else {
-			if ( version_compare( $cf7_version, '4.1.0', '>=' ) )
-				$result->invalidate( $tag, wpcf7_get_message( 'fill_mathcaptcha' ) );
+			if ( version_compare( WPCF7_VERSION, '4.1.0', '>=' ) )
+				$result->invalidate( $tag, wpcf7_get_message( 'time_mathcaptcha' ) );
 			else {
 				$result['valid'] = false;
-				$result['reason'][$name] = wpcf7_get_message( 'fill_mathcaptcha' );
+				$result['reason'][$name] = wpcf7_get_message( 'time_mathcaptcha' );
 			}
+		}
+	} else {
+		if ( version_compare( WPCF7_VERSION, '4.1.0', '>=' ) )
+			$result->invalidate( $tag, wpcf7_get_message( 'fill_mathcaptcha' ) );
+		else {
+			$result['valid'] = false;
+			$result['reason'][$name] = wpcf7_get_message( 'fill_mathcaptcha' );
 		}
 	}
 
@@ -95,19 +98,20 @@ add_filter( 'wpcf7_messages', 'wpcf7_mathcaptcha_messages' );
 
 function wpcf7_mathcaptcha_messages( $messages ) {
 	return array_merge(
-		$messages, array(
-		'wrong_mathcaptcha'	 => array(
-			'description'	 => __( 'Invalid captcha value.', 'math-captcha' ),
-			'default'		 => Math_Captcha()->core->error_messages['wrong']
-		),
-		'fill_mathcaptcha'	 => array(
-			'description'	 => __( 'Please enter captcha value.', 'math-captcha' ),
-			'default'		 => Math_Captcha()->core->error_messages['fill']
-		),
-		'time_mathcaptcha'	 => array(
-			'description'	 => __( 'Captcha time expired.', 'math-captcha' ),
-			'default'		 => Math_Captcha()->core->error_messages['time']
-		)
+		$messages,
+		array(
+			'wrong_mathcaptcha'	 => array(
+				'description'	 => __( 'Invalid captcha value.', 'math-captcha' ),
+				'default'		 => wp_strip_all_tags( Math_Captcha()->core->error_messages['wrong'], true )
+			),
+			'fill_mathcaptcha'	 => array(
+				'description'	 => __( 'Please enter captcha value.', 'math-captcha' ),
+				'default'		 => wp_strip_all_tags( Math_Captcha()->core->error_messages['fill'], true )
+			),
+			'time_mathcaptcha'	 => array(
+				'description'	 => __( 'Captcha time expired.', 'math-captcha' ),
+				'default'		 => wp_strip_all_tags( Math_Captcha()->core->error_messages['time'], true )
+			)
 		)
 	);
 }
@@ -116,10 +120,18 @@ function wpcf7_mathcaptcha_messages( $messages ) {
 add_action( 'wpcf7_admin_notices', 'wpcf7_mathcaptcha_display_warning_message' );
 
 function wpcf7_mathcaptcha_display_warning_message() {
-	if ( empty( $_GET['post'] ) || ! ($contact_form = wpcf7_contact_form( $_GET['post'] )) )
+	if ( ! empty( $_GET['post'] ) )
+		$id = (int) $_GET['post'];
+	else
 		return;
 
-	$has_tags = (bool) $contact_form->form_scan_shortcode( array( 'type' => array( 'mathcaptcha' ) ) );
+	if ( ! ( $contact_form = wpcf7_contact_form( $id ) ) )
+		return;
+
+	if ( version_compare( WPCF7_VERSION, '4.6.0', '>=' ) )
+		$has_tags = (bool) $contact_form->scan_form_tags( array( 'type' => array( 'mathcaptcha' ) ) );
+	else
+		$has_tags = (bool) $contact_form->form_scan_shortcode( array( 'type' => array( 'mathcaptcha' ) ) );
 
 	if ( ! $has_tags )
 		return;

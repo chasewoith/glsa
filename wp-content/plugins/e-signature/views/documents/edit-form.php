@@ -49,7 +49,7 @@ $this->default_vals($data, $vars);
     </div>
 
 
-    <div class="add_form_matt">				
+   <div class="add_form_matt">				
         <h2 class="esign-form-header"><?php _e('2. What needs to be signed?', 'esig'); ?> <span class="settings-title"><?php _e('(copy and paste the content below)', 'esig'); ?></span></h2>
 
         <?php echo $data['document_editor']; ?>
@@ -122,7 +122,15 @@ $this->default_vals($data, $vars);
                             <?php _e('Selecting this option will automatically attach your signature from the WP E-Signature admin panel to this document.', 'esig'); ?>
                         </span>
                     </a>
-                    <input type="checkbox" <?php echo $data['add_signature_check']; ?> id="add_signature" <?php echo $data['add_signature_select']; ?> name="add_signature"><label class="leftPadding-5"><?php echo $data['document_add_signature_txt']; ?></label>
+                    <?php $autoAddAllow = apply_filters("esig_is_document_owner",false, esigget('document_owner',$data));
+                          
+                          if(!$autoAddAllow){
+                            echo apply_filters("esig_non_document_owner_content",'',esigget('document_owner',$data));   
+                          }
+                          $autoAddDisabled= (!$autoAddAllow)?'class="not-owner"': '';
+                         
+                    ?>
+                    <input  type="checkbox" <?php echo $data['add_signature_check'] ." ".  $autoAddDisabled ;?> id="add_signature" <?php echo $data['add_signature_select']; ?> name="add_signature"><label id="esig-auto-add-signature-label" class="leftPadding-5"><?php echo $data['document_add_signature_txt']; ?></label>
                 </p>
 
 

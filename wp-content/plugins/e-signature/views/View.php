@@ -70,19 +70,39 @@ class WP_E_View {
 
             echo '<div align="center"><img src="' . ESIGN_ASSETS_DIR_URI . '/images/logo.png" width="200px" height="45px" alt="Sign Documents using WP E-Signature"></div>';*/
            
-            echo '<div class="container" style="width:100% !important;"><div class="row">';
-            echo '<div class="col-sm-8 noPadding" style="width:75% !important">';
+           // echo '<div class="container" style="width:100% !important;"><div class="row">';
+            //echo '<div class="col-sm-8 noPadding" style="width:75% !important;border:1px solid red;">';
              echo '<div class="wrap">';
-            echo '<div id="poststuff">';
-                include($template_path);
-                echo '</div></div>';
-            echo '</div><div class="col-sm-4 noPadding" style="width:25% !important">';
-                echo '<div align="center"><img src="' . ESIGN_ASSETS_DIR_URI . '/images/logo.png" width="200px" height="45px" alt="Sign Documents using WP E-Signature"></div>';
-                //include($this->rootDir . DS . "partials/_rightside.php");
-                do_action("esig_display_right_sidebar");
+                echo '<div id="poststuff">';
+                echo '<div id="post-body" class="metabox-holder columns-2">';
+                      
+                      // body content start here
+                echo '<div id="post-body-content" style="position: relative;">';
+                        include($template_path);
+                 echo '</div>'; // body content end here  
+                 // right start here
+                 echo '<div id="postbox-container-1" class="postbox-container">';
+                     echo '<div id="side-sortables" class="meta-box-sortables ui-sortable">';
+                     
+                        echo '<div id="esig-logo-box" class="postbox" align="center"><img src="' . ESIGN_ASSETS_DIR_URI . '/images/logo.png" width="200px" height="45px" alt="Sign Documents using WP E-Signature"></div>';
+                        do_action("esig_display_right_sidebar");
+                        include($this->rootDir . DS . "partials/_rightside.php");
+                     echo '</div>' ;  
+                 echo '</div>';
+                 // right side end here
+                 
+                 
+                // 
+                  //
+                  
+                        
+                echo '</div></div></div>';
+           // echo '</div><div class="col-sm-4 noPadding" style="width:25% !important;border:1px solid green;">';
                 
-              echo $this->renderPartial('_rightside');
-            echo '</div></div></div>';
+                
+               
+              //echo $this->renderPartial('_rightside');
+           // echo '</div></div></div>';
             
         } else {
             echo '<div class="wrap">';
@@ -245,9 +265,9 @@ class WP_E_View {
 
 
         $side = '';
-        $side .= '<div id="postimagediv" class="postbox" >
-						<div class="handlediv ' . $classtitle . '" title="Click to toggle"><br /></div>';
-        $side .="<h3 class='hndle esig-section-title'><span>" . $title
+        $side .= '<div id="esig-'. $classtitle .'-box" class="postbox" >
+			<button type="button" class="handlediv '. $classtitle .'" aria-expanded="false"><span class="screen-reader-text">Toggle panel: Publish</span><span class="toggle-indicator" aria-hidden="true"></span></button>';
+        $side .="<h3 class='hndle ui-sortable-handle esig-section-title'><span>" . $title
                 . "</span></h3>";
         $side .= '<div class="inside ' . $classbody . '">' .
                 $content
@@ -262,13 +282,13 @@ class WP_E_View {
         $side_bar = '';
 
         if (!empty($this->sidebars)) {
-            $side_bar .= '<div id="postbox-container-1" class="esig-postbox-container">
-			<div id="side-sortables" class="meta-box-sortables">';
+           // $side_bar .= '<div id="postbox-container-1" class="esig-postbox-container">
+			//<div id="side-sortables" class="meta-box-sortables">';
 
 
             $side_bar .=$this->sidebars;
 
-            $side_bar .= '</div></div>';
+           // $side_bar .= '</div></div>';
 
             return $side_bar;
         }

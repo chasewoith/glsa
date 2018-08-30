@@ -251,7 +251,8 @@ function wpcf7_load_contact_form_admin() {
 
 	if ( 'wpcf7-new' == $plugin_page ) {
 		$post = WPCF7_ContactForm::get_template( array(
-			'locale' => isset( $_GET['locale'] ) ? $_GET['locale'] : null ) );
+			'locale' => isset( $_GET['locale'] ) ? $_GET['locale'] : null,
+		) );
 	} elseif ( ! empty( $_GET['post'] ) ) {
 		$post = WPCF7_ContactForm::get_instance( $_GET['post'] );
 	}
@@ -522,7 +523,7 @@ function wpcf7_admin_updated_message() {
 			$updated_message = sprintf(
 				/* translators: %s: number of contact forms */
 				_n(
-					"Configuration validation completed. An invalid contact form was found.",
+					"Configuration validation completed. %s invalid contact form was found.",
 					"Configuration validation completed. %s invalid contact forms were found.",
 					$count_invalid, 'contact-form-7' ),
 				number_format_i18n( $count_invalid ) );

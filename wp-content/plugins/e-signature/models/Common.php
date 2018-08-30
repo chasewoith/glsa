@@ -22,9 +22,9 @@ class WP_E_Common extends WP_E_Model {
 
         //$esig_document_search = isset($_GET['esig_document_search']) ? esc_attr( wp_unslash($_GET['esig_document_search'])) : null;
 
-        $html .='<input type="hidden" name="document_status" value="' . $document_status . '">';
+        $html .= '<input type="hidden" name="document_status" value="' . $document_status . '">';
 
-        $html .='<input type="hidden" name="page" value="esign-docs"><input type="search" id="esig-document-search" class="esig_document_search" name="esig_document_search" style="min-width:250px;" placeholder="Document title or Signer name" value="' . esc_attr(ESIG_SEARCH_GET('esig_document_search')) . '">
+        $html .= '<input type="hidden" name="page" value="esign-docs"><input type="search" id="esig-document-search" class="esig_document_search" name="esig_document_search" style="min-width:250px;" placeholder="Document title or Signer name" value="' . esc_attr(ESIG_SEARCH_GET('esig_document_search')) . '">
 		
 		<input type="submit" name="esig_search" class="button-primary" value="Search">
 		</form>';
@@ -99,14 +99,14 @@ class WP_E_Common extends WP_E_Model {
                 } else {
                     $selected = " ";
                 }
-                $html .='<option value="' . $buser->ID . '" data-used="' . $wpipd . '" ' . $selected . '>' . $buser->user_login . ' </option>';
+                $html .= '<option value="' . $buser->ID . '" data-used="' . $wpipd . '" ' . $selected . '>' . $buser->user_login . ' </option>';
             }
-            $html .="</select>";
+            $html .= "</select>";
             return $html;
         } else {
             // not super admin return plain text 
             $user_info = get_userdata($admin_user_id);
-            $html .='<b>' . $user_info->display_name . '</b>';
+            $html .= '<b>' . $user_info->display_name . '</b>';
             return $html;
         }
 
@@ -125,6 +125,8 @@ class WP_E_Common extends WP_E_Model {
 
         $esig = WP_E_Sig();
 
+        
+
         $connected = @fsockopen("www.approveme.com", 80);
 
         if (!$connected) {
@@ -134,11 +136,11 @@ class WP_E_Common extends WP_E_Model {
             }
         }
 
-
-
         // Data to send to the API
+        $terms_type =WP_E_Sig()->setting->get_generic("esig_tou_string");
         $api_params = array(
             'esig_action_terms' => 'esig_get_terms',
+            'esig_terms_type'=> ($terms_type)?$terms_type:7042
         );
 
 
@@ -174,24 +176,23 @@ class WP_E_Common extends WP_E_Model {
 
         $admin_screens = array(
             'toplevel_page_esign-docs',
-            
         );
 
 
 
         $html = '';
         if (in_array($screen->id, $admin_screens)) {
-            $html .='<select name="esig_bulk_option" id="bulk-action-selector-top">
+            $html .= '<select name="esig_bulk_option" id="bulk-action-selector-top">
             <option value="-1" selected="selected">Bulk Actions</option>';
             if (isset($_GET['document_status']) && $_GET['document_status'] == "trash") {
                 //R
-                $html .= '<option value="restore">' .  __('Restore Again', 'esig') . '</option>';
-                $html .= '<option value="del_permanent">'. __('Delete Permanently', 'esig') . '</option>';
+                $html .= '<option value="restore">' . __('Restore Again', 'esig') . '</option>';
+                $html .= '<option value="del_permanent">' . __('Delete Permanently', 'esig') . '</option>';
             } else {
-                $html .= '<option value="trash">'. __('Move to Trash', 'esig') . '</option>';
+                $html .= '<option value="trash">' . __('Move to Trash', 'esig') . '</option>';
             }
 
-            $html .=' </select><input type="submit" name="esigndocsubmit" id="esig-action" class="button action" value="Apply"  />';
+            $html .= ' </select><input type="submit" name="esigndocsubmit" id="esig-action" class="button action" value="Apply"  />';
         }
         return $html;
     }
@@ -246,26 +247,26 @@ class WP_E_Common extends WP_E_Model {
 				  }); 
 			    </script>';
 
-        $html .='<div id="esig-error-dialog"  class="esig-dialog-header" style="display:none">
+        $html .= '<div id="esig-error-dialog"  class="esig-dialog-header" style="display:none">
 				<div class="esig-alert">
 				<span class="icon-esig-alert"></span>
 				</div>';
         $license_check = get_transient('esig-license-check');
         if (empty($license_key)) {
             //R
-            $html .='<p>' . __('To complicate the situation, it also looks like you do not have a license key (which means your site cannot communicate with ApproveMe and receive critical updates, downloads etc)... you will need to have a valid license in order to install this add-on.', 'esign') . '</p>
+            $html .= '<p>' . __('To complicate the situation, it also looks like you do not have a license key (which means your site cannot communicate with ApproveMe and receive critical updates, downloads etc)... you will need to have a valid license in order to install this add-on.', 'esign') . '</p>
 			<p align="center"> <a href="admin.php?page=esign-licenses-general" id="esig-primary-dgr-btn">' . __('Put License Key', 'esig') . '</a> </p>';
         } elseif ($license_check == "disabled") {
-            $html .='<h3 align="center">' . __('Urgent: Expired or Refunded License Key', 'esign') . '</h3>
+            $html .= '<h3 align="center">' . __('Urgent: Expired or Refunded License Key', 'esign') . '</h3>
 		 		<p>' . __('WP E-signature requires a valid license for critical security updates and support.</p>  <p><strong>Your signers, website and documents could be at risk.</strong></p> <p>To avoid any issues for you or your signers please renew your license immediately.', 'esign') . '</p>
 		 		<p align="center"> <a href="https://www.approveme.com/checkout/?edd_license_key=' . $license_key . '&download_id=2660" id="esig-primary-dgr-btn">' . __('Purchase Again', 'esig') . '</a> </p>';
         } else {
             //R
-            $html .='<h3 align="center">' . __('Urgent: You Have an Expired License', 'esign') . '</h3>
+            $html .= '<h3 align="center">' . __('Urgent: You Have an Expired License', 'esign') . '</h3>
 		 		<p>' . __('WP E-signature requires a valid license for critical security updates and support.</p>  <p><strong>Your signers, website and documents could be at risk.</strong></p> <p>To avoid any issues for you or your signers please renew your license immediately.', 'esign') . '</p>
 		 		<p align="center"> <a href="https://www.approveme.com/checkout/?edd_license_key=' . $license_key . '&download_id=2660" id="esig-primary-dgr-btn">' . __('Renew My License Key', 'esig') . '</a> </p>';
         }
-        $html .='</div>';
+        $html .= '</div>';
 
         return $html;
     }
@@ -277,18 +278,18 @@ class WP_E_Common extends WP_E_Model {
      * */
 
     public function esign_check_update() {
-        
+
         $licenseKey = Esign_licenses::get_license_key();
         if (!get_transient('esign-update-list') && $licenseKey) {
-            
+
             $addons = new WP_E_Addon();
             $update_list = $addons->esig_get_addons_update_list();
-            
+
             set_transient('esign-update-list', $update_list, 60 * 60 * 12);
         }
     }
 
-    public function force_to_check_update(){
+    public function force_to_check_update() {
         delete_transient('esign-update-list');
     }
 
@@ -433,6 +434,42 @@ class WP_E_Common extends WP_E_Model {
 
         return $this->esig_timezone_choice($tzstring);
     }
+    
+    
+    /**
+     *  Esig set timezone 
+     *  @Since 1.2.5
+     */
+    public function esig_set_tou() {
+        // submitted 
+        if (count($_POST) > 0) {
+
+          
+            // saving timezone settings to database
+            if (isset($_POST['esig_tou_string'])) {
+                $this->settings->set_generic('esig_tou_string', esigpost('esig_tou_string'));
+            }
+
+            // saving offset 
+        }
+
+        $esig_tou_string= $this->settings->get_generic('esig_tou_string');
+        
+        $tou_stracture  =array(
+            "7042"=>"English",
+            "83583"=> "France"
+        );
+        $tou_stracture_ret=array();
+        foreach($tou_stracture as $key=>$value){
+             
+             $selected = ($key==$esig_tou_string)?"selected=selected":null;
+             $tou_stracture_ret[]= '<option '. $selected .' value="'. $key .'">Terms of Use: '. $value .'</option>'; 
+        }
+        
+        
+
+        return join("\n", $tou_stracture_ret);
+    }
 
     /**
      *  Set document timezone 
@@ -457,7 +494,6 @@ class WP_E_Common extends WP_E_Model {
         //$this->settings->set('esig-timezone-document-'.$document_id,$tzstring);
         $meta = new WP_E_Meta();
         $meta->add($document_id, "esig-timezone-document", $tzstring);
-        
     }
 
     /**

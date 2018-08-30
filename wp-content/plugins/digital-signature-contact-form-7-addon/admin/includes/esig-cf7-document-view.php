@@ -29,13 +29,6 @@ class esig_cf7_document_view {
         	final function esig_cf7_document_view()
         	{
         	    
-        	    if(!function_exists('WP_E_Sig'))
-                                return ;
-                    
-                    
-                    
-                    
-        	    
         	   
         	    $assets_dir = ESIGN_ASSETS_DIR_URI;
         	    
@@ -106,7 +99,7 @@ class esig_cf7_document_view {
                                                
                                             
                                              <p id="upload_cf7_button" align="center">
-                                           <a href="#" id="esig-cf7-insert" class="button-primary esig-button-large" >'.__('Add to Documentt', 'esig').'</a>
+                                           <a href="#" id="esig-cf7-insert" class="button-primary esig-button-large" >'.__('Add to Document', 'esig').'</a>
                                          </p>
                                             
                                             </div>

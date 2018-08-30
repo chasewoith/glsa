@@ -53,8 +53,8 @@
                                                                                                 <td
                                                                                                     style="font-size:14px;font-family:Helvetica,Arial,sans-serif;line-height:24px"
                                                                                                     align="left">
-                                                                                                    <p><?php echo sprintf(__("<b> %s - which was requested by %s has just been signed by %s. <br><br> "
-                                                                                                            . "You were CC'd on this document.  Please find the attached document below", "esig"),$data->doc->document_title,$data->owner_email,$data->signers); ?><br>
+                                                                                                    <p><?php echo sprintf(__(" %s - which was requested by %s has just been signed by %s. <br><br> "
+                                                                                                            . "You were CC'd on this document, so you can access the signed PDF below.", "esig"),$data->doc->document_title,$data->owner_email,$data->signers); ?><br>
                                                                                                     
              <?php
              $background_color_bg = apply_filters('esig-invite-button-background-color','',  esigget('wpUserId',$data));

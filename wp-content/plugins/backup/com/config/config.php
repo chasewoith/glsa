@@ -17,6 +17,7 @@ define('SG_MAIL_PATH', SG_CORE_PATH.'mail/');
 define('SG_NOTICE_PATH', SG_CORE_PATH.'notice/');
 define('SG_SCHEDULE_PATH', SG_CORE_PATH.'schedule/');
 define('SG_WIDGET_PATH', SG_CORE_PATH.'widget/');
+define('SG_EXTENSION_PATH', SG_CORE_PATH.'extension/');
 
 // Seal themes
 define('SG_SEAL_THEME_DARK', "dark");
@@ -181,3 +182,8 @@ define('SG_BADGE_PLATINUM_TEXT', "Platinum");
 define('SG_SILVER_TOOLTIP_TEXT', "This is a pro feature and it’s available starting from the Silver version!");
 define('SG_GOLD_TOOLTIP_TEXT', "This is a pro feature and it’s available starting from the Gold version!");
 define('SG_PLATINUM_TOOLTIP_TEXT', "This is a pro feature and it’s available only in Platinum version!");
+
+define('BACKUP_GUARD_CAPABILITIES_FREE', 1);
+define('BACKUP_GUARD_CAPABILITIES_SILVER', 2);
+define('BACKUP_GUARD_CAPABILITIES_GOLD', 3);
+define('BACKUP_GUARD_CAPABILITIES_PLATINUM', 4);

@@ -9,7 +9,7 @@ class Math_Captcha_Update {
 
 	public function __construct() {
 		// actions
-		add_action( 'init', array( &$this, 'check_update' ) );
+		add_action( 'init', array( $this, 'check_update' ) );
 	}
 
 	/**

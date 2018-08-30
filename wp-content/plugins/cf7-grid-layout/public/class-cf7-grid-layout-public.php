@@ -92,7 +92,7 @@ class Cf7_Grid_Layout_Public {
     $plugin_dir = plugin_dir_url( __DIR__ );
     //default style for cf7 grid forms (row buttons and tables mainly).
     wp_register_style( $this->plugin_name, $plugin_dir . 'public/css/cf7-grid-layout-public.css', array(), $this->version, 'all' );
-    wp_register_style( 'cf7-benchmark-css', $plugin_dir . 'public/css/cf7-benchmark.css', array('dashicons'), $this->version, 'all' );
+    wp_register_style( 'cf7-benchmark-css', $plugin_dir . 'public/css/cf7-benchmark.css', array(), $this->version, 'all' );
     //others
     // get registered script object for jquery-ui
     global $wp_scripts;
@@ -132,7 +132,7 @@ class Cf7_Grid_Layout_Public {
 	}
   /**
    * Dequeue script 'contact-form-7'
-   * hooked on 'wp_print_scripts', this canbe re0enqeued on specific cf7 shortcode calls
+   * hooked on 'wp_print_scripts', this canbe re-enqeued on specific cf7 shortcode calls
    * @since 1.0.0
   **/
   public function dequeue_cf7_scripts(){
@@ -140,7 +140,7 @@ class Cf7_Grid_Layout_Public {
   }
   /**
    * Dequeue script 'contact-form-7'
-   * hooked on 'wp_print_style', this canbe re0enqeued on specific cf7 shortcode calls
+   * hooked on 'wp_print_style', this canbe re-enqeued on specific cf7 shortcode calls
    * @since 1.0.0
   **/
   public function dequeue_cf7_styles(){
@@ -166,15 +166,32 @@ class Cf7_Grid_Layout_Public {
    * @since 1.0.0
   **/
   public function cf7_shortcode_request($output, $tag, $attr){
+    //if not a cf7 shortcode, then exit.
     if('contact-form-7' !== $tag){
       return $output;
     }
+    wp_enqueue_script('contact-form-7'); //default cf7 plugin script.
+
     $cf7_id = $attr['id'];
+    //get the key
+    $cf7post = get_post($cf7_id);
+    $cf7_key = $cf7post->post_name;
+    //load custom css/js script from theme css folder.
+    $themepath = get_stylesheet_directory();
+    $themeuri = get_stylesheet_directory_uri();
+    if( file_exists($themepath.'/css/'.$cf7_key.'.css') ){
+      wp_enqueue_style( $cf7_key.'-css' , $themeuri.'/css/'.$cf7_key.'.css', array($this->plugin_name), null, 'all');
+    }
+    if( file_exists($themepath.'/js/'.$cf7_key.'.js') ){
+      wp_enqueue_script( $cf7_key.'-js' , $themeuri.'/js/'.$cf7_key.'.js', array($this->plugin_name), null, true);
+      do_action('smart_grid_register_custom_script', $cf7_key);
+    }
     /**
     * @since 1.2.3 disable cf7sg styling/js for non-cf7sg forms.
     */
     $is_form = get_post_meta($cf7_id, '_cf7sg_managed_form', true);
     if(''===$is_form || !$is_form){
+      wp_enqueue_style('contact-form-7'); //default cf7 plugin css.
       return $output;
     }
     $class = get_post_meta($cf7_id, '_cf7sg_classes', true);
@@ -182,7 +199,6 @@ class Cf7_Grid_Layout_Public {
       $class = array();
     }
 
-    wp_enqueue_script('contact-form-7');
     wp_enqueue_script($this->plugin_name);
     wp_localize_script($this->plugin_name, 'cf7sg',array('url' => admin_url( 'admin-ajax.php' )));
 
@@ -226,6 +242,7 @@ class Cf7_Grid_Layout_Public {
     wp_enqueue_style('contact-form-7');
     wp_enqueue_style($this->plugin_name);
     wp_enqueue_style('smart-grid');
+    wp_enqueue_style('dashicons');
     $class['has-grid']=true;
     wp_enqueue_style('cf7-jquery-ui-theme');
     wp_enqueue_style('cf7-jquery-ui-structure');
@@ -236,19 +253,6 @@ class Cf7_Grid_Layout_Public {
 
     $class['has-date']=true;
     wp_enqueue_script('jquery-ui-datepicker');
-    //get the key
-    $cf7post = get_post($cf7_id);
-    $cf7_key = $cf7post->post_name;
-    //load custom css/js script from theme css folder
-    $themepath = get_stylesheet_directory();
-    $themeuri = get_stylesheet_directory_uri();
-    if( file_exists($themepath.'/css/'.$cf7_key.'.css') ){
-      wp_enqueue_style( $cf7_key.'-css' , $themeuri.'/css/'.$cf7_key.'.css', array($this->plugin_name), null, 'all');
-    }
-    if( file_exists($themepath.'/js/'.$cf7_key.'.js') ){
-      wp_enqueue_script( $cf7_key.'-js' , $themeuri.'/js/'.$cf7_key.'.js', array($this->plugin_name), null, true);
-      do_action('smart_grid_register_custom_script', $cf7_key);
-    }
 
     $form_time = strtotime($cf7post->post_modified);
     //check if there are any recently updated sub-forms.
@@ -761,17 +765,55 @@ class Cf7_Grid_Layout_Public {
     //rebuild the default vaidation result.
     $cf7form = WPCF7_ContactForm::get_current();
     $tags = $cf7form->scan_form_tags();
-		foreach ( $tags as $tag ) {
-      if(!isset($_POST[$tag['name']])) continue;//not submitted==disabled.
-			$type = $tag['type'];
-			$result = apply_filters( "wpcf7_validate_{$type}", $result, $tag );
-		}
-
     $submitted = WPCF7_Submission::get_instance();
     $data = $submitted->get_posted_data();
-    $tags = $cf7form->scan_form_tags();
-    $tag_types = array();
-    foreach($tags as $tag){
+    $tag_types = array(); //store all form tags, including cloned tags for array fields.
+
+    /**
+    *@since 2.1.0 fix issue with Conditional Field plugin.
+    */
+    $data = $this->remove_hidden_fields_from_conditional_plugin($data);
+    $toggle_status = '';
+    if(isset($_POST['_cf7sg_toggles'])){
+      $toggle_status = json_decode( stripslashes($_POST['_cf7sg_toggles']));
+    }
+		foreach ( $tags as $tag ) {
+      /**
+      * @since 2.1.5 fix validation of non-toggled checkox/radio.  Toggled fields are now tracked in the tag itself as a class.
+      */
+      if(!isset($_POST[$tag['name']])){
+        $isRequired = false;
+        switch($tag['type']){
+          case 'checkbox*':
+          case 'radio':
+            $isRequired = true;
+            $tag_options = $tag->options;
+            if(empty($tag_options)) break; //break from switch, not toggled, we need to validate.
+            $toggle='';
+            foreach($tag_options as $option){
+              $match = array();
+              preg_match('/class:cf7sg-toggle-(.[^\s]+)/i',$option, $match);
+              if(!empty($match)){
+                $toggle=$match[1];
+                break; //break fromeach loop.
+              }
+            }
+            if(empty($toggle)) break; //break from switch, not toggled, we need to validate.
+            //check if the toggle is open. only open toggles are registered.
+            if(!empty($toggle_status) && property_exists($toggle_status, $toggle)) break; //break from switch, is toggled and in use, we need to validate.
+            //if we reached here, then the checkbox/radio is toggled and not in use, so do not validate.
+            $isRequired = false;
+            break;
+          }
+          if(!$isRequired) continue;//not submitted==disabled, or not used.
+      }
+      /**
+      *@since 1.9.0 fix issue with Conditional Field plugin.
+      */
+      if(!isset($data[$tag['name']])) continue; //it was removed by some plugin.
+			$type = $tag['type'];
+			$result = apply_filters( "wpcf7_validate_{$type}", $result, $tag );
+		  //check to see if this field is an array (table or tab or both).
       $tag_types[$tag['name']] = $tag['type'];
       $field_type = self::field_type($tag['name'], $cf7form->id());
       switch($field_type){
@@ -802,6 +844,7 @@ class Cf7_Grid_Layout_Public {
           break;
       }
     }
+
     $validation = array();
     $form_key = '';
     if(isset($data['_wpcf7_key'])){
@@ -836,7 +879,6 @@ class Cf7_Grid_Layout_Public {
         }
       }
     }
-    //debug_msg
     return $result;
   }
   /**
@@ -889,6 +931,18 @@ class Cf7_Grid_Layout_Public {
           $idx=0;
           foreach($value as $term){
             if(!term_exists($term, $taxonomy)){
+              /**
+              * Filter custom options from tag enabled select2 dynamic-dropdown fields
+              * where the source of options come from taxonomy terms.  Filter is fired when a new value is submitted. The pluign inserts a new term by default as per submitted value.
+              * @param  string  $term the new term submitted by the user.
+              * @param  string  $field_name the name of the form field.
+              * @param  string $taxonomy  the taxonomy to which this is added.
+              * @param  array  $submitted_data  array of other submitted $field=>$value pairs.
+              * @param string $key  the form unique key.
+              * @return string the new term name to insert.
+              * @since 2.0.0
+              */
+              $term = apply_filters('cf7sg_dynamic_dropdown_new_term', $term, $field_name, $taxonomy, $submitted_data, $key);
               $new_term = wp_insert_term($term, $taxonomy);
               if(!is_wp_error($new_term)){
                 $new_term = get_term($new_term['term_id'], $taxonomy);
@@ -918,7 +972,7 @@ class Cf7_Grid_Layout_Public {
             }
             $args['tax_query'] = $tax;
          }
-         $args = apply_filters('cf7sg_dynamic_dropdown_post_query', $args, $tag->name, $cf7_key);
+         $args = apply_filters('cf7sg_dynamic_dropdown_post_query', $args, $tag->name, $key);
          $posts = get_posts($args);
          $options = array();
          if(!empty($posts)){
@@ -943,8 +997,9 @@ class Cf7_Grid_Layout_Public {
              * @param  string $post_type  the post type from which this dropdown was built
              * @param  array  $args  an array of additional parameters that was set in the tag, for example the taxonomy and terms from which to filter the posts for the dynamic list.
              * @param  array  $submitted_data  array of other submitted $field=>$value pairs.
+             * @param string $key  the form unique key.
              */
-             $value[$idx] = apply_filters('cf7sg_dynamic_dropdown_new_post', $post_name, $field_name, $title, $post_type, $args, $submitted_data);
+             $value[$idx] = apply_filters('cf7sg_dynamic_dropdown_new_post', $post_name, $field_name, $title, $post_type, $args, $submitted_data, $key);
            }
            $idx++;
          }
@@ -958,8 +1013,9 @@ class Cf7_Grid_Layout_Public {
           * @param  array  $values  an array submitted values (several values can be submitted in the case of a tabbed/table input field).
           * @param  string  $field_name the name of the form field.
           * @param  array  $submitted_data  array of other submitted $field=>$value pairs.
+          * @param string $key  the form unique key.
           */
-          $value = apply_filters('cf7sg_dynamic_dropdown_filter_select2_submission', $values, $field_name, $submitted_data);
+          $value = apply_filters('cf7sg_dynamic_dropdown_filter_select2_submission', $values, $field_name, $submitted_data, $key);
           break;
       }
       //Save the modified value, find which post field the field is mapped to
@@ -1030,4 +1086,85 @@ class Cf7_Grid_Layout_Public {
     }
 		return $source;
 	}
+  /**
+  * Function to temporarily fix the conditional fields plugin issue.
+  * this is is called by the vlidation function 'filter_wpcf7_validate' above.
+  *@since 2.1
+  *@param array $posted_data submitted data
+  *@return array submitted data without fields that remained hidden.
+  */
+  private function remove_hidden_fields_from_conditional_plugin($posted_data){
+    /*code taken from cf7cf.php file in cf7-conditional-fields*/
+    if(!isset($posted_data['_wpcf7cf_hidden_group_fields'])){
+      return $posted_data;
+    }
+    $hidden_fields = json_decode(stripslashes($posted_data['_wpcf7cf_hidden_group_fields']));
+    $conditonal_fields = array();
+    if (is_array($hidden_fields) && count($hidden_fields) > 0) {
+      foreach ($hidden_fields as $field) {
+        if (wpcf7cf_endswith($field, '[]')) {
+          $field = substr($field,0,strlen($field)-2);
+        }
+        unset( $posted_data[$field] );
+      }
+    }
+    return $posted_data;
+  }
+  /**
+  * Filter mail tags which are table or tab fields.
+  * Hooked on 'wpcf7_mail_tag_replaced'.
+  *@since 2.1
+  *@param string $replaced mail tag string to replace.
+  *@param mixed $submitted value of submitted field from cf7 posted data..
+  *@param boolea $html mail if mail body is using html.
+  *@param WPCF7_MailTag $mail_tag mail tag object of field being replaced.
+  *@return string repalcement string.
+  */
+  public function filter_table_tab_mail_tag($replaced, $submitted, $html, $mail_tag ){
+    $cf7form = WPCF7_ContactForm::get_current();
+    $field_type = self::field_type($mail_tag->field_name(), $cf7form->id());
+    $label = '';
+    $build = false;
+    switch($field_type){
+      case 'tab':
+        $label='tab';
+        if($html) $build = true;
+        break;
+      case 'table':
+        $label='row';
+        if($html) $build = true;
+        break;
+      case 'both':
+        // build table.
+        $replaced = '';
+        if( is_array($submitted)) {
+          $tab = 0;
+          foreach($submitted as $index=>$value){
+            $tab++;
+            $idx=0;
+            if($html) $replaced .= '<div><span>tab('.$tab.')</span>&nbsp;';
+            else  $replaced .= 'tab('.$tab.') = ';
+            if(is_array($value)){
+              foreach($value as $row=>$row_value){
+                $idx++;
+                if($html) $replaced .='<div><label>row('.$idx.'):</label><span>' . $row_value . '</span></div>';
+                else  $replaced .= $row_value.',';
+              }
+            }
+            if($html) $replaced .='</div>';
+            else  $replaced .= PHP_EOL;
+          }
+        }
+        break;
+    }
+    if($build && is_array($submitted)) {
+      $idx=0;
+      $replaced='';
+      foreach($submitted as $index=>$value){
+        $idx++;
+        $replaced .= '<div><label>'.$label.'('.$idx.'):</label><span>'.$value.'</span></div>';
+      }
+    }
+    return $replaced;
+  }
 }

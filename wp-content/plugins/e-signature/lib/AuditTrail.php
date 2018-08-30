@@ -3,23 +3,20 @@
 class WP_E_AuditTrail {
 
     public function __construct() {
-        $this->invite = new WP_E_Invite;
-        $this->document = new WP_E_Document;
-        $this->user = new WP_E_User;
-        $this->signature = new WP_E_Signature;
-        $this->setting = new WP_E_Setting;
-        $this->meta = new WP_E_Meta;
+      
         //include_once ESIGN_PLUGIN_PATH . "/lib/phpqrcode/qrlib.php";
         include_once ESIGN_PLUGIN_PATH . "/lib/tcpdf/tcpdf_barcodes_2d.php";
     }
 
     public function get_signer_user($user_id, $document_id) {
-        $signer = $this->user->getUserdetails($user_id, $document_id);
+        
+        $recipient = WP_E_Sig()->user->getUserdetails($user_id, $document_id);
+       
         $return_obj = new stdClass();
-        $return_obj->name = $signer->first_name; //.' '.$signer->last_name;
-        $return_obj->email = $signer->user_email;
-        $return_obj->ID = $signer->user_id;
-        $return_obj->party_id = $signer->uuid;
+        $return_obj->name = $recipient->first_name; //.' '.$signer->last_name;
+        $return_obj->email = $recipient->user_email;
+        $return_obj->ID = $recipient->user_id;
+        $return_obj->party_id = $recipient->uuid;
 
         $display_user_image = true;
         $display_user_image = apply_filters("esig_display_signer_avatar", $display_user_image, $user_id, $document_id);
@@ -33,7 +30,7 @@ class WP_E_AuditTrail {
     }
 
     public function get_sender_user($document_id) {
-        $sender = $this->user->getUserdetails($this->document->get_document_owner_id($document_id), $document_id);
+        $sender = WP_E_Sig()->user->getUserdetails(WP_E_Sig()->document->get_document_owner_id($document_id), $document_id);
         $return_obj = new stdClass();
         $return_obj->name = $sender->first_name; //.' '.$sender->last_name;
         $return_obj->email = $sender->user_email;
@@ -52,12 +49,12 @@ class WP_E_AuditTrail {
 
     public function get_security_levels($document_id) {
 
-        $security_level = $this->meta->get($document_id, "security_levels");
+        $security_level = WP_E_Sig()->meta->get($document_id, "security_levels");
 
         if (!$security_level) {
 
-            $document_type = $this->document->getDocumenttype($document_id);
-
+            $document_type = WP_E_Sig()->document->getDocumenttype($document_id);
+            
             if ($document_type == "normal") {
                 $security_level = __("E-mail", "esig");
             } else if ($document_type == "stand_alone") {
@@ -71,8 +68,16 @@ class WP_E_AuditTrail {
     }
 
     public function get_digital_fingerprint_checksum($user_id, $document_id) {
-        $sig_data = $this->signature->getDocumentSignatureData($user_id, $document_id);
-
+        
+        $sig_data = WP_E_Sig()->signature->getDocumentSignatureData($user_id, $document_id);
+        
+        if(!$sig_data){
+            $signatureSalt = '';
+        }
+        else {
+           $signatureSalt = $sig_data->signature_salt;
+        }
+        
         if (!$sig_data) {
             $sting_to_hash = $user_id . '+' . $document_id;
         } else {
@@ -83,13 +88,13 @@ class WP_E_AuditTrail {
         $dfc = md5($sting_to_hash);
         $string = filter_var($dfc, FILTER_SANITIZE_NUMBER_INT);
         if (strlen($string) > 25) {
-            $sting_to_hash = $user_id . '+' . $document_id . '+' . $sig_data->signature_data;
+            $sting_to_hash = $user_id . '+' . $document_id . '+' . $signatureSalt;
             $dfc = md5($sting_to_hash);
         }
 
         if (strpos($dfc, "abc") !== false) {
 
-            $sting_to_hash = $user_id . '+' . $document_id . '+' . $sig_data->signature_data;
+            $sting_to_hash = $user_id . '+' . $document_id . '+' . $signatureSalt;
             $dfc = md5($sting_to_hash);
         }
 
@@ -108,7 +113,7 @@ class WP_E_AuditTrail {
     }
 
     public function get_signer_ip($user_id, $document_id) {
-        $sig_data = $this->signature->getDocumentSignatureData($user_id, $document_id);
+        $sig_data = WP_E_Sig()->signature->getDocumentSignatureData($user_id, $document_id);
         if ($sig_data) {
             return $sig_data->ip_address;
         }
@@ -117,10 +122,19 @@ class WP_E_AuditTrail {
     }
 
     public function get_audit_trail_timeline($wp_e_short_code_instance, $document_id, &$document_data = null) {
+        global $get_audit_trail_timeline;
+        
+        if(!is_null($get_audit_trail_timeline)){
+            return $get_audit_trail_timeline;
+        }
+        
         if (esig_older_version($document_id)) {
-            $timeline = $this->document->new_auditTrail($document_id);
+            
+             $timeline = WP_E_Sig()->document->new_auditTrail($document_id);
+             
         } else {
-            $timeline = $this->document->auditReport($document_id, $document_data);
+            $timeline = WP_E_Sig()->document->auditReport($document_id, $document_data);
+           
         }
 
         ksort($timeline);
@@ -138,7 +152,7 @@ class WP_E_AuditTrail {
             if ($event_id) {
 
 
-                $doc_timezone = $this->document->esig_get_document_timezone($document_data->document_id);
+                $doc_timezone = WP_E_Sig()->document->esig_get_document_timezone($document_data->document_id);
 
                 if (!empty($doc_timezone)) {
 
@@ -152,9 +166,9 @@ class WP_E_AuditTrail {
                       } */
                 } else {
 
-                    $esig_timezone = $this->document->get_esig_event_timezone($document_data->document_id, $event_id);
+                    $esig_timezone = WP_E_Sig()->document->get_esig_event_timezone($document_data->document_id, $event_id);
                     // Set timezone
-                    date_default_timezone_set($this->document->esig_get_timezone_string_old($esig_timezone));
+                    date_default_timezone_set(WP_E_Sig()->document->esig_get_timezone_string_old($esig_timezone));
                     if ($esig_timezone != 'UTC') {
 
                         $esig_timezone = str_replace('.5', '.3', $esig_timezone);
@@ -176,7 +190,7 @@ class WP_E_AuditTrail {
             }
 
             //date($default_timeformat, $val['timestamp'])
-            $docDate = $this->document->docDate($document_id, $val['date']);
+            $docDate = WP_E_Sig()->document->docDate($document_id, $val['date']);
 
             $li = "<td class=\"time\">" . $docDate . " " . $esig_timezone . "</td>";
             $li .= "<td {$font_family} class=\"log\">" . $val['log'] . "</td>";
@@ -191,20 +205,21 @@ class WP_E_AuditTrail {
         $ret_result->html = $html;
         $ret_result->audittrail = $audittrail;
 
-        return $ret_result;
+        $get_audit_trail_timeline = $ret_result;
+        return $get_audit_trail_timeline;
     }
 
     public function get_signature_view($user_id, $document_id) {
         $signature_view = new stdClass();
-        if ($this->signature->userHasSignedDocument($user_id, $document_id)) {
-            $document = $this->document->getDocument($document_id);
-            $sig_data = $this->signature->getDocumentSignatureData($user_id, $document_id);
+        if (WP_E_Sig()->signature->userHasSignedDocument($user_id, $document_id)) {
+            $document = WP_E_Sig()->document->getDocument($document_id);
+            $sig_data = WP_E_Sig()->signature->getDocumentSignatureData($user_id, $document_id);
             if ($sig_data->signature_type == 'typed') {
-                $font_num = $this->signature->get_font_type($document_id, $user_id);
+                $font_num = WP_E_Sig()->signature->get_font_type($document_id, $user_id);
                 if ($font_num > 7) {
                     $font_num = 1;
                 }
-                $sign_data = $this->signature->getDocumentSignature($user_id, $document_id);
+                $sign_data = WP_E_Sig()->signature->getDocumentSignature($user_id, $document_id);
                 $font_size = 36 - (0.7 * strlen($sign_data));
                 $signature_view->signature_by_type = '<div class="sign-text-pdf">
                     <span class="esig-signature-type-font' . $font_num . '" style="font-family:' . $font_num . ';font-size:' . $font_size . '!important;" >' . $sign_data . '</span></div>';
@@ -214,7 +229,7 @@ class WP_E_AuditTrail {
                     'signed_doc_id' => $document->document_checksum,
                     'esig_sig_nonce' => $my_nonce = wp_create_nonce($user_id . $document->document_checksum)
                 );
-                $this->signature->esign_set_json($data['user_id'], $data['signed_doc_id']);
+                WP_E_Sig()->signature->esign_set_json($data['user_id'], $data['signed_doc_id']);
                 $signature_view->image_url = (ESIGN_DIRECTORY_URI . 'lib/sigtoimage.php?uid=' . $data['user_id'] . '&doc_id=' . $data['signed_doc_id'] . '&esig_verify=' . $data['esig_sig_nonce']);
                 $image_content = WP_E_Sig()->signature->esig_get_contents($signature_view->image_url);
                 $signature_view->image_url = "data:image/png;base64," . base64_encode($image_content);
@@ -262,7 +277,7 @@ class WP_E_AuditTrail {
         return $results['url'];
     }
 
-    private function get_image_type($data, $image_src) {
+    public function get_image_type($data, $image_src) {
 
         if (function_exists('exif_imagetype') && ini_get('allow_url_fopen')) {
 
@@ -290,7 +305,7 @@ class WP_E_AuditTrail {
         }
     }
 
-    private function get_img_type_from_content($data) {
+    public function get_img_type_from_content($data) {
         $type = '';
         if (substr($data, 6, 4) == 'JFIF' || substr($data, 6, 4) == 'Exif' || substr($data, 0, 2) == chr(255) . chr(216)) {
             $type = 'jpeg';

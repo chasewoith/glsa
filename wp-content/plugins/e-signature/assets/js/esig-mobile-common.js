@@ -254,6 +254,8 @@
     // when terms of use hide trigger
     $(document).on('hide.bs.modal', '.esig-terms-modal-lg', function () {
         $("#esig-mobile-dialog").modal('show');
+        //$('.modal-open .modal').css('overflow-y', 'hidden');
+        
     });
 
 })(jQuery);

@@ -128,10 +128,10 @@ class WC_Gateway_Braintree_Credit_Card extends WC_Gateway_Braintree {
 
 			parent::enqueue_gateway_assets();
 
-			wp_enqueue_script( 'braintree-js-hosted-fields', 'https://js.braintreegateway.com/web/3.26.0/js/hosted-fields.min.js', array(), WC_Braintree::VERSION, true );
+			wp_enqueue_script( 'braintree-js-hosted-fields', 'https://js.braintreegateway.com/web/3.34.0/js/hosted-fields.min.js', array(), WC_Braintree::VERSION, true );
 
 			if ( $this->is_3d_secure_enabled() ) {
-				wp_enqueue_script( 'braintree-js-3d-secure', 'https://js.braintreegateway.com/web/3.26.0/js/three-d-secure.min.js', array(), WC_Braintree::VERSION, true );
+				wp_enqueue_script( 'braintree-js-3d-secure', 'https://js.braintreegateway.com/web/3.34.0/js/three-d-secure.min.js', array(), WC_Braintree::VERSION, true );
 			}
 		}
 	}

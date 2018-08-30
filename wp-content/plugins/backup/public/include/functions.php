@@ -195,9 +195,32 @@ function backupGuardShouldUpdate()
     return false;
 }
 
+function backupGuardShouldActivateExtension($extension)
+{
+    $extensionAdapter = SGExtension::getInstance();
+
+    if (!$extensionAdapter->isExtensionAvailable($extension) || SGConfig::get($extension) || !$extensionAdapter->isExtensionAlreadyInPluginsFolder($extension) || $extensionAdapter->isExtensionActive($extension)) {
+        return false;
+    }
+
+    return true;
+}
+
+function backupGuardShouldInstallExtension($extension)
+{
+    $extensionAdapter = SGExtension::getInstance();
+
+    if (!$extensionAdapter->isExtensionAvailable($extension) || SGConfig::get($extension) || $extensionAdapter->isExtensionAlreadyInPluginsFolder($extension) || $extensionAdapter->isExtensionActive($extension)) {
+        return false;
+    }
+
+    return true;
+}
+
 function backupGuardLoggedMessage()
 {
-    if (!SGBoot::isFeatureAvailable('SCHEDULE')) {
+    $pluginCapabilities = backupGuardGetCapabilities();
+    if ($pluginCapabilities == BACKUP_GUARD_CAPABILITIES_FREE) {
         return '';
     }
 

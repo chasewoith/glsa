@@ -1199,3 +1199,8 @@ and (max-device-width : 1024px)
 .disable-canvas{
         cursor: default;
 }
+
+/* used to remove bootstrap table border */
+.noborder td, .noborder th {
+    border: none !important;
+}
