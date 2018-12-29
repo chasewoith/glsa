@@ -4,7 +4,7 @@ Donate link: http://www.dfactory.eu/
 Tags: antispam, capcha, captcha, spam, security, cf7, contact form 7
 Requires at least: 4.0
 Tested up to: 4.9.8
-Stable tag: 1.2.9
+Stable tag: 1.2.10
 License: MIT License
 License URI: http://opensource.org/licenses/MIT
 
@@ -47,6 +47,9 @@ A. Chances are, someone else has asked it. Check out the support forum at: http:
 == Changelog ==
 
 
+
+= 1.2.10 =
+* Fix: Call to undefined function wpcf7_add_form_tag
 
 = 1.2.9 =
 * Fix: Potential vulnerability bugs
@@ -136,6 +139,5 @@ A. Chances are, someone else has asked it. Check out the support forum at: http:
 
 == Upgrade Notice ==
 
-= 1.2.9 =
-* Fix: Potential vulnerability bugs
-* Tweak: Improve getting server host name for comment blocking
+= 1.2.10 =
+* Fix: Call to undefined function wpcf7_add_form_tag

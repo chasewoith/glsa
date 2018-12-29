@@ -515,11 +515,58 @@ class wfUtils {
 	public static function truthyToInt($value) {
 		return self::truthyToBoolean($value) ? 1 : 0;
 	}
+	
+	/**
+	 * Returns the whitelist presets, which first grabs the bundled list and then merges the dynamic list into it.
+	 * 
+	 * @return array
+	 */
+	public static function whitelistPresets() {
+		static $_cachedPresets = null;
+		if ($_cachedPresets === null) {
+			include('wfIPWhitelist.php'); /** @var array $wfIPWhitelist */
+			$currentPresets = wfConfig::getJSON('whitelistPresets', array());
+			if (is_array($currentPresets)) {
+				$_cachedPresets = array_merge($wfIPWhitelist, $currentPresets);
+			}
+			else {
+				$_cachedPresets = $wfIPWhitelist;
+			}
+		}
+		return $_cachedPresets;
+	}
+	
+	/**
+	 * Returns an array containing all whitelisted service IPs/ranges. The returned array is grouped by service
+	 * tag: array('service1' => array('range1', 'range2', range3', ...), ...)
+	 * 
+	 * @return array
+	 */
+	public static function whitelistedServiceIPs() {
+		$result = array();
+		$whitelistPresets = self::whitelistPresets();
+		$whitelistedServices = wfConfig::getJSON('whitelistedServices', array());
+		foreach ($whitelistPresets as $tag => $preset) {
+			if (!isset($preset['n'])) { //Just an array of IPs/ranges
+				$result[$tag] = $preset;
+				continue;
+			}
+			
+			if ((isset($preset['h']) && $preset['h']) || (isset($preset['f']) && $preset['f'])) { //Forced
+				$result[$tag] = $preset['r'];
+				continue;
+			}
+			
+			if ((!isset($whitelistedServices[$tag]) && isset($preset['d']) && $preset['d']) || (isset($whitelistedServices[$tag]) && $whitelistedServices[$tag])) {
+				$result[$tag] = $preset['r'];
+			}
+		}
+		return $result;
+	}
 
 	/**
-	 * Get the list of whitelisted IPs and networks
-	 *
-	 * Results may include wfUserIPRange objects for now. Ideally everything would be in CIDR notation.
+	 * Get the list of whitelisted IPs and networks, which is a combination of preset IPs/ranges and user-entered
+	 * IPs/ranges.
 	 *
 	 * @param string	$filter	Group name to filter whitelist by
 	 * @return array
@@ -528,19 +575,16 @@ class wfUtils {
 		static $wfIPWhitelist;
 
 		if (!isset($wfIPWhitelist)) {
-			include('wfIPWhitelist.php');
-
-			// Memoize user defined whitelist IPs and ranges
-			// TODO: Convert everything to CIDR
+			$wfIPWhitelist = self::whitelistedServiceIPs();
+			
+			//Append user ranges
 			$wfIPWhitelist['user'] = array();
-
 			foreach (array_filter(explode(',', wfConfig::get('whitelisted'))) as $ip) {
 				$wfIPWhitelist['user'][] = new wfUserIPRange($ip);
 			}
 		}
 
 		$whitelist = array();
-
 		foreach ($wfIPWhitelist as $group => $values) {
 			if ($filter === null || $group === $filter) {
 				$whitelist = array_merge($whitelist, $values);
@@ -1343,16 +1387,22 @@ class wfUtils {
 		}
 		
 		if (!class_exists('wfGeoIP2')) {
+			wfUtils::error_clear_last();
 			require_once(dirname(__FILE__) . '/../models/common/wfGeoIP2.php');
+			wfUtils::check_and_log_last_error('geoip', 'GeoIP Error:');
 		}
 		
 		try {
-			$geoip = wfGeoIP2::shared();
-			$code = $geoip->countryCode($IP);
+			wfUtils::error_clear_last();
+			$geoip = @wfGeoIP2::shared();
+			wfUtils::check_and_log_last_error('geoip', 'GeoIP Error:');
+			wfUtils::error_clear_last();
+			$code = @$geoip->countryCode($IP);
+			wfUtils::check_and_log_last_error('geoip', 'GeoIP Error:');
 			return is_string($code) ? $code : '';
 		}
 		catch (Exception $e) {
-			//Ignore
+			wfUtils::check_and_log_last_error('geoip', 'GeoIP Error:', $e->getMessage());
 		}
 		
 		return '';
@@ -1363,15 +1413,22 @@ class wfUtils {
 		}
 		
 		if (!class_exists('wfGeoIP2')) {
+			wfUtils::error_clear_last();
 			require_once(dirname(__FILE__) . '/../models/common/wfGeoIP2.php');
+			wfUtils::check_and_log_last_error('geoip', 'GeoIP Error:');
 		}
 		
 		try {
-			$geoip = wfGeoIP2::shared();
-			return $geoip->version();
+			wfUtils::error_clear_last();
+			$geoip = @wfGeoIP2::shared();
+			wfUtils::check_and_log_last_error('geoip', 'GeoIP Error:');
+			wfUtils::error_clear_last();
+			$version = @$geoip->version();
+			wfUtils::check_and_log_last_error('geoip', 'GeoIP Error:');
+			return $version;
 		}
 		catch (Exception $e) {
-			//Ignore
+			wfUtils::check_and_log_last_error('geoip', 'GeoIP Error:', $e->getMessage());
 		}
 		
 		return 0;
@@ -1420,6 +1477,63 @@ class wfUtils {
 	}
 	public static function isRefererBlocked($refPattern){
 		return fnmatch($refPattern, !empty($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '', FNM_CASEFOLD);
+	}
+	
+	public static function error_clear_last() {
+		if (function_exists('error_clear_last')) {
+			error_clear_last();
+		}
+		else {
+			// set error_get_last() to defined state by forcing an undefined variable error
+			set_error_handler('wfUtils::_resetErrorsHandler', 0);
+			@$undefinedVariable;
+			restore_error_handler();
+		}
+	}
+	
+	/**
+	 * Logs the error given or the last PHP error to our log, rate limiting if needed.
+	 * 
+	 * @param string $limiter_key
+	 * @param string $label
+	 * @param null|string $error The error to log. If null, it will be the result of error_get_last
+	 * @param int $rate Logging will only occur once per $rate seconds.
+	 */
+	public static function check_and_log_last_error($limiter_key, $label, $error = null, $rate = 3600 /* 1 hour */) {
+		if ($error === null) {
+			$error = error_get_last();
+			if ($error === null) {
+				return;
+			}
+			else if ($error['file'] === __FILE__) {
+				return;
+			}
+			$error = $error['message'];
+		}
+		
+		$rateKey = 'lastError_rate_' . $limiter_key;
+		$previousKey = 'lastError_prev_' . $limiter_key;
+		$previousError = wfConfig::getJSON($previousKey, array(0, false));
+		if ($previousError[1] != $error) {
+			if (wfConfig::getInt($rateKey) < time() - $rate) {
+				wfConfig::set($rateKey, time());
+				wfConfig::setJSON($previousKey, array(time(), $error));
+				wordfence::status(2, 'error', $label . ' ' . $error);
+			}
+		}
+	}
+	
+	public static function last_error($limiter_key) {
+		$previousKey = 'lastError_prev_' . $limiter_key;
+		$previousError = wfConfig::getJSON($previousKey, array(0, false));
+		if ($previousError[1]) {
+			return wfUtils::formatLocalTime(get_option('date_format') . ' ' . get_option('time_format'), $previousError[0]) . ': ' . $previousError[1];
+		}
+		return false;
+	}
+	
+	public static function _resetErrorsHandler($errno, $errstr, $errfile, $errline) {
+		//Do nothing
 	}
 
 	/**
@@ -2412,6 +2526,14 @@ class wfUtils {
 		
 		$values = array_values($array);
 		return $values[count($values) - 1];
+	}
+	
+	public static function array_strtolower($array) {
+		$result = array();
+		foreach ($array as $a) {
+			$result[] = strtolower($a);
+		}
+		return $result;
 	}
 	
 	public static function array_column($input = null, $columnKey = null, $indexKey = null) { //Polyfill from https://github.com/ramsey/array_column/blob/master/src/array_column.php

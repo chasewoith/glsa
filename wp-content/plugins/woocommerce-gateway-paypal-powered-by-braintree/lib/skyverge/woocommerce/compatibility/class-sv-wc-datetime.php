@@ -18,18 +18,18 @@
  *
  * @package   SkyVerge/WooCommerce/Compatibility
  * @author    SkyVerge
- * @copyright Copyright (c) 2013-2017, SkyVerge, Inc.
+ * @copyright Copyright (c) 2013-2018, SkyVerge, Inc.
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License v3.0
  */
 
-namespace SkyVerge\Plugin_Framework;
+namespace WC_Braintree\Plugin_Framework;
 
 defined( 'ABSPATH' ) or exit;
 
-if ( ! class_exists( '\SkyVerge\Plugin_Framework\SV_WC_DateTime' ) ) :
+if ( ! class_exists( '\\WC_Braintree\\Plugin_Framework\\SV_WC_DateTime' ) ) :
 
 /**
- * Backports the \WC_DateTime class to WooCommerce pre-3.0.
+ * Backports the \WC_DateTime class to WooCommerce pre-3.0.0
  *
  * TODO: Remove this when WC 3.x can be required {CW 2017-03-16}
  *

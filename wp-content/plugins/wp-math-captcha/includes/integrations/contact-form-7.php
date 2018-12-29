@@ -7,7 +7,8 @@
 add_action( 'init', 'wpcf7_add_shortcode_mathcaptcha', 5 );
 
 function wpcf7_add_shortcode_mathcaptcha() {
-	wpcf7_add_form_tag( 'mathcaptcha', 'wpcf7_mathcaptcha_shortcode_handler', true );
+	if ( function_exists( 'wpcf7_add_form_tag' ) )
+		wpcf7_add_form_tag( 'mathcaptcha', 'wpcf7_mathcaptcha_shortcode_handler', true );
 }
 
 function wpcf7_mathcaptcha_shortcode_handler( $tag ) {
@@ -141,10 +142,8 @@ function wpcf7_mathcaptcha_display_warning_message() {
 add_action( 'admin_init', 'wpcf7_add_tag_generator_mathcaptcha', 45 );
 
 function wpcf7_add_tag_generator_mathcaptcha() {
-	if ( ! function_exists( 'wpcf7_add_tag_generator' ) )
-		return;
-
-	wpcf7_add_tag_generator( 'mathcaptcha', __( 'Math Captcha', 'math-captcha' ), 'wpcf7-mathcaptcha', 'wpcf7_tg_pane_mathcaptcha' );
+	if ( function_exists( 'wpcf7_add_tag_generator' ) )
+		wpcf7_add_tag_generator( 'mathcaptcha', __( 'Math Captcha', 'math-captcha' ), 'wpcf7-mathcaptcha', 'wpcf7_tg_pane_mathcaptcha' );
 }
 
 function wpcf7_tg_pane_mathcaptcha( $contact_form ) {

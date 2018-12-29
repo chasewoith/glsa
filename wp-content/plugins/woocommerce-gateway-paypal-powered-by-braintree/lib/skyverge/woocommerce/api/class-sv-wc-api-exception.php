@@ -18,15 +18,15 @@
  *
  * @package   SkyVerge/WooCommerce/API/Exceptions
  * @author    SkyVerge
- * @copyright Copyright (c) 2013-2016, SkyVerge, Inc.
+ * @copyright Copyright (c) 2013-2018, SkyVerge, Inc.
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License v3.0
  */
 
-namespace SkyVerge\Plugin_Framework;
+namespace WC_Braintree\Plugin_Framework;
 
 defined( 'ABSPATH' ) or exit;
 
-if ( ! class_exists( '\SkyVerge\Plugin_Framework\SV_WC_API_Exception' ) ) :
+if ( ! class_exists( '\\WC_Braintree\\Plugin_Framework\\SV_WC_API_Exception' ) ) :
 
 	/**
 	 * Plugin Framework API Exception - generic API Exception

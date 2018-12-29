@@ -104,6 +104,10 @@ class WC_Braintree_API_Payment_Method_Request extends WC_Braintree_API_Vault_Req
 			),
 		);
 
+		$update_data['billingAddress']['options'] = array(
+			'updateExisting' => true,
+		);
+
 		$this->request_data = array( $token, $update_data );
 	}
 

@@ -18,15 +18,15 @@
  *
  * @package   SkyVerge/WooCommerce/Payment-Gateway/API
  * @author    SkyVerge
- * @copyright Copyright (c) 2013-2016, SkyVerge, Inc.
+ * @copyright Copyright (c) 2013-2018, SkyVerge, Inc.
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License v3.0
  */
 
-namespace SkyVerge\Plugin_Framework;
+namespace WC_Braintree\Plugin_Framework;
 
 defined( 'ABSPATH' ) or exit;
 
-if ( ! interface_exists( '\SkyVerge\Plugin_Framework\SV_WC_Payment_Gateway_API' ) ) :
+if ( ! interface_exists( '\\WC_Braintree\\Plugin_Framework\\SV_WC_Payment_Gateway_API' ) ) :
 
 /**
  * WooCommerce Direct Payment Gateway API
@@ -40,7 +40,8 @@ interface SV_WC_Payment_Gateway_API {
 	 * If the gateway does not support credit card authorizations, this method can be a no-op.
 	 *
 	 * @since 1.0.0
-	 * @param WC_Order $order the order
+	 *
+	 * @param \WC_Order $order the order
 	 * @return SV_WC_Payment_Gateway_API_Response credit card charge response
 	 * @throws SV_WC_Payment_Gateway_Exception network timeouts, etc
 	 */
@@ -53,7 +54,8 @@ interface SV_WC_Payment_Gateway_API {
 	 * If the gateway does not support credit card charges, this method can be a no-op.
 	 *
 	 * @since 1.0.0
-	 * @param WC_Order $order the order
+	 *
+	 * @param \WC_Order $order the order
 	 * @return SV_WC_Payment_Gateway_API_Response credit card charge response
 	 * @throws SV_WC_Payment_Gateway_Exception network timeouts, etc
 	 */
@@ -66,7 +68,8 @@ interface SV_WC_Payment_Gateway_API {
 	 * If the gateway does not support credit card capture, this method can be a no-op.
 	 *
 	 * @since 1.0.0
-	 * @param WC_Order $order the order
+	 *
+	 * @param \WC_Order $order the order
 	 * @return SV_WC_Payment_Gateway_API_Response credit card capture response
 	 * @throws SV_WC_Payment_Gateway_Exception network timeouts, etc
 	 */
@@ -79,7 +82,8 @@ interface SV_WC_Payment_Gateway_API {
 	 * If the gateway does not support check debits, this method can be a no-op.
 	 *
 	 * @since 1.0.0
-	 * @param WC_Order $order the order
+	 *
+	 * @param \WC_Order $order the order
 	 * @return SV_WC_Payment_Gateway_API_Response check debit response
 	 * @throws SV_WC_Payment_Gateway_Exception network timeouts, etc
 	 */
@@ -92,7 +96,8 @@ interface SV_WC_Payment_Gateway_API {
 	 * If the gateway does not support refunds, this method can be a no-op.
 	 *
 	 * @since 3.1.0
-	 * @param WC_Order $order order object
+	 *
+	 * @param \WC_Order $order order object
 	 * @return SV_WC_Payment_Gateway_API_Response refund response
 	 * @throws SV_WC_Payment_Gateway_Exception network timeouts, etc
 	 */
@@ -105,7 +110,8 @@ interface SV_WC_Payment_Gateway_API {
 	 * If the gateway does not support voids, this method can be a no-op.
 	 *
 	 * @since 3.1.0
-	 * @param WC_Order $order order object
+	 *
+	 * @param \WC_Order $order order object
 	 * @return SV_WC_Payment_Gateway_API_Response void response
 	 * @throws SV_WC_Payment_Gateway_Exception network timeouts, etc
 	 */
@@ -118,11 +124,36 @@ interface SV_WC_Payment_Gateway_API {
 	 * If the gateway does not support tokenization, this method can be a no-op.
 	 *
 	 * @since 1.0.0
-	 * @param WC_Order $order the order
+	 *
+	 * @param \WC_Order $order the order
 	 * @return SV_WC_Payment_Gateway_API_Create_Payment_Token_Response payment method tokenization response
 	 * @throws SV_WC_Payment_Gateway_Exception network timeouts, etc
 	 */
 	public function tokenize_payment_method( \WC_Order $order );
+
+
+	/**
+	 * Updates a tokenized payment method.
+	 *
+	 * @since 5.3.0-dev
+	 *
+	 * @param \WC_Order $order order object
+	 * @return SV_WC_Payment_Gateway_API_Response
+	 * @throws SV_WC_Plugin_Exception
+	 */
+	public function update_tokenized_payment_method( \WC_Order $order );
+
+
+	/**
+	 * Determines if this API supports updating tokenized payment methods.
+	 *
+	 * @see SV_WC_Payment_Gateway_API::update_tokenized_payment_method()
+	 *
+	 * @since 5.3.0-dev
+	 *
+	 * @return bool
+	 */
+	public function supports_update_tokenized_payment_method();
 
 
 	/**
@@ -132,6 +163,7 @@ interface SV_WC_Payment_Gateway_API {
 	 *
 	 * @since 1.0.0
 	 * @see SV_WC_Payment_Gateway_API::supports_remove_tokenized_payment_method()
+	 *
 	 * @param string $token the payment method token
 	 * @param string $customer_id unique customer id for gateways that support it
 	 * @return SV_WC_Payment_Gateway_API_Response remove tokenized payment method response
@@ -147,6 +179,7 @@ interface SV_WC_Payment_Gateway_API {
 	 *
 	 * @since 1.0.0
 	 * @see SV_WC_Payment_Gateway_API::remove_tokenized_payment_method()
+	 *
 	 * @return boolean true if this API supports a "remove tokenized payment method" request, false otherwise
 	 */
 	public function supports_remove_tokenized_payment_method();
@@ -159,8 +192,9 @@ interface SV_WC_Payment_Gateway_API {
 	 *
 	 * @since 1.0.0
 	 * @see SV_WC_Payment_Gateway_API::supports_get_tokenized_payment_methods()
+	 *
 	 * @param string $customer_id unique customer id
-	 * @return SV_WC_API_Get_Tokenized_Payment_Methods_Response response containing any payment tokens for the customer
+	 * @return SV_WC_Payment_Gateway_API_Get_Tokenized_Payment_Methods_Response response containing any payment tokens for the customer
 	 * @throws SV_WC_Payment_Gateway_Exception network timeouts, etc
 	 */
 	public function get_tokenized_payment_methods( $customer_id );
@@ -173,6 +207,7 @@ interface SV_WC_Payment_Gateway_API {
 	 *
 	 * @since 1.0.0
 	 * @see SV_WC_Payment_Gateway_API::get_tokenized_payment_methods()
+	 *
 	 * @return boolean true if this API supports a "get tokenized payment methods" request, false otherwise
 	 */
 	public function supports_get_tokenized_payment_methods();
@@ -182,7 +217,8 @@ interface SV_WC_Payment_Gateway_API {
 	 * Returns the most recent request object
 	 *
 	 * @since 1.0.0
-	 * @return \SV_WC_Payment_Gateway_API_Request the most recent request object
+	 *
+	 * @return SV_WC_Payment_Gateway_API_Request the most recent request object
 	 */
 	public function get_request();
 
@@ -191,7 +227,8 @@ interface SV_WC_Payment_Gateway_API {
 	 * Returns the most recent response object
 	 *
 	 * @since 1.0.0
-	 * @return \SV_WC_Payment_Gateway_API_Response the most recent response object
+	 *
+	 * @return SV_WC_Payment_Gateway_API_Response the most recent response object
 	 */
 	public function get_response();
 
@@ -200,6 +237,7 @@ interface SV_WC_Payment_Gateway_API {
 	 * Returns the WC_Order object associated with the request, if any
 	 *
 	 * @since 4.1.0
+	 *
 	 * @return \WC_Order
 	 */
 	public function get_order();

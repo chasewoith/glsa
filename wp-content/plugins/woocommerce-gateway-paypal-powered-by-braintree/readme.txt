@@ -2,9 +2,9 @@
 Contributors: automattic, akeda, allendav, royho, slash1andy, woosteve, spraveenitpro, mikedmoore, fernashes, shellbeezy, danieldudzic, dsmithweb, fullysupportedphil, corsonr, zandyring, skyverge
 Tags: ecommerce, e-commerce, commerce, woothemes, wordpress ecommerce, store, sales, sell, shop, shopping, cart, checkout, configurable, paypal, braintree
 Requires at least: 4.4
-Tested up to: 4.9.7
+Tested up to: 4.9.8
 Requires PHP: 5.4
-Stable tag: 2.1.3
+Stable tag: 2.2.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -40,6 +40,7 @@ PayPal Powered by Braintree provides several advanced features for transaction p
 = Minimum Requirements =
 
 * WordPress 4.4 or greater
+* WooCommerce 2.6 or greater
 * PHP version 5.4 or greater
 * cURL
 
@@ -122,6 +123,23 @@ New feature requests and bugs reports can be made in the plugin forum.
 7. Checkout with PayPal or credit / debit cards.
 
 == Changelog ==
+
+= 2018.11.12 - version 2.2.0 =
+* Feature - Add Apple Pay support for iOS users to quickly place orders from the product, cart, and checkout pages
+* Feature - Allow the PayPal button to be customized from the plugin settings
+* Feature - Add PayPal Credit support
+* Feature - Add support for auto-capturing orders when changed to a paid status
+* Feature - Customers can now label their saved payment methods for easier identification when choosing how to pay
+* Tweak - Improve the My Account Payment Methods table on desktop and mobile
+* Tweak - Automatically enable 3D Secure when enabled in the merchant account
+* Tweak - Allow users to set the card types that should process 3D Secure
+* Tweak - Allow users to set the 3D Secure level and block transactions where liability is not shifted
+* Fix - Fix an issue where duplicate addresses were added when processing transactions with a previously saved payment method
+* Fix - Ensure the payment forms are re-created after shipping method selection
+* Misc - Remove support for WooCommerce 2.5
+
+= 2018.10.17 - version 2.1.4 =
+* Misc - Add support for WooCommerce 3.5
 
 = 2018.08.01 - version 2.1.3 =
 * Tweak - Generalize the PayPal link error to allow for different PayPal button colors

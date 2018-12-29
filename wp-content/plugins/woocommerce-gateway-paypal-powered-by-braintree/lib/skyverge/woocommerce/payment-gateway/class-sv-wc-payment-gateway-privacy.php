@@ -1,6 +1,6 @@
 <?php
 /**
- * WooCommerce Payment Gateway Framework
+ * WooCommerce Plugin Framework
  *
  * This source file is subject to the GNU General Public License v3.0
  * that is bundled with this package in the file license.txt.
@@ -16,22 +16,22 @@
  * versions in the future. If you wish to customize the plugin for your
  * needs please refer to http://www.skyverge.com
  *
- * @package   SkyVerge/WooCommerce/Payment-Gateway/Classes
+ * @package   SkyVerge/WooCommerce/Plugin/Classes
  * @author    SkyVerge
- * @copyright Copyright (c) 2013-2016, SkyVerge, Inc.
+ * @copyright Copyright (c) 2013-2018, SkyVerge, Inc.
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License v3.0
  */
 
-namespace SkyVerge\Plugin_Framework;
+namespace WC_Braintree\Plugin_Framework;
 
 defined( 'ABSPATH' ) or exit;
 
-if ( ! class_exists( '\SkyVerge\Plugin_Framework\SV_WC_Payment_Gateway_Privacy' ) ) :
+if ( ! class_exists( '\\WC_Braintree\\Plugin_Framework\\SV_WC_Payment_Gateway_Privacy' ) ) :
 
 /**
  * The payment gateway privacy handler class.
  *
- * @since 2.1.2
+ * @since 5.1.4
  */
 class SV_WC_Payment_Gateway_Privacy extends \WC_Abstract_Privacy {
 
@@ -43,7 +43,7 @@ class SV_WC_Payment_Gateway_Privacy extends \WC_Abstract_Privacy {
 	/**
 	 * Constructs the class.
 	 *
-	 * @since 2.1.2
+	 * @since 5.1.4
 	 *
 	 * @param SV_WC_Payment_Gateway_Plugin payment gateway plugin instance
 	 */
@@ -65,7 +65,7 @@ class SV_WC_Payment_Gateway_Privacy extends \WC_Abstract_Privacy {
 	/**
 	 * Adds the action & filter hooks.
 	 *
-	 * @since 2.1.2
+	 * @since 5.1.4
 	 */
 	protected function add_hooks() {
 
@@ -91,7 +91,7 @@ class SV_WC_Payment_Gateway_Privacy extends \WC_Abstract_Privacy {
 	 *
 	 * @internal
 	 *
-	 * @since 2.1.2
+	 * @since 5.1.4
 	 *
 	 * @param array $data customer personal data to export
 	 * @param \WC_Customer $customer customer object
@@ -125,7 +125,7 @@ class SV_WC_Payment_Gateway_Privacy extends \WC_Abstract_Privacy {
 	/**
 	 * Removes the gateway data during an order data erasure.
 	 *
-	 * @since 2.1.2
+	 * @since 5.1.4
 	 *
 	 * @param array $response customer data erasure response
 	 * @param \WC_Customer $customer customer object
@@ -190,6 +190,14 @@ class SV_WC_Payment_Gateway_Privacy extends \WC_Abstract_Privacy {
 						$token_data[] = array(
 							'name'  => __( 'Last Four', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 							'value' => $token->get_last_four(),
+						);
+					}
+
+					if ( $token->get_nickname() ) {
+
+						$token_data[] = array(
+							'name'  => __( 'Nickname', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+							'value' => $token->get_nickname(),
 						);
 					}
 
@@ -270,7 +278,7 @@ class SV_WC_Payment_Gateway_Privacy extends \WC_Abstract_Privacy {
 	 *
 	 * @internal
 	 *
-	 * @since 2.1.2
+	 * @since 5.1.4
 	 *
 	 * @param array $data order personal data to export
 	 * @param \WC_Order $order order object
@@ -290,7 +298,6 @@ class SV_WC_Payment_Gateway_Privacy extends \WC_Abstract_Privacy {
 				'account_type'     => __( 'Account Type', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 				'card_type'        => __( 'Card Type', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 				'card_expiry_date' => __( 'Expiry Date', 'woocommerce-gateway-paypal-powered-by-braintree' ),
-				'payer_email'      => __( 'Payer Email', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 			);
 
 			foreach ( $meta_to_export as $key => $label ) {
@@ -312,7 +319,7 @@ class SV_WC_Payment_Gateway_Privacy extends \WC_Abstract_Privacy {
 	/**
 	 * Removes the gateway data during an order data erasure.
 	 *
-	 * @since 2.1.2
+	 * @since 5.1.4
 	 *
 	 * @param \WC_Order $order order object
 	 */
@@ -330,13 +337,12 @@ class SV_WC_Payment_Gateway_Privacy extends \WC_Abstract_Privacy {
 				'account_type'     => '',
 				'card_type'        => '',
 				'card_expiry_date' => 'XXXX',
-				'payer_email'      => '',
 			);
 
 			/**
 			 * Filters the personal order meta data to remove during a customer erasure request.
 			 *
-			 * @since 2.1.2
+			 * @since 5.1.4
 			 *
 			 * @param array $meta_keys personal order meta data to remove during a customer erasure request, in the form of $meta_key => $anonymized_value
 			 * @param \WC_Order $order order object
@@ -368,7 +374,7 @@ class SV_WC_Payment_Gateway_Privacy extends \WC_Abstract_Privacy {
 	/**
 	 * Gets the payment gateway plugin instance.
 	 *
-	 * @since 2.1.2
+	 * @since 5.1.4
 	 *
 	 * @return SV_WC_Payment_Gateway_Plugin
 	 */

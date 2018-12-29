@@ -18,15 +18,15 @@
  *
  * @package   SkyVerge/WooCommerce/Payment-Gateway/Classes
  * @author    SkyVerge
- * @copyright Copyright (c) 2013-2016, SkyVerge, Inc.
+ * @copyright Copyright (c) 2013-2018, SkyVerge, Inc.
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License v3.0
  */
 
-namespace SkyVerge\Plugin_Framework;
+namespace WC_Braintree\Plugin_Framework;
 
 defined( 'ABSPATH' ) or exit;
 
-if ( ! class_exists( '\SkyVerge\Plugin_Framework\SV_WC_Payment_Gateway_Payment_Token' ) ) :
+if ( ! class_exists( '\\WC_Braintree\\Plugin_Framework\\SV_WC_Payment_Gateway_Payment_Token' ) ) :
 
 /**
  * WooCommerce Payment Gateway Token
@@ -391,6 +391,58 @@ class SV_WC_Payment_Gateway_Payment_Token {
 	public function get_image_url() {
 
 		return $this->img_url;
+	}
+
+
+	/**
+	 * Gets the payment method nickname.
+	 *
+	 * @since 5.1.0
+	 *
+	 * @return string
+	 */
+	public function get_nickname() {
+
+		return isset( $this->data['nickname'] ) ? $this->data['nickname'] : '';
+	}
+
+
+	/**
+	 * Sets the payment method nickname.
+	 *
+	 * @since 5.1.0
+	 *
+	 * @param string $value nickname value
+	 */
+	public function set_nickname( $value ) {
+
+		$this->data['nickname'] = $value;
+	}
+
+
+	/**
+	 * Gets the billing address hash.
+	 *
+	 * @since 5.3.0-dev
+	 *
+	 * @return string
+	 */
+	public function get_billing_hash() {
+
+		return isset( $this->data['billing_hash'] ) ? $this->data['billing_hash'] : '';
+	}
+
+
+	/**
+	 * Sets the billing hash.
+	 *
+	 * @since 5.3.0-dev
+	 *
+	 * @param string $value billing hash
+	 */
+	public function set_billing_hash( $value ) {
+
+		$this->data['billing_hash'] = $value;
 	}
 
 

@@ -201,6 +201,12 @@ class Cf7_Grid_Layout {
     /**
     * @since 2.1.0 make sure our dependent plugins exists.*/
     $this->loader->add_action( 'admin_init', $plugin_admin, 'check_plugin_dependency');
+    /**
+    *@since 2.3.0 redirect post.php for form duplicate*/
+    $this->loader->add_filter('admin_init', $plugin_admin, 'duplicate_cf7_form');
+    /** @since 2.6.0*/
+    $this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'pretty_admin_pointers' );
+    $this->loader->add_action( 'cf7sg_plugin_pointers-edit-wpcf7_contact_form', $plugin_admin, 'edit_pointers' );
     /*
     CF7 Hooks
     */
@@ -210,7 +216,10 @@ class Cf7_Grid_Layout {
     $this->loader->add_action( 'wpcf7_admin_misc_pub_section', $plugin_admin, 'dynamic_select_choices' , 10, 1);
     $this->loader->add_action( 'wpcf7_admin_init', $plugin_admin, 'cf7_shortcode_tags' );
     //modify the default form template
-  	$this->loader->add_filter( 'wpcf7_default_template', $plugin_admin, 'default_cf7_form' , 5,2);
+    $this->loader->add_filter( 'wpcf7_default_template', $plugin_admin, 'default_cf7_form' , 5,2);
+    /** @since 2.6.0*/
+    $this->loader->add_filter( 'wpcf7_messages', $plugin_admin, 'disabled_message' , 5,2);
+
 
 	}
 
@@ -235,9 +244,6 @@ class Cf7_Grid_Layout {
     $this->loader->add_action( 'wp_ajax_nopriv_save_grid_fields', $plugin_public, 'save_grid_fields' );
     $this->loader->add_action( 'wp_ajax_save_grid_fields', $plugin_public, 'save_grid_fields' );
 
-    /*Shortcodes*/
-    //add_shortcode('multi-cf7-form', array($plugin_public, 'multi_form_shortcode'));
-    //add_shortcode('child-cf7-form', array($plugin_public, 'child_form_shortcode'));
     /* CF7 Hooks */
     //disable autloading of cf7 plugin scripts
     //add_filter( 'wpcf7_load_js',  '__return_false' );
@@ -264,6 +270,8 @@ class Cf7_Grid_Layout {
 		/** track toggles
 		*@since 1.1.0  */
 		$this->loader->add_action('cf7_2_post_form_posted', $plugin_public, 'save_toggle_status', 10, 5 );
+    /** @since 2.4.1 attache array file fields to mails */
+    $this->loader->add_filter( 'wpcf7_mail_components', $plugin_public, 'wpcf7_mail_components' , 999,3);
 	}
 
 	/**

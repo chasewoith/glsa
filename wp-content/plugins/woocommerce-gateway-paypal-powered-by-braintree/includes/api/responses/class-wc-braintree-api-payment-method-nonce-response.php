@@ -44,7 +44,9 @@ class WC_Braintree_API_Payment_Method_Nonce_Response extends WC_Braintree_API_Re
 	 */
 	public function get_nonce() {
 
-		return isset( $this->response->paymentMethodNonce ) ? $this->response->paymentMethodNonce->nonce : null;
+		$payment_method = $this->get_payment_method();
+
+		return ! empty( $payment_method ) ? $payment_method->nonce : null;
 	}
 
 
@@ -56,7 +58,9 @@ class WC_Braintree_API_Payment_Method_Nonce_Response extends WC_Braintree_API_Re
 	 */
 	public function has_3d_secure_info() {
 
-		return isset( $this->response->paymentMethodNonce ) && isset( $this->response->paymentMethodNonce->threeDSecureInfo );
+		$payment_method = $this->get_payment_method();
+
+		return ! empty( $payment_method ) && ! empty( $payment_method->threeDSecureInfo );
 	}
 
 
@@ -70,7 +74,7 @@ class WC_Braintree_API_Payment_Method_Nonce_Response extends WC_Braintree_API_Re
 	 */
 	public function get_3d_secure_status() {
 
-		return $this->has_3d_secure_info() ? $this->response->paymentMethodNonce->threeDSecureInfo->status : null;
+		return $this->has_3d_secure_info() ? $this->get_payment_method()->threeDSecureInfo->status : null;
 	}
 
 
@@ -84,7 +88,7 @@ class WC_Braintree_API_Payment_Method_Nonce_Response extends WC_Braintree_API_Re
 	 */
 	public function get_3d_secure_liability_shifted() {
 
-		return $this->has_3d_secure_info() ? $this->response->paymentMethodNonce->threeDSecureInfo->liabilityShifted : null;
+		return $this->has_3d_secure_info() ? $this->get_payment_method()->threeDSecureInfo->liabilityShifted : null;
 	}
 
 
@@ -98,7 +102,7 @@ class WC_Braintree_API_Payment_Method_Nonce_Response extends WC_Braintree_API_Re
 	 */
 	public function get_3d_secure_liability_shift_possible() {
 
-		return $this->has_3d_secure_info() ? $this->response->paymentMethodNonce->threeDSecureInfo->liabilityShiftPossible : null;
+		return $this->has_3d_secure_info() ? $this->get_payment_method()->threeDSecureInfo->liabilityShiftPossible : null;
 	}
 
 
@@ -112,7 +116,23 @@ class WC_Braintree_API_Payment_Method_Nonce_Response extends WC_Braintree_API_Re
 	 */
 	public function get_3d_secure_enrollment() {
 
-		return $this->has_3d_secure_info() && 'Y' === $this->response->paymentMethodNonce->threeDSecureInfo->enrolled;
+		return $this->has_3d_secure_info() && 'Y' === $this->get_payment_method()->threeDSecureInfo->enrolled;
+	}
+
+
+	/**
+	 * Gets the payment method data.
+	 *
+	 * Some API requests will return the object directly, and others return it inside `paymentMethodNonce` so we need to
+	 * check for that.
+	 *
+	 * @since 2.2.0
+	 *
+	 * @return object|null
+	 */
+	protected function get_payment_method() {
+
+		return isset( $this->response->paymentMethodNonce ) ? $this->response->paymentMethodNonce : $this->response;
 	}
 
 

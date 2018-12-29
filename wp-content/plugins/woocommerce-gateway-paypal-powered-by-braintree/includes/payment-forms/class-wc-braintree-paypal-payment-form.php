@@ -22,7 +22,7 @@
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License v3.0
  */
 
-use \SkyVerge\Plugin_Framework as WC_Braintree_Framework;
+use WC_Braintree\Plugin_Framework as WC_Braintree_Framework;
 
 defined( 'ABSPATH' ) or exit;
 
@@ -41,13 +41,17 @@ class WC_Braintree_PayPal_Payment_Form extends WC_Braintree_Payment_Form {
 	 * @see WC_Braintree_Payment_Form::get_payment_form_handler_js_params()
 	 * @return array
 	 */
-	protected function get_payment_form_handler_js_params() {
+	public function get_payment_form_handler_js_params() {
+
+		$params = parent::get_payment_form_handler_js_params();
 
 		$default_button_styles = array(
-			'label' => 'pay',
-			'size'  => 'responsive',
-			'shape' => 'pill',
-			'color' => 'gold',
+			'label'   => 'pay',
+			'size'    => $this->get_gateway()->get_button_size(),
+			'shape'   => $this->get_gateway()->get_button_shape(),
+			'color'   => $this->get_gateway()->get_button_color(),
+			'layout'  => 'vertical',
+			'tagline' => false,
 		);
 
 		// tweak the styles a bit for better display on the Add Payment Method page
@@ -67,12 +71,21 @@ class WC_Braintree_PayPal_Payment_Form extends WC_Braintree_Payment_Form {
 		 */
 		$button_styles = apply_filters( 'wc_' . $this->get_gateway()->get_id() . '_button_styles', $default_button_styles );
 
-		return array(
+		// PayPal requires at least medium-size buttons for the vertical layout, so force that to prevent JS errors after filtering
+		if ( isset( $button_styles['layout'], $button_styles['size'] ) && 'vertical' === $button_styles['layout'] && 'small' === $button_styles['size'] ) {
+			$button_styles['size'] = 'medium';
+		}
+
+		$params = array_merge( $params, [
 			'is_test_environment'           => $this->get_gateway()->is_test_environment(),
+			'is_paypal_credit_enabled'      => $this->get_gateway()->is_paypal_credit_enabled(),
 			'must_login_message'            => __( 'Please click the "PayPal" button below to log into your PayPal account before placing your order.', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 			'must_login_add_method_message' => __( 'Please click the "PayPal" button below to log into your PayPal account before adding your payment method.', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 			'button_styles'                 => wp_parse_args( $button_styles, $default_button_styles ), // ensure all expected parameters are present after filtering to avoid JS errors
-		);
+			'cart_payment_nonce'            => $this->get_gateway()->get_plugin()->get_paypal_cart_instance()->get_cart_nonce(),
+		] );
+
+		return $params;
 	}
 
 

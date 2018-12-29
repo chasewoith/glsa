@@ -22,7 +22,7 @@
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License v3.0
  */
 
-use \SkyVerge\Plugin_Framework as WC_Braintree_Framework;
+use WC_Braintree\Plugin_Framework as WC_Braintree_Framework;
 
 defined( 'ABSPATH' ) or exit;
 
@@ -66,6 +66,29 @@ class WC_Braintree_API extends WC_Braintree_Framework\SV_WC_API_Base implements 
 
 
 	/** API Methods ***********************************************************/
+
+
+	/**
+	 * Gets the merchant account configuration.
+	 *
+	 * @since 2.2.0
+	 *
+	 * @return WC_Braintree_API_Merchant_Configuration_Response
+	 * @throws WC_Braintree_Framework\SV_WC_API_Exception
+	 */
+	public function get_merchant_configuration() {
+
+		$response = $this->get_client_token( [ 'merchantAccountId' => '' ] );
+
+		$data = base64_decode( $response->get_client_token() );
+
+		// sanity check that the client key has valid JSON to decode
+		if ( ! json_decode( $data ) ) {
+			throw new WC_Braintree_Framework\SV_WC_API_Exception( 'The client key contained invalid JSON.', 500 );
+		}
+
+		return new WC_Braintree_API_Merchant_Configuration_Response( $data );
+	}
 
 
 	/**
@@ -334,6 +357,19 @@ class WC_Braintree_API extends WC_Braintree_Framework\SV_WC_API_Base implements 
 
 
 	/**
+	 * Determines whether updating tokenized methods is supported.
+	 *
+	 * @since 2.2.0
+	 *
+	 * @return bool
+	 */
+	public function supports_update_tokenized_payment_method() {
+
+		return false;
+	}
+
+
+	/**
 	 * Remove the given tokenized payment method for the customer
 	 *
 	 * @since 3.0.0
@@ -383,7 +419,7 @@ class WC_Braintree_API extends WC_Braintree_Framework\SV_WC_API_Base implements 
 	 * @since 3.0.0
 	 * @param string $nonce payment nonce
 	 * @return \WC_Braintree_API_Payment_Method_Nonce_Response
-	 * @throws \Exception
+	 * @throws WC_Braintree_Framework\SV_WC_Plugin_Exception
 	 */
 	public function get_payment_method_from_nonce( $nonce ) {
 
@@ -402,7 +438,7 @@ class WC_Braintree_API extends WC_Braintree_Framework\SV_WC_API_Base implements 
 	 * @since 3.0.0
 	 * @param string $token payment method token ID
 	 * @return \WC_Braintree_API_Payment_Method_Nonce_Response
-	 * @throws \Exception
+	 * @throws WC_Braintree_Framework\SV_WC_Plugin_Exception
 	 */
 	public function get_nonce_from_payment_token( $token ) {
 

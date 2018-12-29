@@ -654,9 +654,11 @@ if (!isset($sendingDiagnosticEmail)) {
 									$hasAll = true;
 									$schemaTables = wfSchema::tableList();
 									$existingTables = wfUtils::array_column($q, 'Name');
+									if (WFWAF_IS_WINDOWS) { $existingTables = wfUtils::array_strtolower($existingTables); } //Windows MySQL installations are case-insensitive
 									$missingTables = array();
 									foreach ($schemaTables as $t) {
 										$table = wfDB::networkTable($t);
+										if (WFWAF_IS_WINDOWS) { $table = strtolower($table); }
 										if (!in_array($table, $existingTables)) {
 											$hasAll = false;
 											$missingTables[] = $t;
@@ -666,7 +668,7 @@ if (!isset($sendingDiagnosticEmail)) {
 									if ($hasAll): ?>
 									<div class="wf-result-success"><?php _e('All Tables Exist', 'wordfence'); ?></div>
 									<?php else: ?>
-									<div class="wf-result-error"><?php printf(__('Tables missing (prefix %s): %s', 'wordfence'), wfDB::networkPrefix(), implode(', ', $missingTables)); ?></div>
+									<div class="wf-result-error"><?php printf(__('Tables missing (prefix %s, %s): %s', 'wordfence'), wfDB::networkPrefix(), wfSchema::usingLowercase() ? __('lowercase', 'wordfence') : __('regular case', 'wordfence'), implode(', ', $missingTables)); ?></div>
 									<?php endif; ?>
 								<?php endif; ?>
 							</div>

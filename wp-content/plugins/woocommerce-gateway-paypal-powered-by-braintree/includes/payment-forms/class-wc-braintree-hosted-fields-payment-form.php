@@ -22,7 +22,7 @@
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License v3.0
  */
 
-use \SkyVerge\Plugin_Framework as WC_Braintree_Framework;
+use WC_Braintree\Plugin_Framework as WC_Braintree_Framework;
 
 defined( 'ABSPATH' ) or exit;
 
@@ -30,6 +30,8 @@ defined( 'ABSPATH' ) or exit;
  * Braintree Hosted Fields Payment Form
  *
  * @since 3.0.0
+ *
+ * @method \WC_Gateway_Braintree_Credit_Card get_gateway()
  */
 class WC_Braintree_Hosted_Fields_Payment_Form extends WC_Braintree_Payment_Form {
 
@@ -47,11 +49,10 @@ class WC_Braintree_Hosted_Fields_Payment_Form extends WC_Braintree_Payment_Form 
 
 		$html = parent::get_saved_payment_method_html( $token );
 
-		if ( $this->get_gateway()->is_3d_secure_enabled() && in_array( $token->get_card_type(), array( 'visa', 'mc', 'mastercard' ), true ) && ! WC_Braintree_Framework\SV_WC_Helper::str_exists( $html, 'data-nonce' ) ) {
+		if ( ! WC_Braintree_Framework\SV_WC_Helper::str_exists( $html, 'data-nonce' ) && in_array( WC_Braintree_Framework\SV_WC_Payment_Gateway_Helper::normalize_card_type( $token->get_card_type() ), $this->get_gateway()->get_3d_secure_card_types(), true ) ) {
 
 			if ( $nonce = $this->get_gateway()->get_3d_secure_nonce_for_token( $token ) ) {
-
-				$html = str_replace( 'name="wc-braintree-credit-card-payment-token"', 'name="wc-braintree-credit-card-payment-token" data-nonce="' . $nonce . '"', $html );
+				$html = str_replace( 'name="wc-braintree-credit-card-payment-token"', 'name="wc-braintree-credit-card-payment-token" data-nonce="' . esc_attr( $nonce ) . '"', $html );
 			}
 		}
 
@@ -116,16 +117,32 @@ class WC_Braintree_Hosted_Fields_Payment_Form extends WC_Braintree_Payment_Form 
 	 */
 	protected function get_payment_form_handler_js_params() {
 
-		return array(
+		$params = parent::get_payment_form_handler_js_params();
+
+		// Braintree JS only returns the full names, so ensure they're correctly formatted from settings
+		$braintree_card_types = array(
+			'American Express' => WC_Braintree_Framework\SV_WC_Payment_Gateway_Helper::CARD_TYPE_AMEX ,
+			'MasterCard'       => WC_Braintree_Framework\SV_WC_Payment_Gateway_Helper::CARD_TYPE_MASTERCARD,
+			'Visa'             => WC_Braintree_Framework\SV_WC_Payment_Gateway_Helper::CARD_TYPE_VISA,
+			'Maestro'          => WC_Braintree_Framework\SV_WC_Payment_Gateway_Helper::CARD_TYPE_MAESTRO,
+		);
+
+		$card_types = array_keys( array_intersect( $braintree_card_types, $this->get_gateway()->get_3d_secure_card_types() ) );
+
+		$params = array_merge( $params, [
 			'csc_required' => $this->get_gateway()->is_csc_required(),
 			'threeds'      => array(
-				'enabled'                         => is_add_payment_method_page() ? false : $this->get_gateway()->is_3d_secure_enabled(),
+				'enabled'                         => ! is_add_payment_method_page() && $this->get_gateway()->is_3d_secure_enabled(), // setting this to false overrides any account configuration
 				'liability_shift_always_required' => $this->get_gateway()->is_3d_secure_liability_shift_always_required(),
+				'card_types'                      => $card_types,
+				'order_total'                     => WC_Braintree_Framework\SV_WC_Helper::number_format( $this->get_order_total() ),
 				'failure_message'                 => __( 'We cannot process your order with the payment information that you provided. Please use an alternate payment method.', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 			),
 			'hosted_fields_styles' => $this->get_hosted_fields_styles(),
 			'enabled_card_types'   => $this->get_enabled_card_types(),
-		);
+		] );
+
+		return $params;
 	}
 
 
@@ -138,7 +155,7 @@ class WC_Braintree_Hosted_Fields_Payment_Form extends WC_Braintree_Payment_Form 
 	 */
 	protected function get_enabled_card_types() {
 
-		$types = array_map( array( '\\SkyVerge\\Plugin_Framework\\SV_WC_Payment_Gateway_Helper', 'normalize_card_type' ), $this->get_gateway()->get_card_types() );
+		$types = array_map( array( '\\WC_Braintree\\Plugin_Framework\\SV_WC_Payment_Gateway_Helper', 'normalize_card_type' ), $this->get_gateway()->get_card_types() );
 
 		// The Braintree SDK has its own strings for a few card types that we need to match
 		$types = str_replace( array(
@@ -188,26 +205,20 @@ class WC_Braintree_Hosted_Fields_Payment_Form extends WC_Braintree_Payment_Form 
 
 
 	/**
-	 * Render hidden inputs for the handling 3D Secure transactions:
-	 *
-	 * 1) the order total, which is needed during the verification process client-side.
-	 * While this can be modified client-side, the order total is later verified server-side.
-	 *
-	 * 2) a flag to indicate client-side verification passed and server-side validations
-	 * should be performed
+	 * Renders hidden inputs for the handling 3D Secure transactions.
 	 *
 	 * @since 3.0.0
 	 */
 	public function render_payment_fields() {
 
-		if ( $this->get_gateway()->is_3d_secure_enabled() ) {
+		$fields = [
+			'card-type',
+			'3d-secure-enabled',
+			'3d-secure-verified',
+		];
 
-			$order_total = $this->get_order_total();
-
-			?>
-				<input type="hidden" name="wc_braintree_credit_card_3d_secure_order_total" value="<?php echo esc_attr( WC_Braintree_Framework\SV_WC_Helper::number_format( $order_total, 2 ) ); ?>" />
-				<input type="hidden" name="wc_braintree_credit_card_3d_secure_verified" value="0" />
-			<?php
+		foreach ( $fields as $field ) {
+			echo '<input type="hidden" name="wc-' . $this->get_gateway()->get_id_dasherized() . '-' . esc_attr( $field ) . '" value="" />';
 		}
 
 		parent::render_payment_fields();

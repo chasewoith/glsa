@@ -31,6 +31,10 @@
     if($cf7Form_table.length){
       $('.container.cf7-sg-table', $cf7Form_table).each(function(){
         var $table = $(this);
+        if($table[0].hasAttribute('id')){ /** @since 2.4.2 track table fields*/
+          var $tracker = $('<input class="cf7sg-tracker-field" value="1" type="hidden">').attr('name', $table.attr('id'));
+          $table.prepend($tracker);
+        }
         var $row = $('.row.cf7-sg-table', $table);
         var label = 'Add Row';
         //get label for button.
@@ -84,8 +88,13 @@
           if($table.is('.cf7-sg-table-footer')) $table = $table.prev('.container');
           $table.cf7sgCloneRow();
         }else if($button.is('.cf7-sg-table .row-control .dashicons')){ //---------- delete the row, delete button only on last row
+          var $table = $button.closest('.container');
           $button.closest('.row.cf7-sg-table').remove();
-          $button.closest('.container').trigger('sgRowDeleted');
+          var rows = $table.children('.row.cf7-sg-table').not('.cf7-sg-cloned-table-row').length
+          $table.trigger('sgRowDeleted');
+          /** @since 2.4.2 track table fields */
+          var $tracker = $table.children('.cf7sg-tracker-field');
+          if($tracker.length) $tracker.val(rows);
         }
       });
     }//end table structure
@@ -128,8 +137,6 @@
       });
     }//end validation
 
-    //enable tabs
-
     //enable the tabs
     var $cf7Form_tabs = $('div.has-tabs form.wpcf7-form');
     if($cf7Form_tabs.length){
@@ -143,7 +150,11 @@
           $list.after('<ul class="cf7sg-add-tab ui-tabs-nav"><li class="ui-state-default ui-corner-top"><a class="cf7sg-add-tab ui-tabs-anchor"><span class="cf7sg-add-tab dashicons dashicons-plus"></span></a></li></ul>');
           //clone the tab
           var $panel = $this.children('.cf7-sg-tabs-panel').first();
-          //add class to all fields
+          /** @since 2.4.2 track tab fields */
+          var $tracker = $('<input class="cf7sg-tracker-field" value="1" type="hidden">').attr('name', $panel.attr('id'));
+          $this.prepend($tracker);
+
+           //add class to all fields
           $panel.find(':input').each(function(){
             var $this = $(this);
             if($this.is('.cf7-sg-table :input')) return;
@@ -165,9 +176,9 @@
       //delegate tab addition/deletion
       $cf7Form_tabs.click('ul.ui-tabs-nav li', function(event){
         var $target = $(event.target);
-        if($target.is('.cf7sg-close-tab')){ //---------------------- close tab
+        var $container = $target.closest('.cf7-sg-tabs');
+        if($target.is('.cf7sg-close-tab')){ //---------------------- close/delete tab.
           var panelId = $target.siblings('a').attr('href');
-          var $container = $target.closest('.cf7-sg-tabs');
           var activate = false;
           $container.children('div'+panelId).remove(); //remove panel
           if($target.closest('li').remove().is('.ui-state-active')){ //remove tab
@@ -179,9 +190,11 @@
           if(activate){
             $container.tabs({active:0}); //activate the last tab
           }
-        }else if($target.is('.cf7sg-add-tab')){ //------------------- add tab
+          /** @since 2.4.2 udpate the tracker field*/
+          var $tracker = $container.children('.cf7sg-tracker-field');
+          if($tracker) $tracker.val($container.children('.cf7-sg-tabs-panel').length);
+        }else if($target.is('.cf7sg-add-tab')){ //------------------- add tab.
           //add a new tab
-          var $container = $target.closest('.cf7-sg-tabs');
           $container.cf7sgCloneTab();
         }
       });
@@ -341,75 +354,74 @@
               $(this).trigger('sgContentIncrease');
             }
           });
-
-          //listen for new content added to this accordion
-          toggled_accordion.on('sgContentIncrease', function(){
-            $(this).accordion("refresh");
-          });
-          //event delegation on the header click to sync the toggle state
-         form.click(toggled_accordion, function(event){
-            var $header;
-            var $target =  $(event.target);
-            if($target.is('span.cf7sg-title.toggled') || $target.is('.toggle-on') || $target.is('.toggle-off') ){
-              $header = $target.closest('.cf7sg-collapsible-title');
-            }else if($target.parent().is('.cf7sg-collapsible.with-toggle') ){
-              $header = $target;
-            }else{
-              return;
-            }
-            var id = $header.closest('.container.cf7sg-collapsible').attr('id');
-            /**
-            * @since 1.1.0 track toggle status using toggle ids.
-            */
-            var toggleStatus = '';
-            var $toggleHiddenStatus = $('input[name="_cf7sg_toggles"]', $(this));
-            var trackToggle = false;
-            if('undefined' != typeof id && $toggleHiddenStatus.length>0 ){
-              if($toggleHiddenStatus.val().length>0){
-                toggleStatus = JSON.parse($toggleHiddenStatus.val());
-              }else toggleStatus = {};
-              trackToggle = true;
-            }
-            //close other toggled sections if we have a group.
-            var group = $header.parent().data('group');
-            if(group){
-              $('.cf7sg-collapsible.with-toggle[data-group="'+group+'"]', form).each(function(){
-                var $toggled = $(this);
-                var cid = $toggled.attr('id');
-                if(id === cid) return; //current toggle.
-                if(0===$toggled.accordion('option','active')){
-                  $toggled.accordion('option','active',false);
-                  $('.toggle', $toggled).data('toggles').toggle(false);
-                  $('.row.ui-accordion-content :input', $toggled).prop('disabled', true);
-                  if(trackToggle && toggleStatus.hasOwnProperty(cid)) delete toggleStatus[cid];
-                }
-              });
-            }
-
-            var toggleSwitch = $header.children('.toggle').data('toggles');
-            if( $header.hasClass('ui-state-active') ){
-              toggleSwitch.toggle(true);
-              $('.row.ui-accordion-content :input', $header.parent()).not('.cf7-sg-cloned-table-row :input').prop('disabled', false);
-              if(trackToggle){
-                var $text = $header.clone();
-                $text.children('.toggle').remove();
-                toggleStatus[id] = $text.text().trim() + "|" + $header.children('.toggle').data('on');
-              }
-
-            }else{
-              toggleSwitch.toggle(false);
-              $('.row.ui-accordion-content :input', $header.parent()).prop('disabled', true);
-              if(trackToggle && toggleStatus.hasOwnProperty(id)) delete toggleStatus[id];
-            }
-            //store the toggle status in the hidden field.
-            if('undefined' != typeof id && $toggleHiddenStatus.length>0 ){
-              $toggleHiddenStatus.val(JSON.stringify(toggleStatus));
-            }
-
-          });//end for toggle click delegation
-
         }); //end for each toggle section.
-      });
+
+        /** @since 2.3.1 move event biding out of each() loop. */
+        //listen for new content added to this accordion
+        toggled_accordion.on('sgContentIncrease', function(){
+          $(this).accordion("refresh");
+        });
+        //event delegation on the header click to sync the toggle state
+        form.click(toggled_accordion, function(event){
+          var $header;
+          var $target =  $(event.target);
+          if($target.is('span.cf7sg-title.toggled') || $target.is('.toggle-on') || $target.is('.toggle-off') ){
+            $header = $target.closest('.cf7sg-collapsible-title');
+          }else if($target.parent().is('.cf7sg-collapsible.with-toggle') ){
+            $header = $target;
+          }else{
+            return;
+          }
+          var id = $header.closest('.container.cf7sg-collapsible').attr('id');
+          /**
+          * @since 1.1.0 track toggle status using toggle ids.
+          */
+          var toggleStatus = '';
+          var $toggleHiddenStatus = $('input[name="_cf7sg_toggles"]', $(this));
+          var trackToggle = false;
+          if('undefined' != typeof id && $toggleHiddenStatus.length>0 ){
+            if($toggleHiddenStatus.val().length>0){
+              toggleStatus = JSON.parse($toggleHiddenStatus.val());
+            }else toggleStatus = {};
+            trackToggle = true;
+          }
+          //close other toggled sections if we have a group.
+          var group = $header.parent().data('group');
+          if(group){
+            $('.cf7sg-collapsible.with-toggle[data-group="'+group+'"]', form).each(function(){
+              var $toggled = $(this);
+              var cid = $toggled.attr('id');
+              if(id === cid) return; //current toggle.
+              if(0===$toggled.accordion('option','active')){
+                $toggled.accordion('option','active',false);
+                $('.toggle', $toggled).data('toggles').toggle(false);
+                $('.row.ui-accordion-content :input', $toggled).prop('disabled', true);
+                if(trackToggle && toggleStatus.hasOwnProperty(cid)) delete toggleStatus[cid];
+              }
+            });
+          }
+
+          var toggleSwitch = $header.children('.toggle').data('toggles');
+          if( $header.hasClass('ui-state-active') ){
+            toggleSwitch.toggle(true);
+            $('.row.ui-accordion-content :input', $header.parent()).not('.cf7-sg-cloned-table-row :input').prop('disabled', false);
+            if(trackToggle){
+              var $text = $header.clone();
+              $text.children('.toggle').remove();
+              toggleStatus[id] = $text.text().trim() + "|" + $header.children('.toggle').data('on');
+            }
+          }else{
+            toggleSwitch.toggle(false);
+            $('.row.ui-accordion-content :input', $header.parent()).prop('disabled', true);
+            if(trackToggle && toggleStatus.hasOwnProperty(id)) delete toggleStatus[id];
+          }
+          //store the toggle status in the hidden field.
+          if('undefined' != typeof id && $toggleHiddenStatus.length>0 ){
+            $toggleHiddenStatus.val(JSON.stringify(toggleStatus));
+          }
+        });//end for toggle click delegation
+      }); //end collapsible rows with toggle buttons
+
       //now enable the other collapsible rows
       cf7Form_accordion.each(function(){
         var rows = $('.cf7sg-collapsible', $(this)).not('.cf7sg-collapsible.with-toggle');
@@ -425,11 +437,9 @@
             state = false;
           }else{
             switch(state){
-              case 'true':
+              case true:
                 state = 0;
                 break;
-              case 'false':
-                state = false;
             }
           }
           $('#'+cssId).accordion({
@@ -504,7 +514,11 @@
         }
       }
     });
-  });
+    /** on hover popup message for disabled submit buttons
+    * @since 2.6.0
+    */
+    $('div.cf7-smart-grid .wpcf7-submit').after('<span class="cf7sg-popup display-none">'+cf7sg.submit_disabled+'</span>').parent().addClass('cf7sg-popup');
+  }); //end on document ready().
   /*
     jQuery extended functions
   */
@@ -602,6 +616,9 @@
     //when the button is clicked, trigger a content increase for accordions to refresh
     $table.trigger('sgContentIncrease');
     $row.trigger('sgRowAdded',rowIdx);
+    /** @since 2.4.2 track table fields */
+    var $tracker = $table.children('.cf7sg-tracker-field');
+    if($tracker.length) $tracker.val(rowIdx+1); //rowIdx is zero based.
     return $table;
   }
   //clone tabs, called on a div.cf7-sg-tabs
@@ -628,8 +645,6 @@
     //new panel
     var $newPanel = $( cf7sgPanels[firstTabId] );
     $newPanel.attr('id', panelId);
-    //append new panel
-    $tab.append($newPanel);
     //add input name as class to parent span
     $(':input', $newPanel).each(function(){
       var $this = $(this);
@@ -663,6 +678,8 @@
         $this.trigger('sgSelect2');
       }
     });
+    //append new panel
+    $tab.append($newPanel);
     //change all the ids of inner tabs in the new panel
     var $innerTabs = $newPanel.find('ul.ui-tabs-nav li a');
     $innerTabs.each(function(){
@@ -728,6 +745,10 @@
     /** @since 1.2.2 */
     //trigger new tab event for custom js.
     $newPanel.trigger('sgTabAdded',tabCount);
+    /** @since 2.4.2 track tabs and their fields.*/
+    //increment tab count tacker.
+    var $tracker = $tab.children('.cf7sg-tracker-field');
+    if($tracker) $tracker.val($tab.children('.cf7-sg-tabs-panel').length);
     return $tab;
   }
 
@@ -747,7 +768,7 @@
       if(onText.length == 0){
         offText = 'No';
       }
-      $this.toggles( { text:{ on:onText, off:offText }, on: state});
+      $this.toggles( { drag:false, text:{ on:onText, off:offText }, on: state});
     }
     return $this;
   }

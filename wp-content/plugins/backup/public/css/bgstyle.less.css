@@ -7809,9 +7809,7 @@
   max-height: calc(100vh - 210px);
   overflow-y: auto;
 }
-#sg-modal-inport-from {
-  height: 245px;
-}
+
 .sg-wrapper-less .sg-justify {
   text-align: justify;
 }

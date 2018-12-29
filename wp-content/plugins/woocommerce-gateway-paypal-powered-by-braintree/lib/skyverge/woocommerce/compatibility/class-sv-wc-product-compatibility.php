@@ -18,15 +18,15 @@
  *
  * @package   SkyVerge/WooCommerce/Compatibility
  * @author    SkyVerge
- * @copyright Copyright (c) 2013-2016, SkyVerge, Inc.
+ * @copyright Copyright (c) 2013-2018, SkyVerge, Inc.
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License v3.0
  */
 
-namespace SkyVerge\Plugin_Framework;
+namespace WC_Braintree\Plugin_Framework;
 
 defined( 'ABSPATH' ) or exit;
 
-if ( ! class_exists( '\SkyVerge\Plugin_Framework\SV_WC_Product_Compatibility' ) ) :
+if ( ! class_exists( '\\WC_Braintree\\Plugin_Framework\\SV_WC_Product_Compatibility' ) ) :
 
 /**
  * WooCommerce product compatibility class.
@@ -50,6 +50,7 @@ class SV_WC_Product_Compatibility extends SV_WC_Data_Compatibility {
 	 * Gets a product property.
 	 *
 	 * @since 4.6.0
+	 *
 	 * @param \WC_Product $object the product object
 	 * @param string $prop the property name
 	 * @param string $context if 'view' then the value will be filtered
@@ -73,6 +74,7 @@ class SV_WC_Product_Compatibility extends SV_WC_Data_Compatibility {
 	 * Note that this does not save any data to the database.
 	 *
 	 * @since 4.6.0
+	 *
 	 * @param \WC_Product $object the product object
 	 * @param array $props the new properties as $key => $value
 	 * @return \WC_Product
@@ -87,6 +89,7 @@ class SV_WC_Product_Compatibility extends SV_WC_Data_Compatibility {
 	 * Gets a product's parent product.
 	 *
 	 * @since 4.6.0
+	 *
 	 * @param \WC_Product $product the product object
 	 * @return \WC_Product|bool
 	 */
@@ -106,6 +109,7 @@ class SV_WC_Product_Compatibility extends SV_WC_Data_Compatibility {
 	 * Backports wc_update_product_stock() to pre-3.0.
 	 *
 	 * @since 4.6.0
+	 *
 	 * @param \WC_Product $product the product object
 	 * @param int $amount Optional. The new stock quantity
 	 * @param string $mode Optional. Can be set, add, or subtract
@@ -125,6 +129,7 @@ class SV_WC_Product_Compatibility extends SV_WC_Data_Compatibility {
 	 * Backports wc_get_price_html_from_text() to pre-3.0.
 	 *
 	 * @since 4.6.0
+	 *
 	 * @param \WC_Product $product the product object
 	 * @return string
 	 */
@@ -142,6 +147,7 @@ class SV_WC_Product_Compatibility extends SV_WC_Data_Compatibility {
 	 * Backports wc_get_price_including_tax() to pre-3.0.
 	 *
 	 * @since 4.6.0
+	 *
 	 * @param \WC_Product $product the product object
 	 * @param int $qty Optional. The quantity
 	 * @param string $price Optional. The product price
@@ -167,6 +173,7 @@ class SV_WC_Product_Compatibility extends SV_WC_Data_Compatibility {
 	 * Backports wc_get_price_excluding_tax() to pre-3.0.
 	 *
 	 * @since 4.6.0
+	 *
 	 * @param \WC_Product $product the product object
 	 * @param int $qty Optional. The quantity
 	 * @param string $price Optional. The product price
@@ -192,6 +199,7 @@ class SV_WC_Product_Compatibility extends SV_WC_Data_Compatibility {
 	 * Backports wc_get_price_to_display() to pre-3.0.
 	 *
 	 * @since 4.6.0
+	 *
 	 * @param \WC_Product $product the product object
 	 * @param string $price Optional. The product price
 	 * @param int $qty Optional. The quantity
@@ -217,6 +225,7 @@ class SV_WC_Product_Compatibility extends SV_WC_Data_Compatibility {
 	 * Backports wc_get_product_category_list() to pre-3.0.
 	 *
 	 * @since 4.6.0
+	 *
 	 * @param \WC_Product $product the product object
 	 * @param string $sep Optional. The list separator
 	 * @param string $before Optional. To display before the list
@@ -242,6 +251,7 @@ class SV_WC_Product_Compatibility extends SV_WC_Data_Compatibility {
 	 * Backports wc_get_rating_html() to pre-3.0.
 	 *
 	 * @since 4.6.0
+	 *
 	 * @param \WC_Product $product the product object
 	 * @param string $rating Optional. The product rating
 	 * @return string

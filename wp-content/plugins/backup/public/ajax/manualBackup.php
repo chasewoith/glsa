@@ -12,7 +12,7 @@ try {
 		$allActions = SGBackup::getRunningActions();
 		if (count($allActions)) { // abort any other backup if there is an active action
 			die(json_encode(array(
-				"error" => "There is an active backup running. Please try later"
+				"error" => _backupGuardT("There is an active backup running. Please try later", true)
 			)));
 		}
 

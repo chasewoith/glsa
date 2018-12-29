@@ -18,13 +18,15 @@
  *
  * @package   SkyVerge/WooCommerce/Payment-Gateway/Admin
  * @author    SkyVerge
- * @copyright Copyright (c) 2013-2016, SkyVerge, Inc.
+ * @copyright Copyright (c) 2013-2018, SkyVerge, Inc.
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License v3.0
  */
 
-namespace SkyVerge\Plugin_Framework;
+namespace WC_Braintree\Plugin_Framework;
 
 defined( 'ABSPATH' ) or exit;
+
+if ( ! class_exists( '\\WC_Braintree\\Plugin_Framework\\SV_WC_Payment_Gateway_Admin_User_Handler' ) ) :
 
 /**
  * Handle the admin user profile settings.
@@ -33,7 +35,7 @@ defined( 'ABSPATH' ) or exit;
  */
 class SV_WC_Payment_Gateway_Admin_User_Handler {
 
-	/** @var \SkyVerge\SV_WC_Payment_Gateway_Plugin the plugin instance **/
+	/** @var \SV_WC_Payment_Gateway_Plugin the plugin instance **/
 	protected $plugin;
 
 	/** @var array the token editor for each gateway **/
@@ -43,7 +45,7 @@ class SV_WC_Payment_Gateway_Admin_User_Handler {
 	 * Construct the user handler.
 	 *
 	 * @since 4.3.0
-	 * @param \SkyVerge\SV_WC_Payment_Gateway_Plugin The plugin instance
+	 * @param \SV_WC_Payment_Gateway_Plugin The plugin instance
 	 */
 	public function __construct( SV_WC_Payment_Gateway_Plugin $plugin ) {
 
@@ -81,7 +83,7 @@ class SV_WC_Payment_Gateway_Admin_User_Handler {
 				continue;
 			}
 
-			$this->token_editors[] = $gateway->get_payment_tokens_handler()->get_token_editor();
+			$this->token_editors[ $gateway->get_id() ] = $gateway->get_payment_tokens_handler()->get_token_editor();
 		}
 	}
 
@@ -116,6 +118,14 @@ class SV_WC_Payment_Gateway_Admin_User_Handler {
 	public function display_token_editors( $user ) {
 
 		foreach ( $this->get_token_editors() as $gateway_id => $editor ) {
+
+			$gateway = $this->get_plugin()->get_gateway( $gateway_id );
+
+			// if the gateway supports a customer ID but none is saved, don't display the token tables
+			if ( $gateway && $gateway->supports_customer_id() && ! $gateway->get_customer_id( $user->ID, array( 'autocreate' => false ) ) ) {
+				continue;
+			}
+
 			$editor->display( $user->ID );
 		}
 	}
@@ -215,7 +225,7 @@ class SV_WC_Payment_Gateway_Admin_User_Handler {
 		 *
 		 * @since 4.3.0
 		 * @param string $title The section title
-		 * @param \SkyVerge\SV_WC_Payment_Gateway_Plugin $plugin The gateway plugin instance
+		 * @param \SV_WC_Payment_Gateway_Plugin $plugin The gateway plugin instance
 		 */
 		return apply_filters( 'wc_payment_gateway_admin_user_profile_title', $title, $this->get_plugin() );
 	}
@@ -234,7 +244,7 @@ class SV_WC_Payment_Gateway_Admin_User_Handler {
 		 *
 		 * @since 4.3.0
 		 * @param string $description The section description
-		 * @param \SkyVerge\SV_WC_Payment_Gateway_Plugin $plugin The gateway plugin instance
+		 * @param \SV_WC_Payment_Gateway_Plugin $plugin The gateway plugin instance
 		 */
 		return apply_filters( 'wc_payment_gateway_admin_user_profile_description', '', $this->get_plugin() );
 	}
@@ -365,7 +375,7 @@ class SV_WC_Payment_Gateway_Admin_User_Handler {
 		 *
 		 * @since 4.3.0
 		 * @param bool $display
-		 * @param \SkyVerge\SV_WC_Payment_Gateway_Plugin $plugin the gateway plugin instance
+		 * @param \SV_WC_Payment_Gateway_Plugin $plugin the gateway plugin instance
 		 */
 		return apply_filters( 'wc_payment_gateway_' . $this->get_plugin()->get_id() . '_display_user_profile', ! empty( $gateways ), $this->get_plugin() );
 	}
@@ -386,9 +396,11 @@ class SV_WC_Payment_Gateway_Admin_User_Handler {
 	 * Get the plugin instance.
 	 *
 	 * @since 4.3.0
-	 * @return \SkyVerge\SV_WC_Payment_Gateway_Plugin the plugin instance
+	 * @return \SV_WC_Payment_Gateway_Plugin the plugin instance
 	 */
 	protected function get_plugin() {
 		return $this->plugin;
 	}
 }
+
+endif;

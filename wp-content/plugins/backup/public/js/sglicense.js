@@ -9,13 +9,13 @@ sgBackup.linkLicense = function()
 {
 	var productId = jQuery('#product').val();
 	if (productId == '0') {
-		alert('Please choose a license first');
+		alert(BG_LICENSE_STRINGS.invalidLicense);
 		return;
 	}
 
 	var availableLicenses = jQuery("#product option:selected").attr('data-licenses');
 	if (availableLicenses != 'Unlimited' && parseInt(availableLicenses) == 0) {
-		alert('There are no available licenses for using the selected product');
+		alert(BG_LICENSE_STRINGS.availableLicenses);
 		return;
 	}
 

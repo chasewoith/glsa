@@ -22,7 +22,7 @@
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License v3.0
  */
 
-use \SkyVerge\Plugin_Framework as WC_Braintree_Framework;
+use WC_Braintree\Plugin_Framework as WC_Braintree_Framework;
 
 defined( 'ABSPATH' ) or exit;
 
@@ -84,10 +84,18 @@ abstract class WC_Braintree_Payment_Form extends WC_Braintree_Framework\SV_WC_Pa
 	/**
 	 * Get gateway-specific JS params that are passed to the payment form handler script
 	 *
-	 * @since 3.0.0
+	 * @since 2.0.0
+	 *
 	 * @return array
 	 */
-	abstract protected function get_payment_form_handler_js_params();
+	protected function get_payment_form_handler_js_params() {
+
+		return [
+			'integration_error_message' => __( 'Currently unavailable. Please try a different payment method.', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+			'payment_error_message'     => __( 'Oops, something went wrong. Please try a different payment method.', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+			'ajax_url'                  => admin_url( 'admin-ajax.php' ),
+		];
+	}
 
 
 	/**
@@ -103,6 +111,7 @@ abstract class WC_Braintree_Payment_Form extends WC_Braintree_Framework\SV_WC_Pa
 		$params = array_merge( array(
 			'id'                 => $this->get_gateway()->get_id(),
 			'id_dasherized'      => $this->get_gateway()->get_id_dasherized(),
+			'name'               => $this->get_gateway()->get_method_title(),
 			'debug'              => $this->get_gateway()->debug_log(),
 			'type'               => str_replace( '-', '_', $this->get_gateway()->get_payment_type() ),
 			'client_token_nonce' => wp_create_nonce( 'wc_' . $this->get_gateway()->get_id() . '_get_client_token' ),

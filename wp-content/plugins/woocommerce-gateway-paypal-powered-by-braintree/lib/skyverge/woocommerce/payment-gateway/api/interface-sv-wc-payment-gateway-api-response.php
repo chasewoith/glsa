@@ -18,15 +18,15 @@
  *
  * @package   SkyVerge/WooCommerce/Payment-Gateway/API
  * @author    SkyVerge
- * @copyright Copyright (c) 2013-2016, SkyVerge, Inc.
+ * @copyright Copyright (c) 2013-2018, SkyVerge, Inc.
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License v3.0
  */
 
-namespace SkyVerge\Plugin_Framework;
+namespace WC_Braintree\Plugin_Framework;
 
 defined( 'ABSPATH' ) or exit;
 
-if ( ! interface_exists( '\SkyVerge\Plugin_Framework\SV_WC_Payment_Gateway_API_Response' ) ) :
+if ( ! interface_exists( '\\WC_Braintree\\Plugin_Framework\\SV_WC_Payment_Gateway_API_Response' ) ) :
 
 /**
  * WooCommerce Direct Payment Gateway API Response
@@ -85,14 +85,13 @@ interface SV_WC_Payment_Gateway_API_Response extends SV_WC_API_Response {
 
 
 	/**
-	 * Returns the payment type: 'credit-card', 'echeck', etc
+	 * Gets the payment type: 'credit-card', 'echeck', etc...
 	 *
-	 * Intentionally commented out to prevent fatal errors. Possibly re-introduce as part of a larger refactor.
+	 * @since 5.0.0
 	 *
-	 * @since 4.3.0
-	 * @return string payment type or null if not available
+	 * @return string
 	 */
-	// public function get_payment_type();
+	public function get_payment_type();
 
 
 	/**

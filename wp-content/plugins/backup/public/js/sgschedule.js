@@ -1,3 +1,9 @@
+BG_SCHEDULE_INTERVAL_HOURLY = 0;
+BG_SCHEDULE_INTERVAL_DAILY = 1;
+BG_SCHEDULE_INTERVAL_WEEKLY = 2;
+BG_SCHEDULE_INTERVAL_MONTHLY = 3;
+BG_SCHEDULE_INTERVAL_YEARLY = 4;
+
 jQuery(document).ready( function() {
     sgBackup.initTablePagination();
     sgBackup.initScheduleCreation();
@@ -14,7 +20,7 @@ sgBackup.initScheduleCreation = function() {
 sgBackup.removeSchedule = function (id){
     var ajaxHandler = new sgRequestHandler('schedule', {remove: true, id: id});
 
-    if (!confirm('Are you sure?')) {
+    if (!confirm(BG_SCHEDULE_STRINGS.confirm)) {
         return false;
     }
 
@@ -26,7 +32,7 @@ sgBackup.removeSchedule = function (id){
         }
         else{
             //if error
-            var alert = sgBackup.alertGenerator('Unable to delete schedule', 'alert-danger');
+            var alert = sgBackup.alertGenerator(BG_SCHEDULE_STRINGS.deletionError, 'alert-danger');
             jQuery('.sg-schedule-container legend').after(alert);
         }
 
@@ -35,20 +41,20 @@ sgBackup.removeSchedule = function (id){
     ajaxHandler.run();
 }
 
-sgBackup.initIntervalSelection = function(){
-    if (jQuery('#sg-schedule-interval').val() == '* * 0') {
+sgBackup.initIntervalSelection = function() {
+    if (jQuery('#sg-schedule-interval').val() == BG_SCHEDULE_INTERVAL_WEEKLY) {
         jQuery('#sg-schedule-day-of-week-select').show();
     }
-    else if(jQuery('#sg-schedule-interval').val() == '1 * *') {
+    else if(jQuery('#sg-schedule-interval').val() == BG_SCHEDULE_INTERVAL_MONTHLY) {
         jQuery('#sg-schedule-day-of-month-select').show();
     }
 
     jQuery('#sg-schedule-interval').on('change', function(){
-        if (jQuery(this).val() == '* * 0') {
+        if (jQuery(this).val() == BG_SCHEDULE_INTERVAL_WEEKLY) {
             jQuery('#sg-schedule-day-of-month-select').hide();
             jQuery('#sg-schedule-day-of-week-select').show();
         }
-        else if (jQuery(this).val() == '1 * *') {
+        else if (jQuery(this).val() == BG_SCHEDULE_INTERVAL_MONTHLY) {
             jQuery('#sg-schedule-day-of-week-select').hide();
             jQuery('#sg-schedule-day-of-month-select').show();
         }
@@ -81,19 +87,19 @@ sgBackup.schedule = function(){
     jQuery('.alert').remove();
     if(jQuery('input[type=radio][name=backupType]:checked').val() == 2) {
         if (jQuery('.sg-custom-option:checked').length <= 0) {
-            error.push('Please choose at least one option.');
+            error.push(BG_SCHEDULE_STRINGS.invalidBackupOption);
         }
         //Check if any file is selected
         if (jQuery('input[type=checkbox][name=backupFiles]:checked').length > 0) {
             if (jQuery('.sg-custom-backup-files input:checkbox:checked').length <= 0) {
-                error.push('Please choose at least one directory.');
+                error.push(BG_SCHEDULE_STRINGS.invalidDirectorySelected);
             }
         }
     }
     //Check if any cloud is selected
     if(jQuery('input[type=checkbox][name=backupCloud]:checked').length > 0) {
         if(jQuery('.sg-custom-backup-cloud input:checkbox:checked').length <= 0) {
-            error.push('Please choose at least one cloud.');
+            error.push(BG_SCHEDULE_STRINGS.invalidCloud);
         }
     }
     //If any error show it and abort ajax
@@ -106,7 +112,7 @@ sgBackup.schedule = function(){
 
     //Before sending
     jQuery('#sg-save-schedule').attr('disabled','disabled');
-    jQuery('#sg-save-schedule').html('Saving...');
+    jQuery('#sg-save-schedule').html(BG_SCHEDULE_STRINGS.savingInProgress);
 
     //On Success
     var ajaxHandler = new sgRequestHandler('schedule', scheduleForm.serialize());
@@ -114,7 +120,7 @@ sgBackup.schedule = function(){
     ajaxHandler.callback = function(response){
         jQuery('.alert').remove();
         if(typeof response.success !== 'undefined'){
-            var alert = sgBackup.alertGenerator('You have successfully activated schedule.', 'alert-success');
+            var alert = sgBackup.alertGenerator(BG_SCHEDULE_STRINGS.successMessage, 'alert-success');
             sgBackup.prependErrorMsg(alert);
             location.reload();
         }
@@ -126,7 +132,7 @@ sgBackup.schedule = function(){
 
         //Always
         jQuery('#sg-save-schedule').removeAttr('disabled','disabled');
-        jQuery('#sg-save-schedule').html('Save');
+        jQuery('#sg-save-schedule').html(BG_SCHEDULE_STRINGS.saveButtonText);
         sgBackup.scrollToElement('.alert');
     };
     ajaxHandler.run();

@@ -480,7 +480,7 @@ function backupGuardDownloadFileSymlink($safedir, $filename)
 		header("Location: " . $downloadURL . $string . "/" . $filename);
 	}
 	else{
-		wp_die('Symlink / shortcut creation failed! Seems your server configurations don’t allow symlink creation, so we’re unable to provide you the direct download url. You can download your backup using any FTP client. All backups and related stuff we locate “/wp-content/uploads/backup-guard” directory. If you need this functionality, you should check out your server configurations and make sure you don’t have any limitation related to symlink creation.');
+		wp_die(_backupGuardT("Symlink / shortcut creation failed! Seems your server configurations don’t allow symlink creation, so we’re unable to provide you the direct download url. You can download your backup using any FTP client. All backups and related stuff we locate “/wp-content/uploads/backup-guard” directory. If you need this functionality, you should check out your server configurations and make sure you don’t have any limitation related to symlink creation.", true));
 	}
 	exit;
 }
@@ -580,15 +580,15 @@ function backupGuardGetBackupTablesHTML($defaultChecked = false){
 		</label>
 		<div class="col-md-12 sg-checkbox sg-backup-db-options">
 			<div class="checkbox">
-				<label for="custombackupdbfull-radio" class="sg-backup-db-mode" title="Backup all tables found in the database">
+				<label for="custombackupdbfull-radio" class="sg-backup-db-mode" title="<?php _backupGuardT('Backup all tables found in the database')?>">
 					<input type="radio" name="backupDBType" id="custombackupdbfull-radio" value="0" checked>
 					<?php _backupGuardT('Full'); ?>
 				</label>
-				<label for="custombackupdbcurent-radio" class="sg-backup-db-mode" title="Backup tables related to the current WordPress installation. Only tables with <?php echo SG_ENV_DB_PREFIX ?> will be backed up">
+				<label for="custombackupdbcurent-radio" class="sg-backup-db-mode" title="<?php echo _backupGuardT('Backup tables related to the current WordPress installation. Only tables with', true).' '.SG_ENV_DB_PREFIX.' '._backupGuardT('will be backed up', true)?>">
 					<input type="radio" name="backupDBType" id="custombackupdbcurent-radio" value="1">
 					<?php _backupGuardT('Only WordPress'); ?>
 				</label>
-				<label for="custombackupdbcustom-radio" class="sg-backup-db-mode" title="Select tables you want to include in your backup">
+				<label for="custombackupdbcustom-radio" class="sg-backup-db-mode" title="<?php _backupGuardT('Select tables you want to include in your backup') ?>">
 					<input type="radio" name="backupDBType" id="custombackupdbcustom-radio" value="2">
 					<?php _backupGuardT('Custom'); ?>
 				</label>
@@ -600,7 +600,7 @@ function backupGuardGetBackupTablesHTML($defaultChecked = false){
 								<input type="checkbox" name="table[]" current="<?php echo $table['current'] ?>" <?php echo $table['disabled'] ?> id="<?php echo $table['name']?>" value="<?php echo $table['name'];?>">
 								<?php echo basename($table['name']);?>
 								<?php if($table['disabled']) {?>
-									<span class="sg-disableText">(excluded from settings)</span>
+									<span class="sg-disableText"><?php _backupGuardT('(excluded from settings)') ?></span>
 								<?php } ?>
 							</label>
 						</div>
@@ -661,16 +661,7 @@ function backupGuardGetFileSelectiveRestore()
 			<label for="restorefilescustom-radio" class="sg-restore-files-mode">
 				<input type="radio" name="restoreFilesType" id="restorefilescustom-radio" value="1">
 				<?php _backupGuardT('Custom'); ?>
-
 			</label>
-			<?php if (!SGBoot::isFeatureAvailable('SLECTIVE_RESTORE')): ?>
-			<label class="sg-restore-files-mode">
-				<a class="badge sg-badge-warning btn" href="<?php echo SG_BACKUP_SITE_PRICING_URL?>" target="_blank" data-toggle="tooltip" title="<?php echo SG_SILVER_TOOLTIP_TEXT ?>">
-					<?php echo SG_BADGE_SILVER_PLUS_TEXT?>
-				</a>
-			</label>
-			<?php endif; ?>
-
 			<!--Files-->
 			<div class="col-md-12 sg-file-selective-restore">
 				<div id="fileSystemTreeContainer"></div>

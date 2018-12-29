@@ -7,7 +7,7 @@ define('SG_FEATURE_AMAZON', 0);
 define('SG_FEATURE_DROPBOX', 1);
 define('SG_FEATURE_GOOGLE_DRIVE', 0);
 define('SG_FEATURE_ONE_DRIVE', 0);
-define('SG_FEATURE_SCHEDULE', 0);
+define('SG_FEATURE_SCHEDULE', 1);
 define('SG_FEATURE_DELETE_LOCAL_BACKUP_AFTER_UPLOAD', 0);
 define('SG_FEATURE_ALERT_BEFORE_UPDATE', 0);
 define('SG_FEATURE_NUMBER_OF_BACKUPS_TO_KEEP', 0);
@@ -39,3 +39,4 @@ define('SG_PRODUCT_IDENTIFIER', 'backup-guard-wp-free');
 
 //BackupGuard Support URL
 define('SG_BACKUP_SUPPORT_URL', 'https://backup-guard.com/products/backup-wordpress/support-free');
+define('BG_UPGRADE_URL', 'https://backup-guard.com/products/backup-wordpress#pricing');

@@ -18,15 +18,15 @@
  *
  * @package   SkyVerge/WooCommerce/Plugin/Classes
  * @author    SkyVerge
- * @copyright Copyright (c) 2013-2016, SkyVerge, Inc.
+ * @copyright Copyright (c) 2013-2018, SkyVerge, Inc.
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License v3.0
  */
 
-namespace SkyVerge\Plugin_Framework;
+namespace WC_Braintree\Plugin_Framework;
 
 defined( 'ABSPATH' ) or exit;
 
-if ( ! class_exists( '\SkyVerge\Plugin_Framework\SV_WC_Payment_Gateway_Helper' ) ) :
+if ( ! class_exists( '\\WC_Braintree\\Plugin_Framework\\SV_WC_Payment_Gateway_Helper' ) ) :
 
 /**
  * SkyVerge Payment Gateway Helper Class
@@ -138,13 +138,6 @@ class SV_WC_Payment_Gateway_Helper {
 
 		// card type regex patterns from https://github.com/stripe/jquery.payment/blob/master/src/jquery.payment.coffee
 		$types = array(
-
-			// these are kept for backwards compatibility since some gateways check
-			// against this method's returned value.
-			// TODO: remove these once the offending gateways use the below constants {CW 2016-09-29}
-			'mc'     => '/^(5[1-5]|2[2-7])/',
-			'diners' => '/^(36|38|30[0-5])/',
-
 			self::CARD_TYPE_VISA       => '/^4/',
 			self::CARD_TYPE_MASTERCARD => '/^(5[1-5]|2[2-7])/',
 			self::CARD_TYPE_AMEX       => '/^3[47]/',
@@ -236,11 +229,11 @@ class SV_WC_Payment_Gateway_Helper {
 			),
 			self::CARD_TYPE_MASTERCARD => array(
 				'name'       => esc_html_x( 'MasterCard', 'credit card type', 'woocommerce-gateway-paypal-powered-by-braintree' ),
-				'variations' => array( 'mc' ),
+				'variations' => array( 'mc', 'master-card' ),
 			),
 			self::CARD_TYPE_AMEX => array(
 				'name'       => esc_html_x( 'American Express', 'credit card type', 'woocommerce-gateway-paypal-powered-by-braintree' ),
-				'variations' => array(),
+				'variations' => array( 'americanexpress' ),
 			),
 			self::CARD_TYPE_DINERSCLUB => array(
 				'name'       => esc_html_x( 'Diners Club', 'credit card type', 'woocommerce-gateway-paypal-powered-by-braintree' ),
