@@ -243,4 +243,26 @@ class SGAuthClient
 
 		return $tokens['access_token'];
 	}
+
+	// Added by Nerses
+	public function getMerchantOrderId()
+	{
+		if (!$this->prepareAuthorizedRequest()) {
+			return -1;
+		}
+
+		try {
+			$result = $this->client->getMerchantOrderId(SG_PRODUCT_IDENTIFIER);
+		}
+		catch (BackupGuard\Exception $ex) {
+			$result = $this->handleUnauthorizedException($ex);
+			if ($result === true) { //we can try again
+				$result = $this->getMerchantOrderId();
+			}
+
+			$error = $ex->getMessage();
+		}
+
+		return $result;
+	}
 }

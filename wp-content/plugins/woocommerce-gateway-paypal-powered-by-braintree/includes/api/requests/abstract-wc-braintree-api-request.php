@@ -22,7 +22,7 @@
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License v3.0
  */
 
-use \SkyVerge\Plugin_Framework as WC_Braintree_Framework;
+use WC_Braintree\Plugin_Framework as WC_Braintree_Framework;
 
 defined( 'ABSPATH' ) or exit;
 
@@ -123,11 +123,11 @@ abstract class WC_Braintree_API_Request implements WC_Braintree_Framework\SV_WC_
 			case 'submitForSettlement':
 			case 'refund':
 			case 'update':
-				return $this->get_request_data();
+				return $this->get_data();
 
 			// all others use a single callback param
 			default:
-				return array( $this->get_request_data() );
+				return array( $this->get_data() );
 		}
 	}
 
@@ -140,7 +140,7 @@ abstract class WC_Braintree_API_Request implements WC_Braintree_Framework\SV_WC_
 	 */
 	public function to_string() {
 
-		return print_r( $this->get_request_data(), true );
+		return print_r( $this->get_data(), true );
 	}
 
 
@@ -159,13 +159,13 @@ abstract class WC_Braintree_API_Request implements WC_Braintree_Framework\SV_WC_
 
 
 	/**
-	 * Get the request data which is the 1st parameter passed to the static callback
-	 * set
+	 * Gets the request data.
 	 *
-	 * @since 3.0.0
+	 * @since 2.2.0
+	 *
 	 * @return array
 	 */
-	public function get_request_data() {
+	public function get_data() {
 
 		/**
 		 * Braintree API Request Data.
@@ -173,6 +173,7 @@ abstract class WC_Braintree_API_Request implements WC_Braintree_Framework\SV_WC_
 		 * Allow actors to modify the request data before it's sent to Braintree
 		 *
 		 * @since 3.0.0
+		 *
 		 * @param array|mixed $data request data to be filtered
 		 * @param \WC_Order $order order instance
 		 * @param \WC_Braintree_API_Request $this, API request class instance
@@ -182,6 +183,23 @@ abstract class WC_Braintree_API_Request implements WC_Braintree_Framework\SV_WC_
 		$this->remove_empty_data();
 
 		return $this->request_data;
+	}
+
+
+	/**
+	 * Get the request data which is the 1st parameter passed to the static callback
+	 * set
+	 *
+	 * @since 3.0.0
+	 * @deprecated 2.2.0
+	 *
+	 * @return array
+	 */
+	public function get_request_data() {
+
+		WC_Braintree_Framework\SV_WC_Plugin_Compatibility::wc_deprecated_function( __FUNCTION__, '2.2.0', 'WC_Braintree_API_Request::get_data' );
+
+		return $this->get_data();
 	}
 
 
@@ -263,6 +281,19 @@ abstract class WC_Braintree_API_Request implements WC_Braintree_Framework\SV_WC_
 	 * @return null
 	 */
 	public function get_path() { }
+
+
+	/**
+	 * Braintree requests do not require any query params.
+	 *
+	 * @since 2.2.0
+	 *
+	 * @return array
+	 */
+	public function get_params() {
+
+		return array();
+	}
 
 
 }

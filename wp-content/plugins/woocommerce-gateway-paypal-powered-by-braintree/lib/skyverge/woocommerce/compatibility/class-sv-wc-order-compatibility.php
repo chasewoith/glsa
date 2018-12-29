@@ -18,15 +18,15 @@
  *
  * @package   SkyVerge/WooCommerce/Compatibility
  * @author    SkyVerge
- * @copyright Copyright (c) 2013-2016, SkyVerge, Inc.
+ * @copyright Copyright (c) 2013-2018, SkyVerge, Inc.
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License v3.0
  */
 
-namespace SkyVerge\Plugin_Framework;
+namespace WC_Braintree\Plugin_Framework;
 
 defined( 'ABSPATH' ) or exit;
 
-if ( ! class_exists( '\SkyVerge\Plugin_Framework\SV_WC_Order_Compatibility' ) ) :
+if ( ! class_exists( '\\WC_Braintree\\Plugin_Framework\\SV_WC_Order_Compatibility' ) ) :
 
 /**
  * WooCommerce order compatibility class.
@@ -78,7 +78,7 @@ class SV_WC_Order_Compatibility extends SV_WC_Data_Compatibility {
 	 *
 	 * @return \WC_DateTime|null
 	 */
-	public static function get_date_modified( WC_Order $order, $context = 'edit' ) {
+	public static function get_date_modified( \WC_Order $order, $context = 'edit' ) {
 
 		return self::get_date_prop( $order, 'modified', $context );
 	}
@@ -131,6 +131,7 @@ class SV_WC_Order_Compatibility extends SV_WC_Data_Compatibility {
 	 */
 	public static function get_date_prop( \WC_Order $order, $type, $context = 'edit' ) {
 
+		$date = null;
 		$prop = "date_{$type}";
 
 		if ( SV_WC_Plugin_Compatibility::is_wc_version_gte_3_0() ) {
@@ -399,7 +400,7 @@ class SV_WC_Order_Compatibility extends SV_WC_Data_Compatibility {
 
 		} else {
 
-			// convert 3.0+ args for backwards compatibility
+			// convert WC 3.0+ args for backwards compatibility
 			if ( isset( $args['discount'] ) ) {
 				$args['discount_amount'] = $args['discount'];
 			}
@@ -546,6 +547,24 @@ class SV_WC_Order_Compatibility extends SV_WC_Data_Compatibility {
 		}
 
 		return $item_meta;
+	}
+
+
+	/**
+	 * Gets the admin Edit screen URL for an order.
+	 *
+	 * @since 5.0.1
+	 *
+	 * @param \WC_Order $order order object
+	 * @return string
+	 */
+	public static function get_edit_order_url( \WC_Order $order ) {
+
+		if ( self::is_wc_version_gte( '3.3' ) ) {
+			return $order->get_edit_order_url();
+		} else {
+			return apply_filters( 'woocommerce_get_edit_order_url', get_admin_url( null, 'post.php?post=' . self::get_prop( $order, 'id' ) . '&action=edit' ), $order );
+		}
 	}
 
 

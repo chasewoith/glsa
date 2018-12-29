@@ -22,7 +22,7 @@
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License v3.0
  */
 
-use \SkyVerge\Plugin_Framework as WC_Braintree_Framework;
+use WC_Braintree\Plugin_Framework as WC_Braintree_Framework;
 
 defined( 'ABSPATH' ) or exit;
 
@@ -84,7 +84,7 @@ class WC_Gateway_Braintree extends WC_Braintree_Framework\SV_WC_Payment_Gateway_
 	 *
 	 * @since 2.0.0
 	 */
-	protected function load_settings() {
+	public function load_settings() {
 
 		parent::load_settings();
 
@@ -105,37 +105,10 @@ class WC_Gateway_Braintree extends WC_Braintree_Framework\SV_WC_Payment_Gateway_
 		if ( $this->is_available() ) {
 
 			// braintree.js library
-			wp_enqueue_script( 'braintree-js-client', 'https://js.braintreegateway.com/web/3.34.0/js/client.min.js', array(), WC_Braintree::VERSION, true );
+			wp_enqueue_script( 'braintree-js-client', 'https://js.braintreegateway.com/web/' . WC_Braintree::BRAINTREE_JS_SDK_VERSION . '/js/client.min.js', array(), WC_Braintree::VERSION, true );
 
 			parent::enqueue_gateway_assets();
 		}
-	}
-
-
-	/**
-	 * Add the braintree client token to the localized script params
-	 *
-	 * @since 3.0.0
-	 * @return array
-	 */
-	protected function get_gateway_js_localized_script_params() {
-
-		$params = $this->get_payment_form_js_localized_script_params();
-
-		if ( $this->is_payment_form_page() ) {
-
-			$params['integration_error_message'] = __( 'Currently unavailable. Please try a different payment method.', 'woocommerce-gateway-paypal-powered-by-braintree' );
-			$params['payment_error_message']     = __( 'Oops, something went wrong. Please try a different payment method.', 'woocommerce-gateway-paypal-powered-by-braintree' );
-
-			$params['ajax_url'] = admin_url( 'admin-ajax.php' );
-		}
-
-		// add a cart payment nonce if available
-		if ( $this->get_plugin()->get_paypal_cart_instance() ) {
-			$params['cart_payment_nonce'] = $this->get_plugin()->get_paypal_cart_instance()->get_cart_nonce();
-		}
-
-		return $params;
 	}
 
 
@@ -203,7 +176,11 @@ class WC_Gateway_Braintree extends WC_Braintree_Framework\SV_WC_Payment_Gateway_
 
 		$order = parent::get_order( $order );
 
-		$order->payment->nonce = WC_Braintree_Framework\SV_WC_Helper::get_post( 'wc_'. $this->get_id() . '_payment_nonce' );
+		// nonce may be previously populated by Apple Pay
+		if ( empty( $order->payment->nonce ) ) {
+			$order->payment->nonce = WC_Braintree_Framework\SV_WC_Helper::get_post( 'wc_'. $this->get_id() . '_payment_nonce' );
+		}
+
 		$order->payment->tokenize = $this->get_payment_tokens_handler()->should_tokenize();
 
 		// billing address ID if using existing payment token
@@ -262,55 +239,6 @@ class WC_Gateway_Braintree extends WC_Braintree_Framework\SV_WC_Payment_Gateway_
 
 
 	/**
-	 * Determines if the authorization for an order is valid for capture.
-	 *
-	 * Overridden to add the capture status to legacy orders since the v1 plugin
-	 * may not have set it.
-	 *
-	 * @see \SkyVerge\Plugin_Framework\SV_WC_Payment_Gateway::has_authorization_expired()
-	 * @since 2.0.2
-	 * @param \WC_Order $order order object
-	 * @return bool
-	 */
-	public function authorization_valid_for_capture( $order ) {
-
-		// if v1 never set the capture status, assume it has been captured
-		if ( ! in_array( $this->get_order_meta( $order, 'charge_captured' ), array( 'yes', 'no' ), true ) ) {
-			$this->update_order_meta( $order, 'charge_captured', 'yes' );
-		}
-
-		return parent::authorization_valid_for_capture( $order );
-	}
-
-
-	/**
-	 * Determines if the authorization for an order has expired.
-	 *
-	 * Overridden to add the transaction date to legacy orders since the v1.x
-	 * plugin didn't set its own transaction date meta.
-	 *
-	 * @see \SkyVerge\Plugin_Framework\SV_WC_Payment_Gateway::has_authorization_expired()
-	 * @since 2.0.0
-	 * @param \WC_Order $order the order object
-	 * @return bool
-	 */
-	public function has_authorization_expired( $order ) {
-
-		if ( ! $this->get_order_meta( $order, 'trans_id' ) ) {
-			$this->update_order_meta( $order, 'trans_id', WC_Braintree_Framework\SV_WC_Order_Compatibility::get_prop( $order, 'transaction_id' ) );
-		}
-
-		$date_created = WC_Braintree_Framework\SV_WC_Order_Compatibility::get_date_created( $order );
-
-		if ( ! $this->get_order_meta( $order, 'trans_date' ) && $date_created ) {
-			$this->update_order_meta( $order, 'trans_date', $date_created->date( 'Y-m-d H:i:s' ) );
-		}
-
-		return parent::has_authorization_expired( $order );
-	}
-
-
-	/**
 	 * Gets the order object with data added to process a refund.
 	 *
 	 * Overridden to add the transaction ID to legacy orders since the v1.x
@@ -333,6 +261,21 @@ class WC_Gateway_Braintree extends WC_Braintree_Framework\SV_WC_Payment_Gateway_
 		}
 
 		return $order;
+	}
+
+
+	/**
+	 * Gets the capture handler.
+	 *
+	 * @since 2.2.0
+	 *
+	 * @return \WC_Braintree\Capture
+	 */
+	public function get_capture_handler() {
+
+		require_once( $this->get_plugin()->get_plugin_path() . '/includes/class-wc-braintree-capture.php' );
+
+		return new \WC_Braintree\Capture( $this );
 	}
 
 
@@ -1199,6 +1142,7 @@ class WC_Gateway_Braintree extends WC_Braintree_Framework\SV_WC_Payment_Gateway_
 		require_once( $includes_path . '/api/responses/class-wc-braintree-api-customer-response.php' );
 		require_once( $includes_path . '/api/responses/class-wc-braintree-api-payment-method-response.php' );
 		require_once( $includes_path . '/api/responses/class-wc-braintree-api-payment-method-nonce-response.php' );
+		require_once( $includes_path . '/api/responses/class-wc-braintree-api-merchant-configuration-response.php' );
 
 		return $this->api = new WC_Braintree_API( $this );
 	}

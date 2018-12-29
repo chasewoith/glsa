@@ -18,15 +18,15 @@
  *
  * @package   SkyVerge/WooCommerce/API
  * @author    SkyVerge
- * @copyright Copyright (c) 2013-2016, SkyVerge, Inc.
+ * @copyright Copyright (c) 2013-2018, SkyVerge, Inc.
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License v3.0
  */
 
-namespace SkyVerge\Plugin_Framework;
+namespace WC_Braintree\Plugin_Framework;
 
 defined( 'ABSPATH' ) or exit;
 
-if ( ! class_exists( '\SkyVerge\Plugin_Framework\SV_WC_API_Base' ) ) :
+if ( ! class_exists( '\\WC_Braintree\\Plugin_Framework\\SV_WC_API_Base' ) ) :
 
 /**
  * # WooCommerce Plugin Framework API Base Class
@@ -98,7 +98,7 @@ abstract class SV_WC_API_Base {
 
 		$start_time = microtime( true );
 
-		// If this API requires TLS v1.2, force it
+		// if this API requires TLS v1.2, force it
 		if ( $this->require_tls_1_2() ) {
 			add_action( 'http_api_curl', array( $this, 'set_tls_1_2_request' ), 10, 3 );
 		}
@@ -368,15 +368,17 @@ abstract class SV_WC_API_Base {
 	 * Gets the request URL query.
 	 *
 	 * @since 4.5.0
+	 *
 	 * @return string
 	 */
 	protected function get_request_query() {
 
-		$query = '';
+		$query   = '';
+		$request = $this->get_request();
 
-		if ( ( $request = $this->get_request() ) && in_array( strtoupper( $this->get_request_method() ), array( 'GET', 'HEAD' ) ) ) {
+		if ( $request && in_array( strtoupper( $this->get_request_method() ), array( 'GET', 'HEAD' ), true ) ) {
 
-			$params = is_callable( array( $request, 'get_params' ) ) ? $request->get_params() : array(); // TODO: remove is_callable() when \SV_WC_API_Request::get_params exists {CW 2016-09-28}
+			$params = $request->get_params();
 
 			if ( ! empty( $params ) ) {
 				$query = http_build_query( $params, '', '&' );
@@ -773,19 +775,6 @@ abstract class SV_WC_API_Base {
 			return;
 		}
 
-		$versions     = curl_version();
-		$curl_version = $versions['version'];
-
-		// Get the SSL details
-		list( $ssl_type, $ssl_version ) = explode( '/', $versions['ssl_version'] );
-
-		$ssl_version = substr( $ssl_version, 0, -1 );
-
-		// If cURL and/or OpenSSL aren't up to the challenge, bail
-		if ( ! version_compare( $curl_version, '7.34.0', '>=' ) || ( 'OpenSSL' === $ssl_type && ! version_compare( $ssl_version, '1.0.1', '>=' ) ) ) {
-			return;
-		}
-
 		curl_setopt( $handle, CURLOPT_SSLVERSION, 6 );
 	}
 
@@ -798,8 +787,43 @@ abstract class SV_WC_API_Base {
 	 * @since 4.4.0
 	 * @return bool
 	 */
-	protected function require_tls_1_2() {
+	public function require_tls_1_2() {
 		return false;
+	}
+
+
+	/**
+	 * Determines if TLS 1.2 is available.
+	 *
+	 * @since 4.6.5
+	 *
+	 * @return bool
+	 */
+	public function is_tls_1_2_available() {
+
+		// assume availability to avoid notices for unknown SSL types
+		$is_available = true;
+
+		// check the cURL version if installed
+		if ( is_callable( 'curl_version' ) ) {
+
+			$versions = curl_version();
+
+			// cURL 7.34.0 is considered the minimum version that supports TLS 1.2
+			if ( version_compare( $versions['version'], '7.34.0', '<' ) ) {
+				$is_available = false;
+			}
+		}
+
+		/**
+		 * Filters whether TLS 1.2 is available.
+		 *
+		 * @since 4.7.1
+		 *
+		 * @param bool $is_available whether TLS 1.2 is available
+		 * @param \SV_WC_API_Base $api API class instance
+		 */
+		return apply_filters( 'wc_' . $this->get_plugin()->get_id() . '_api_is_tls_1_2_available', $is_available, $this );
 	}
 
 

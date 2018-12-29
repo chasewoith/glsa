@@ -38,23 +38,10 @@ class WC_Braintree_Frontend {
 
 
 	/**
-	 * WC_Braintree_Frontend constructor.
-	 *
-	 * @since 2.0.0
-	 */
-	public function __construct() {
-
-		// add hooks to modify the payment table output
-		add_filter( 'wc_braintree_my_payment_methods_table_headers',       array( $this, 'modify_table_headers' ) );
-		add_filter( 'wc_braintree_my_payment_methods_table_body_row_data', array( $this, 'add_card_icon_cell' ), 10, 2 );
-		add_filter( 'wc_braintree_my_payment_methods_table_method_title',  array( $this, 'remove_card_icon_from_title' ), 10, 2 );
-	}
-
-
-	/**
 	 * Modifies the "My Payment Methods" table headers.
 	 *
 	 * @since 2.0.0
+	 * @deprecated 2.2.0
 	 *
 	 * @param string[] $headers the table headers
 	 * @return string[] updated headers
@@ -74,6 +61,7 @@ class WC_Braintree_Frontend {
 	 * Adds a new table cell for the card icon, e.g. an Amex logo.
 	 *
 	 * @since 2.0.0
+	 * @deprecated 2.2.0
 	 *
 	 * @param string[] $methods {
 	 *     @type string $title payment method title
@@ -96,6 +84,7 @@ class WC_Braintree_Frontend {
 	 * Note: the textdomain is intentionally different here, which allows for existing framework translations to remain.
 	 *
 	 * @since 2.0.0
+	 * @deprecated 2.2.0
 	 *
 	 * @param string $html the method title html
 	 * @param \SV_WC_Payment_Gateway_Payment_Token $token token
@@ -127,6 +116,7 @@ class WC_Braintree_Frontend {
 	 * Get the payment method icon for a given token, e.g.: the Amex logo.
 	 *
 	 * @since 2.0.0
+	 * @deprecated 2.2.0
 	 *
 	 * @param \SV_WC_Payment_Gateway_Payment_Token $token token
 	 * @return string payment method icon html

@@ -217,4 +217,81 @@ class Client
 
 		return $response->getBodyParam('link_id');
 	}
+
+	//Added by Nerses
+	public function getMerchantOrderId($productName)
+	{
+		Helper::requiredParam('access_token', $this->getAccessToken());
+		Helper::requiredParam('product', $productName);
+
+		$params = array(
+			'product' => $productName
+		);
+
+		$response = Helper::sendGetRequest(
+			'/products/merchant',
+			$params,
+			array(
+				'access_token: '.$this->getAccessToken()
+			)
+		);
+
+		Helper::validateResponse($response);
+
+		return $response->getBodyParam('id');
+	}
+
+	public function storeSubscriberInfo($url, $fname, $lname, $email, $priority)
+	{
+		Helper::requiredParam('url', $url);
+		Helper::requiredParam('fname', $fname);
+		Helper::requiredParam('lname', $lname);
+		Helper::requiredParam('email', $email);
+		Helper::requiredParam('priority', $priority);
+
+		$params = array(
+			'url' => $url,
+			'fname' => $fname,
+			'lname' => $lname,
+			'email' => $email,
+			'priority' => $priority,
+			'referrer' => 'wordpress-backup-free'
+		);
+
+		$response = Helper::sendPostRequest(
+			'/products/subscriber',
+			$params
+		);
+
+		Helper::validateResponse($response);
+
+		return $response->getBodyParam('subscriber');
+	}
+
+	public function storeSurveyResult($url, $firstname, $lastname, $email, $response)
+	{
+		Helper::requiredParam('url', $url);
+		Helper::requiredParam('firstname', $firstname);
+		Helper::requiredParam('lastname', $lastname);
+		Helper::requiredParam('email', $email);
+		Helper::requiredParam('response', $response);
+
+		$params = array(
+			'url' => $url,
+			'firstname' => $firstname,
+			'lastname' => $lastname,
+			'email' => $email,
+			'response' => $response,
+			'name' => SG_PRODUCT_IDENTIFIER.'-deactivation'
+		);
+
+		$response = Helper::sendPostRequest(
+			'/products/survey',
+			$params
+		);
+
+		Helper::validateResponse($response);
+
+		return $response->getBodyParam('survey');
+	}
 }

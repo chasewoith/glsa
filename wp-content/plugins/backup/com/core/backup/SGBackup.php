@@ -80,6 +80,20 @@ class SGBackup implements SGIBackupDelegate
 		}
 	}
 
+	private function handleUploadExecutionTimeout()
+	{
+		self::changeActionStatus($this->actionId, SG_ACTION_STATUS_FINISHED_WARNINGS);
+
+		if (SGBoot::isFeatureAvailable('NOTIFICATIONS')) {
+			file_put_contents(dirname($this->filesBackupPath).'/'.SG_REPORT_FILE_NAME, 'Upload: failed', FILE_APPEND);
+
+			SGBackupMailNotification::sendUploadNotification(false, array(
+				'flowFilePath' => dirname($this->filesBackupPath).'/'.SG_REPORT_FILE_NAME,
+				'archiveName' => $this->fileName
+			));
+		}
+	}
+
 	public function handleExecutionTimeout($actionId)
 	{
 		$this->actionId = $actionId;
@@ -100,7 +114,7 @@ class SGBackup implements SGIBackupDelegate
 			$this->prepareBackupLogFile($backupPath, true);
 		}
 		else{
-			$this->setBackupStatusToWarning($this->fileName);
+			$this->handleUploadExecutionTimeout();
 			$this->prepareBackupLogFile($backupPath, true);
 		}
 
@@ -113,15 +127,6 @@ class SGBackup implements SGIBackupDelegate
 		$exception = new SGExceptionExecutionTimeError();
 		SGBackupLog::writeExceptionObject($exception);
 		SGConfig::set('SG_EXCEPTION_TIMEOUT_ERROR', '1', true);
-	}
-
-	public function setBackupStatusToWarning($actionName)
-	{
-		$type = SG_ACTION_TYPE_BACKUP;
-		$sgdb = SGDatabase::getInstance();
-		$status = SG_ACTION_STATUS_FINISHED_WARNINGS;
-		$date = backupGuardConvertDateTimezone(@date('Y-m-d H:i:s'));
-		$res = $sgdb->query('UPDATE '.SG_ACTION_TABLE_NAME.' SET status=%d, update_date=%s WHERE name=%d AND type=%d', array($status, $date, $actionName, $type));
 	}
 
 	public function listStorage($storage)
@@ -700,7 +705,7 @@ class SGBackup implements SGIBackupDelegate
 	public function handleMigrationErrors($exception)
 	{
 		SGConfig::set('SG_BACKUP_SHOW_MIGRATION_ERROR', 1);
-		SGConfig::set('SG_BACKUP_MIGRATION_ERROR', $exception);
+		SGConfig::set('SG_BACKUP_MIGRATION_ERROR', (string)$exception);
 	}
 
 	public function getActionId()

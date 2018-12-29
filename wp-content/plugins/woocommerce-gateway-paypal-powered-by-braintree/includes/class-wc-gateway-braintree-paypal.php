@@ -22,7 +22,7 @@
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License v3.0
  */
 
-use \SkyVerge\Plugin_Framework as WC_Braintree_Framework;
+use WC_Braintree\Plugin_Framework as WC_Braintree_Framework;
 
 defined( 'ABSPATH' ) or exit;
 
@@ -40,6 +40,18 @@ class WC_Gateway_Braintree_PayPal extends WC_Gateway_Braintree {
 
 	/** @var bool whether cart checkout is enabled */
 	protected $enable_cart_checkout;
+
+	/** @var bool whether paypal credit is enabled */
+	protected $enable_paypal_credit;
+
+	/** @var string button color */
+	protected $button_color;
+
+	/** @var string button size */
+	protected $button_size;
+
+	/** @var string button shape */
+	protected $button_shape;
 
 
 	/**
@@ -108,27 +120,8 @@ class WC_Gateway_Braintree_PayPal extends WC_Gateway_Braintree {
 			parent::enqueue_gateway_assets();
 
 			wp_enqueue_script( 'braintree-js-paypal', 'https://www.paypalobjects.com/api/checkout.js', array(), WC_Braintree::VERSION, true );
-			wp_enqueue_script( 'braintree-js-paypal-checkout', 'https://js.braintreegateway.com/web/3.34.0/js/paypal-checkout.min.js', array(), WC_Braintree::VERSION, true );
+			wp_enqueue_script( 'braintree-js-paypal-checkout', 'https://js.braintreegateway.com/web/' . WC_Braintree::BRAINTREE_JS_SDK_VERSION . '/js/paypal-checkout.min.js', array(), WC_Braintree::VERSION, true );
 		}
-	}
-
-
-	/**
-	 * Gets the gateway JS localized parameters.
-	 *
-	 * @since 2.0.0
-	 * @return array
-	 */
-	protected function get_gateway_js_localized_script_params() {
-
-		$params = parent::get_gateway_js_localized_script_params();
-
-		if ( is_cart() ) {
-			$params['cart_nonce']       = wp_create_nonce( 'wc_' . $this->get_id() . '_cart_set_payment_method' );
-			$params['cart_handler_url'] = add_query_arg( 'wc-api', get_class( $this ), home_url() );
-		}
-
-		return $params;
 	}
 
 
@@ -243,6 +236,58 @@ class WC_Gateway_Braintree_PayPal extends WC_Gateway_Braintree {
 	 */
 	protected function add_authorization_charge_form_fields( $form_fields ) {
 
+		$form_fields['button_appearance_title'] = [
+			'type'  => 'title',
+			'title' => __( 'Button Appearance', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+		];
+
+		$form_fields['button_color'] = [
+			'type'  => 'select',
+			'title' => __( 'Button Color', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+			'options' => [
+				'gold'   => __( 'Gold', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+				'blue'   => __( 'Blue', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+				'silver' => __( 'Silver', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+				'white'  => __( 'White', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+				'black'  => __( 'Black', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+			],
+			'default' => 'gold',
+		];
+
+		$form_fields['button_size'] = [
+			'type'  => 'select',
+			'title' => __( 'Button Size', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+			'options' => [
+				'medium'     => __( 'Medium', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+				'large'      => __( 'Large', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+				'responsive' => __( 'Responsive', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+			],
+			'default' => 'responsive',
+		];
+
+		$form_fields['button_shape'] = [
+			'type'  => 'select',
+			'title' => __( 'Button Shape', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+			'options' => [
+				'pill' => _x( 'Pill', 'button shape option', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+				'rect' => _x( 'Rectangle', 'button shape option', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+			],
+			'default' => 'pill',
+		];
+
+		$form_fields['enable_paypal_credit'] = array(
+			'title'       => __( 'PayPal Credit', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+			'type'        => 'checkbox',
+			'disabled'    => ! $this->is_paypal_credit_supported(),
+			'label'       => __( 'Show the PayPal credit button beneath the standard PayPal button', 'woocommerce-gateway-paypal-powered-by-braintree' ),
+			'description' => ! $this->is_paypal_credit_supported() ? __( 'Currently disabled because PayPal Credit is only available for US merchants', 'woocommerce-gateway-paypal-powered-by-braintree'  ) : '',
+			'default'     => 'no',
+		);
+
+		$form_fields['button_preview'] = [
+			'type'  => 'button_preview',
+		];
+
 		$form_fields['enable_cart_checkout'] = array(
 			'title'   => __( 'Enable Cart Checkout', 'woocommerce-gateway-paypal-powered-by-braintree' ),
 			'type'    => 'checkbox',
@@ -251,6 +296,89 @@ class WC_Gateway_Braintree_PayPal extends WC_Gateway_Braintree {
 		);
 
 		return parent::add_authorization_charge_form_fields( $form_fields );
+	}
+
+
+	/**
+	 * Generates HTML for the PayPal button preview.
+	 *
+	 * @since 2.2.0
+	 *
+	 * @return string
+	 */
+	protected function generate_button_preview_html() {
+
+		wp_enqueue_script( 'braintree-js-paypal', 'https://www.paypalobjects.com/api/checkout.js', array(), WC_Braintree::VERSION, true );
+
+		$button_js = '
+
+			var funding = {};
+
+			if ( offer_credit ) {
+				funding.allowed = [ paypal.FUNDING.CREDIT ];
+			} else {
+				funding.disallowed = [ paypal.FUNDING.CREDIT ];
+			}
+
+			paypal.Button.render( {
+				env: "sandbox",
+				style: {
+					label: "pay",
+					color: color,
+					size: size,
+					shape: shape,
+					layout: "vertical",
+					tagline: false,
+				},
+				funding: funding,
+				client: {
+					sandbox: "sandbox",
+				},
+				payment: function( data, actions ) {
+					return actions.payment.create( {
+						payment: {
+							transactions: [
+								{
+									amount: { total: "0.01", currency: "USD" }
+								}
+							]
+						}
+					} );
+				},
+				onAuthorize: function( data, actions ) {}
+			}, "#wc_braintree_paypal_button_preview" );
+		';
+
+		wc_enqueue_js( '
+
+			$( "#woocommerce_braintree_paypal_button_color, #woocommerce_braintree_paypal_button_size, #woocommerce_braintree_paypal_button_shape, #woocommerce_braintree_paypal_enable_paypal_credit" ).on( "change", function() {
+
+				$( "#wc_braintree_paypal_button_preview" ).empty();
+
+				var color        = $( "#woocommerce_braintree_paypal_button_color" ).val();
+				var size         = $( "#woocommerce_braintree_paypal_button_size" ).val();
+				var shape        = $( "#woocommerce_braintree_paypal_button_shape" ).val();
+				var offer_credit = $( "#woocommerce_braintree_paypal_enable_paypal_credit" ).is( ":checked" );
+
+				' . $button_js . '
+
+			} ).change();
+
+		' );
+
+		ob_start();
+		?>
+		<tr valign="top">
+			<th scope="row" class="titledesc">
+				<?php esc_html_e( 'Preview', 'woocommerce-gateway-paypal-powered-by-braintree' ); ?>
+			</th>
+			<td class="forminp">
+				<div id="wc_braintree_paypal_button_preview" style="max-width:400px; pointer-events:none;"></div>
+			</td>
+		</tr>
+		<?php
+
+		return ob_get_clean();
 	}
 
 
@@ -562,6 +690,71 @@ class WC_Gateway_Braintree_PayPal extends WC_Gateway_Braintree {
 		 * @param \WC_Gateway_Braintree_PayPal $gateway gateway object
 		 */
 		return (bool) apply_filters( 'wc_braintree_paypal_cart_checkout_enabled', 'no' !== $this->enable_cart_checkout, $this );
+	}
+
+
+	/**
+	 * Determines if PayPal Credit is enabled.
+	 *
+	 * @since 2.2.0
+	 *
+	 * @return bool
+	 */
+	public function is_paypal_credit_enabled() {
+
+		return $this->is_paypal_credit_supported() && 'yes' === $this->enable_paypal_credit;
+	}
+
+
+	/**
+	 * Determines if PayPal Credit is supported.
+	 *
+	 * @since 2.2.0
+	 *
+	 * @return bool
+	 */
+	public function is_paypal_credit_supported() {
+
+		return 'US' === WC()->countries->get_base_country();
+	}
+
+
+	/**
+	 * Gets the configured button color.
+	 *
+	 * @since 2.2.0
+	 *
+	 * @return string
+	 */
+	public function get_button_color() {
+
+		return $this->get_option( 'button_color' );
+	}
+
+
+	/**
+	 * Gets the configured button size.
+	 *
+	 * @since 2.2.0
+	 *
+	 * @return string
+	 */
+	public function get_button_size() {
+
+		return $this->get_option( 'button_size' );
+	}
+
+
+	/**
+	 * Gets the configured button shape.
+	 *
+	 * @since 2.2.0
+	 *
+	 * @return string
+	 */
+	public function get_button_shape() {
+
+		return $this->get_option( 'button_shape' );
 	}
 
 

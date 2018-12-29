@@ -106,7 +106,7 @@ sgBackup.initModals = function(){
 			}
 			modal.on('hide.bs.modal', function() {
 				if(SG_CURRENT_ACTIVE_AJAX != '') {
-					if (!confirm('Are you sure you want to cancel?')) {
+					if (!confirm(BG_MAIN_STRINGS.confirmCancel)) {
 						return false;
 					}
 					SG_CURRENT_ACTIVE_AJAX.abort();

@@ -31,9 +31,9 @@
 										<?php _backupGuardT('Restore files'); ?>
 									</label>
 								</div>
-								<?php
-									backupGuardGetFileSelectiveRestore();
-								?>
+								<?php if (SGBoot::isFeatureAvailable('SLECTIVE_RESTORE')): ?>
+									<?php backupGuardGetFileSelectiveRestore(); ?>
+								<?php endif; ?>
 								<div class="radio">
 									<label for="dbrestore-radio">
 										<input type="radio" name="restoreType" id="dbrestore-radio" value="<?php echo SG_RESTORE_MODE_DB ?>">
@@ -46,7 +46,7 @@
 					</div>
 					<div class="modal-footer">
 						<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-						<button type="button" onclick="sgBackup.startRestore('<?php echo $backupName ?>')" class="btn btn-primary"><?php echo _backupGuardT('Restore')?></button>
+						<button type="button" onclick="sgBackup.startRestore('<?php echo $backupName ?>')" class="btn btn-primary"><?php _backupGuardT('Restore')?></button>
 					</div>
 				</form>
 			</div>
@@ -62,7 +62,7 @@
 				</div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-					<button type="button" onclick="sgBackup.startRestore('<?php echo $backupName ?>')" class="btn btn-primary"><?php echo _backupGuardT('Restore')?></button>
+					<button type="button" onclick="sgBackup.startRestore('<?php echo $backupName ?>')" class="btn btn-primary"><?php _backupGuardT('Restore')?></button>
 				</div>
 			</div>
 		</div>

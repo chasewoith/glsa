@@ -2,7 +2,7 @@
 /**
  * Product Open Pricing for WooCommerce - Core Class
  *
- * @version 1.2.1
+ * @version 1.2.2
  * @since   1.0.0
  * @author  Algoritmika Ltd.
  */
@@ -368,11 +368,22 @@ class Alg_WC_Product_Open_Pricing_Core {
 	/**
 	 * hide_original_price.
 	 *
-	 * @version 1.0.0
+	 * @version 1.2.2
 	 * @since   1.0.0
 	 */
 	function hide_original_price( $price, $_product ) {
-		return ( $this->is_open_price_product( $_product ) ) ? '' : $price;
+		$hide_single = filter_var( get_option( 'alg_wc_product_open_pricing_hide_price', 'yes' ), FILTER_VALIDATE_BOOLEAN );
+		$hide_loop   = filter_var( get_option( 'alg_wc_product_open_pricing_loop_hide_price', 'yes' ), FILTER_VALIDATE_BOOLEAN );
+		if (
+			! $this->is_open_price_product( $_product ) ||
+			( is_product() && ! $hide_single ) ||
+			( ! is_product() && ! $hide_loop )
+		) {
+			return $price;
+		}
+		$price = '';
+
+		return $price;
 	}
 
 	/**
@@ -467,7 +478,7 @@ class Alg_WC_Product_Open_Pricing_Core {
 	/**
 	 * add_open_price_input_field_to_frontend.
 	 *
-	 * @version 1.1.9
+	 * @version 1.2.2
 	 * @since   1.0.0
 	 * @todo    step on per product basis
 	 */
@@ -480,13 +491,9 @@ class Alg_WC_Product_Open_Pricing_Core {
 
 			// The field - Value
 			if ( is_product() ) {
-				$value = ( isset( $_REQUEST['alg_open_price'] ) ) ? $this->sanitize_open_price( $_REQUEST['alg_open_price'] ) : get_post_meta( $product_id, '_' . 'alg_wc_product_open_pricing_default_price', true );
+				$value = ( isset( $_REQUEST['alg_open_price'] ) ) ? $this->sanitize_open_price( $_REQUEST['alg_open_price'] ) : apply_filters( 'aopwc_value', get_post_meta( $product_id, '_' . 'alg_wc_product_open_pricing_default_price', true ), 'value' );
 			} else {
-				$value = get_post_meta( $product_id, '_' . 'alg_wc_product_open_pricing_default_price', true );
-			}
-
-			if ( ! empty( $value ) ) {
-				$value = apply_filters( 'aopwc_value', $value, 'value' );
+				$value = apply_filters( 'aopwc_value', get_post_meta( $product_id, '_' . 'alg_wc_product_open_pricing_default_price', true ), 'value' );
 			}
 
 			$input_id = "alg_open_price_".$product_id;

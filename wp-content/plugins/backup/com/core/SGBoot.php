@@ -166,8 +166,7 @@ class SGBoot
 				throw new SGExceptionDatabaseError('Could not install config table');
 			}
 
-			$isScheduleAvailable = self::isFeatureAvailable('SCHEDULE');
-			if ($isScheduleAvailable && !self::installScheduleTable($sgdb)) {
+			if (!self::installScheduleTable($sgdb)) {
 				throw new SGExceptionDatabaseError('Could not install schedule table');
 			}
 

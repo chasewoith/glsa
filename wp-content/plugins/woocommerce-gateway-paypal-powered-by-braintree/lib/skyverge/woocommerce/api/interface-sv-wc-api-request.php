@@ -18,15 +18,15 @@
  *
  * @package   SkyVerge/WooCommerce/API/Request
  * @author    SkyVerge
- * @copyright Copyright (c) 2013-2016, SkyVerge, Inc.
+ * @copyright Copyright (c) 2013-2018, SkyVerge, Inc.
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License v3.0
  */
 
-namespace SkyVerge\Plugin_Framework;
+namespace WC_Braintree\Plugin_Framework;
 
 defined( 'ABSPATH' ) or exit;
 
-if ( ! interface_exists( '\SkyVerge\Plugin_Framework\SV_WC_API_Request' ) ) :
+if ( ! interface_exists( '\\WC_Braintree\\Plugin_Framework\\SV_WC_API_Request' ) ) :
 
 /**
  * API Request
@@ -50,6 +50,26 @@ interface SV_WC_API_Request {
 	 * @return string the request path, or '' if none
 	 */
 	public function get_path();
+
+
+	/**
+	 * Gets the request query params.
+	 *
+	 * @since 5.0.0
+	 *
+	 * @return array
+	 */
+	public function get_params();
+
+
+	/**
+	 * Gets the request data.
+	 *
+	 * @since 5.0.0
+	 *
+	 * @return array
+	 */
+	public function get_data();
 
 
 	/**

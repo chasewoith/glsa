@@ -18,15 +18,15 @@
  *
  * @package   SkyVerge/WooCommerce/Payment-Gateway/Classes
  * @author    SkyVerge
- * @copyright Copyright (c) 2013-2016, SkyVerge, Inc.
+ * @copyright Copyright (c) 2013-2018, SkyVerge, Inc.
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License v3.0
  */
 
-namespace SkyVerge\Plugin_Framework;
+namespace WC_Braintree\Plugin_Framework;
 
 defined( 'ABSPATH' ) or exit;
 
-if ( ! class_exists( '\SkyVerge\Plugin_Framework\SV_WC_Payment_Gateway_Payment_Form' ) ) :
+if ( ! class_exists( '\\WC_Braintree\\Plugin_Framework\\SV_WC_Payment_Gateway_Payment_Form' ) ) :
 
 /**
  * Payment Form Class
@@ -335,7 +335,7 @@ class SV_WC_Payment_Gateway_Payment_Form {
 				'id'                => 'wc-' . $this->get_gateway()->get_id_dasherized() . '-csc',
 				'name'              => 'wc-' . $this->get_gateway()->get_id_dasherized() . '-csc',
 				'placeholder'       => esc_html__( 'CSC', 'woocommerce-gateway-paypal-powered-by-braintree' ),
-				'required'          => $this->get_gateway()->csc_required(),
+				'required'          => true,
 				'class'             => array( 'form-row-last' ),
 				'input_class'       => array( 'js-sv-wc-payment-gateway-credit-card-form-input js-sv-wc-payment-gateway-credit-card-form-csc' ),
 				'maxlength'         => 4,
@@ -548,11 +548,7 @@ class SV_WC_Payment_Gateway_Payment_Form {
 	 */
 	protected function get_manage_payment_methods_button_html() {
 
-		if ( SV_WC_Plugin_Compatibility::is_wc_version_lt_2_6() ) {
-			$url = wc_get_page_permalink( 'myaccount' ) . '#wc-' . $this->get_gateway()->get_plugin()->get_id_dasherized() . '-my-payment-methods';
-		} else {
-			$url = wc_get_endpoint_url( 'payment-methods', '', wc_get_page_permalink( 'myaccount' ) );
-		}
+		$url = wc_get_account_endpoint_url( 'payment-methods' );
 
 		/**
 		 * Payment Form Manage Payment Methods Button Text Filter.
@@ -563,7 +559,7 @@ class SV_WC_Payment_Gateway_Payment_Form {
 		 * @since 4.0.0
 		 * @param string $button_text button text
 		 */
-		$html = sprintf( '<a class="sv-wc-payment-gateway-payment-form-manage-payment-methods button" href="%s">%s</a>',
+		$html = sprintf( '<a class="button sv-wc-payment-gateway-payment-form-manage-payment-methods" href="%s">%s</a>',
 			esc_url( $url ),
 			/* translators: Payment method as in a specific credit card, eCheck or bank account */
 			wp_kses_post( apply_filters( 'wc_' . $this->get_gateway()->get_id() . '_manage_payment_methods_text', esc_html__( 'Manage Payment Methods', 'woocommerce-gateway-paypal-powered-by-braintree' ) ) )
@@ -594,7 +590,7 @@ class SV_WC_Payment_Gateway_Payment_Form {
 	protected function get_saved_payment_method_html( $token ) {
 
 		// input
-		$html = sprintf( '<input type="radio" id="wc-%1$s-payment-token-%2$s" name="wc-%1$s-payment-token" class="js-sv-wc-payment-gateway-payment-token js-wc-%1$s-payment-token" style="width:auto;" value="%2$s" %3$s/>',
+		$html = sprintf( '<input type="radio" id="wc-%1$s-payment-token-%2$s" name="wc-%1$s-payment-token" class="js-sv-wc-payment-gateway-payment-token js-wc-%1$s-payment-token" style="width:auto; margin-right:.5em;" value="%2$s" %3$s/>',
 			esc_attr( $this->get_gateway()->get_id_dasherized() ),
 			esc_attr( $token->get_id() ),
 			checked( $token->is_default(), true, false )
@@ -636,22 +632,26 @@ class SV_WC_Payment_Gateway_Payment_Form {
 		$last_four = $token->get_last_four();
 		$type      = $token->get_type_full();
 
+		$title = '<span class="title">';
+
+		if ( $token->get_nickname() ) {
+			$title .= '<span class="nickname">' . $token->get_nickname() . '</span>';
+		}
+
 		if ( $image_url ) {
 
 			// format like "<Amex logo image> American Express"
-			$title = sprintf( '<img src="%1$s" alt="%2$s" title="%2$s" width="30" height="20" style="width: 30px; height: 20px;" />%3$s', esc_url( $image_url ), esc_attr__( $type, 'woocommerce-gateway-paypal-powered-by-braintree' ), esc_html__( $type, 'woocommerce-gateway-paypal-powered-by-braintree' ) );
+			$title .= sprintf( '<img src="%1$s" alt="%2$s" title="%2$s" width="30" height="20" style="width: 30px; height: 20px;" />', esc_url( $image_url ), esc_attr( $type ) );
 
 		} else {
 
 			// missing payment method image, format like "American Express"
-			$title = esc_html__( $type, 'woocommerce-gateway-paypal-powered-by-braintree' );
+			$title .= esc_html( $type );
 		}
 
 		// add "ending in XXXX" if available
 		if ( $last_four ) {
-
-			/* translators: Placeholders: %s - last four digits of card/account */
-			$title .= '&nbsp;' . sprintf( esc_html__( 'ending in %s', 'woocommerce-gateway-paypal-powered-by-braintree' ), $last_four );
+			$title .= '&bull; &bull; &bull; ' . esc_html( $last_four );
 		}
 
 		// add "(expires MM/YY)" if available
@@ -660,6 +660,8 @@ class SV_WC_Payment_Gateway_Payment_Form {
 			/* translators: Placeholders: %s - expiry date */
 			$title .= ' ' . sprintf( esc_html__( '(expires %s)', 'woocommerce-gateway-paypal-powered-by-braintree' ), $token->get_exp_date() );
 		}
+
+		$title .= '</span>';
 
 		/**
 		 * Payment Gateway Payment Form Payment Method Title.
@@ -686,7 +688,7 @@ class SV_WC_Payment_Gateway_Payment_Form {
 	protected function get_use_new_payment_method_input_html() {
 
 		// input
-		$html = sprintf( '<input type="radio" id="wc-%1$s-use-new-payment-method" name="wc-%1$s-payment-token" class="js-sv-wc-payment-token js-wc-%1$s-payment-token" style="width:auto;" value="" %2$s />',
+		$html = sprintf( '<input type="radio" id="wc-%1$s-use-new-payment-method" name="wc-%1$s-payment-token" class="js-sv-wc-payment-token js-wc-%1$s-payment-token" style="width:auto; margin-right: .5em;" value="" %2$s />',
 			esc_attr( $this->get_gateway()->get_id_dasherized() ),
 			checked( $this->default_new_payment_method(), true, false )
 		);
@@ -946,15 +948,16 @@ class SV_WC_Payment_Gateway_Payment_Form {
 	public function render_js() {
 
 		$args = array(
-			'plugin_id'     => $this->get_gateway()->get_plugin()->get_id(),
-			'id'            => $this->get_gateway()->get_id(),
-			'id_dasherized' => $this->get_gateway()->get_id_dasherized(),
-			'type'          => $this->get_gateway()->get_payment_type(),
-			'csc_required'  => $this->get_gateway()->csc_required(),
+			'plugin_id'               => $this->get_gateway()->get_plugin()->get_id(),
+			'id'                      => $this->get_gateway()->get_id(),
+			'id_dasherized'           => $this->get_gateway()->get_id_dasherized(),
+			'type'                    => $this->get_gateway()->get_payment_type(),
+			'csc_required'            => $this->get_gateway()->csc_enabled(),
+			'csc_required_for_tokens' => $this->get_gateway()->csc_enabled_for_tokens(),
 		);
 
 		if ( $this->get_gateway()->supports_card_types() ) {
-			$args['enabled_card_types'] = array_map( array( 'SV_WC_Payment_Gateway_Helper', 'normalize_card_type' ), $this->get_gateway()->get_card_types() );
+			$args['enabled_card_types'] = array_map( array( 'WC_Braintree\Plugin_Framework\SV_WC_Payment_Gateway_Helper', 'normalize_card_type' ), $this->get_gateway()->get_card_types() );
 		}
 
 		/**

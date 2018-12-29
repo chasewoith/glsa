@@ -138,6 +138,9 @@ define('SG_MAIL_BACKUP_CANCELED_SUBJECT', 'Backup Canceled');
 define('SG_MAIL_RESTORE_SUCCESS_SUBJECT', 'Restore Succeeded');
 define('SG_MAIL_RESTORE_FAIL_SUBJECT', 'Restore Failed');
 
+define('SG_MAIL_UPLOAD_FAIL_SUBJECT', 'Upload Failed');
+define('SG_MAIL_UPLOAD_SUCCESS_SUBJECT', 'Upload Succeeded');
+
 //BackupGurad
 define('SG_ACTION_STATUS_CREATED', 0);
 define('SG_ACTION_STATUS_IN_PROGRESS_DB', 1);
@@ -170,6 +173,8 @@ define('SG_SCHEDULE_TABLE_NAME', SG_ENV_DB_PREFIX.'sg_schedule');
 define('SG_SSH_KEY_FILE_FOLDER_NAME', 'sshKeyFolder/');
 
 define('SG_MIGRATION_SERVICE_URL', 'https://backup-guard.com/services/migrate-wordpress');
+define('BACKUP_GUARD_PRIVACY_POLICY_URL', "https://backup-guard.com/privacy");
+define('BACKUP_GUARD_TERMS_OF_SERVICE_URL', 'https://backup-guard.com/terms');
 
 define('SG_RESTORE_MODE_FULL', 'full');
 define('SG_RESTORE_MODE_FILES', 'files');
@@ -187,3 +192,9 @@ define('BACKUP_GUARD_CAPABILITIES_FREE', 1);
 define('BACKUP_GUARD_CAPABILITIES_SILVER', 2);
 define('BACKUP_GUARD_CAPABILITIES_GOLD', 3);
 define('BACKUP_GUARD_CAPABILITIES_PLATINUM', 4);
+
+define('BG_SCHEDULE_INTERVAL_HOURLY', 0);
+define('BG_SCHEDULE_INTERVAL_DAILY', 1);
+define('BG_SCHEDULE_INTERVAL_WEEKLY', 2);
+define('BG_SCHEDULE_INTERVAL_MONTHLY', 3);
+define('BG_SCHEDULE_INTERVAL_YEARLY', 4);

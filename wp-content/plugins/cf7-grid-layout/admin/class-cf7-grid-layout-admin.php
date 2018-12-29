@@ -583,7 +583,7 @@ class Cf7_Grid_Layout_Admin {
     $contact_form = wpcf7_save_contact_form( $args );
     add_action('save_post_wpcf7_contact_form', array($this, 'save_post'), 10,3);
     //flag as a grid form
-    update_post_meta($post_id, 'cf7_grid_form', true);
+    //update_post_meta($post_id, 'cf7_grid_form', true); removed since v2.3 as not used.
     //save sub-forms if any
     $sub_forms = json_decode(stripslashes($_POST['cf7sg-embeded-forms']));
     if(empty($sub_forms)) $sub_forms = array();
@@ -598,8 +598,15 @@ class Cf7_Grid_Layout_Admin {
     if(empty($tt_fields)) $tt_fields = array();
     if(!is_array($tt_fields)) $tt_fields = array($tt_fields);
   	$sanitised_table_fields = array();
-  	foreach($tt_fields as $table_field){
-  	  $sanitised_table_fields[] = sanitize_text_field($table_field);
+  	foreach($tt_fields as $table_fields){
+      if(is_object($table_fields)){ /** @since 2.4.2 track fields in each tables. */
+        $table_fields = get_object_vars($table_fields); /*convert to array*/
+        $table = array_keys($table_fields);
+        $table = sanitize_text_field($table[0]);
+        $table_fields = $table_fields[$table];
+        $sanitised_table_fields[$table]=array();
+        foreach($table_fields as $field) $sanitised_table_fields[$table][] = sanitize_text_field($field);
+      }else $sanitised_table_fields[] = sanitize_text_field($table_fields);
   	}
     update_post_meta($post_id, '_cf7sg_grid_table_names', $sanitised_table_fields);
     //tabs
@@ -608,19 +615,89 @@ class Cf7_Grid_Layout_Admin {
     if(!is_array($tt_fields)) $tt_fields = array($tt_fields);
   	$sanitised_tab_fields = array();
   	foreach($tt_fields as $tab_field){
-      $sanitised_tab_fields[] = sanitize_text_field($tab_field);
+      if(is_object($tab_field)){  /** @since 2.4.2 track fields in each tabs. */
+        $tab_field = get_object_vars($tab_field); /*convert to array*/
+        $tab = array_keys($tab_field);
+        $tab = sanitize_text_field($tab[0]);
+        $tab_field = $tab_field[$tab];
+        $sanitised_tab_fields[$tab]=array();
+        foreach($tab_field as $field) $sanitised_tab_fields[$tab][] = sanitize_text_field($field);
+      }else $sanitised_tab_fields[] = sanitize_text_field($tab_field);
   	}
     update_post_meta($post_id, '_cf7sg_grid_tabs_names', $sanitised_tab_fields);
+    /** track toggled fields.
+    * @since 2.5*/
+    $tt_fields = json_decode(stripslashes($_POST['cf7sg-toggle-fields']));
+    if(empty($tt_fields)) $tt_fields = array();
+    if(!is_array($tt_fields)) $tt_fields = array($tt_fields);
+  	$sanitised_toggled_fields = array();
+  	foreach($tt_fields as $tgg_field){
+      if(is_object($tgg_field)){
+        $tgg_field = get_object_vars($tgg_field); /*convert to array*/
+        $tgg = array_keys($tgg_field);
+        $tgg = sanitize_text_field($tgg[0]);
+        $tgg_field = $tgg_field[$tgg];
+        $sanitised_toggled_fields[$tgg]=array();
+        foreach($tgg_field as $field) $sanitised_toggled_fields[$tgg][] = sanitize_text_field($field);
+      }else $sanitised_toggled_fields[] = sanitize_text_field($tgg_field);
+  	}
+    update_post_meta($post_id, '_cf7sg_grid_toggled_names', $sanitised_toggled_fields);
     //flag tab & tables for more efficient front-end display.
     $has_tabs =  ( 'true' === $_POST['cf7sg-has-tabs']) ? true : false;
     update_post_meta($post_id, '_cf7sg_has_tabs', $has_tabs);
     $has_tables = ( 'true' === $_POST['cf7sg-has-tables']) ? true : false;
     update_post_meta($post_id, '_cf7sg_has_tables', $has_tables);
+    $has_toggles = ( 'true' === $_POST['cf7sg-has-toggles']) ? true : false;
+    update_post_meta($post_id, '_cf7sg_has_toggles', $has_toggles);
     /**
     * @since 1.2.3 disable cf7sg styling/js for non-cf7sg forms.
     */
     $is_cf7sg = ( 'true' === $_POST['is_cf7sg_form']) ? true : false;
     update_post_meta($post_id, '_cf7sg_managed_form', $is_cf7sg);
+    update_post_meta($post_id, '_cf7sg_version', $this->version);
+    /**
+    *@since 2.3.0 the duplicate functionality has been isntored and therefore any new meta fields added to this plugin needs to be added to the duplication properties too.
+    */
+  }
+  /**
+  *
+  *
+  *@since 2.3.0
+  *@param string $new_form_id new form id to duplciate to.
+  *@param string $form_id form id to duplciate.
+  */
+  public function duplicate_form_properties($new_form_id, $form_id){
+    //these properties will be preceded with an '_' by the cf7 plugin before being duplicated.
+    $properties = array('_cf7sg_sub_forms', '_cf7sg_grid_table_names', '_cf7sg_grid_tabs_names', '_cf7sg_has_tabs', '_cf7sg_has_tables', '_cf7sg_managed_form');
+    $properties = apply_filters('cf7sg_duplicate_form_properties', $properties);
+    foreach($properties as $field){
+      $value = get_post_meta($form_id, $field, true);
+      if(!empty($value)) update_post_meta($new_form_id,$field, $value);
+    }
+  }
+  /**
+  * Duplicate form.
+  *
+  *@since 2.3.0
+  *@param string $param text_description
+  *@return string text_description
+  */
+  public function duplicate_cf7_form(){
+    global $pagenow;
+    if($pagenow != 'post.php') return;
+    if(isset($_GET['action']) && 'cf7copy' == $_GET['action']){
+      $action = 'wpcf7-copy-contact-form_' . $_GET['post'];
+      if( !wp_verify_nonce( $_GET['_wpnonce'], $action )){
+        die( 'Security check error: Try to reload the page and try again.' );
+      }
+      if ( $form = wpcf7_contact_form( $_GET['post'] ) ) {
+  			$new_form = $form->copy();
+  			$new_form->save();
+        $this->duplicate_form_properties($new_form->id(), $_GET['post']);
+        wp_safe_redirect( admin_url( '/post.php?post='.$new_form->id().'&action=edit' ));
+        exit;
+  		}
+    }
   }
   /**
   * Filtered allowed html tags & attributes, add data-button to div tags to ensure forms are saved properly.
@@ -880,5 +957,83 @@ class Cf7_Grid_Layout_Admin {
         return false;
     }
     return true;
+  }
+  /**
+  * Add disabled button message on hover to cf7 messages.
+  * Hooked to 'wpcf7_messages', see file contact-form-7/includes/contact-form-template.php fn messages().
+  *@since 2.6.0
+  *@param array $messages array of messages to filter.
+  *@return array array of cf7 messages.
+  */
+  public function disabled_message($messages){
+    $messages['submit_disabled'] = array(
+			'description'
+				=> __( "Hover message for disabled submit/save button", 'cf7-grid-layout' ),
+			'default'
+				=> __( "Disabled!  To enable, check the acceptance field.", 'cf7-grid-layout' ),
+		);
+    return $messages;
+  }
+  /**
+  * Adds pretty pointers to help users.
+  * Hooked on 'admin_enqueue_scripts'
+  *@since 2.6.0
+  *@param string $hook_suffix current page.
+  */
+  public function pretty_admin_pointers($hook_suffix) {
+    $screen = get_current_screen();
+    if (!isset($screen) || 'wpcf7_contact_form' != $screen->post_type){
+      return;
+    }
+    $enqueue_pointer = false;
+    // Get array list of dismissed pointers for current user and convert it to array
+    $user_id = get_current_user_id();
+    $dismissed_pointers = explode( ',', get_user_meta( $user_id, 'dismissed_wp_pointers', true ) );
+    $pointers = array();
+    /**
+    * Filter to add custom pointers for user iterface.
+    * @var array $pointers an array of $pointer_id=>array($content, $arrow, $valign) key/value pairs to filter.  The key is the pointer id to identify which ones the user has dismissed.  The value is an array with the message $content, the position of the $arrow (left|right|top|bottom), the vertical alignment ($valign) of the box (center|top|bottom).
+    * @return array an array of pointers, which will be checked agains the current user.
+    */
+    $filter_pointers = apply_filters('cf7sg_plugin_pointers-'.$screen->id, array());
+    foreach($filter_pointers as $id=>$pointer){
+    	// Check if our pointer is not among dismissed ones
+    	if( !in_array( $id, $dismissed_pointers ) ) {
+        $enqueue_pointer = true;
+        $pointers[$id] = array($pointer[0], $pointer[1], $pointer[2]);
+      }
+    }
+
+  	// Enqueue pointer CSS and JS files, if needed
+  	if( $enqueue_pointer ) {
+  		wp_enqueue_style( 'wp-pointer' );
+  		wp_enqueue_script( 'wp-pointer' );
+      wp_enqueue_script('cf7sg-pointer-js', plugin_dir_url( __DIR__ ).'admin/js/cf7sg-pointers.js', array('jquery'), $this->version, true);
+      wp_localize_script('cf7sg-pointer-js', 'cf7sg_pointers',
+        array('pointers'=>$pointers, 'next'=>__('Next', 'cf7-grid-layout'))
+      );
+      // Add footer scripts using callback function
+      add_action( 'admin_print_footer_scripts', array($this, 'pretty_pointer_script') );
+  	}
+  }
+  /**
+  * CF7 Table pointer notices.
+  * Hooked on 'cf7sg_plugin_pointers-edit-wpcf7_contact_form'
+  *@since 2.6.0
+  *@param string $param text_description
+  *@return string text_description
+  */
+  public function edit_pointers($pointers){
+    ob_start();
+    include_once 'partials/pointers/cf7sg-pointer-update-forms.php';
+    $content =ob_get_clean();
+    $pointers['update_forms_pointer'] = array($content, 'left', 'center');
+    /* shortcodes */
+    ob_start();
+    include_once 'partials/pointers/cf7sg-pointer-shortcodes.php';
+    $content = ob_get_clean();
+    $pointers['cf7sg_shortcodes'] = array($content, 'top', 'top');
+
+    return $pointers;
   }
 }

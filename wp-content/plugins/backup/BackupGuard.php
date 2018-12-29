@@ -13,6 +13,8 @@ add_action('widgets_init', 'backup_guard_register_widget');
 
 //The code that runs during plugin activation.
 function activate_backup_guard() {
+	add_option('backup_guard_do_activation_redirect', true);
+
 	//check if database should be updated
 	if (backupGuardShouldUpdate()) {
 		SGBoot::install();
@@ -24,6 +26,14 @@ function activate_backup_guard() {
 	// 	$extensionAdapter = SGExtension::getInstance();
 	// 	$extensionAdapter->installExtension(SG_BACKUP_GUARD_SECURITY_EXTENSION);
 	// }
+}
+
+function backupGuardPluginRedirect()
+{
+	if (get_option('backup_guard_do_activation_redirect', false)) {
+		delete_option('backup_guard_do_activation_redirect');
+		wp_redirect(admin_url("admin.php?page=backup_guard_backups"));
+	}
 }
 
 // The code that runs during plugin deactivation.
@@ -61,6 +71,15 @@ add_filter('upgrader_pre_download', 'backupGuardMaybeShortenEddFilename', 10, 4)
 register_activation_hook(SG_BACKUP_GUARD_MAIN_FILE, 'activate_backup_guard');
 register_uninstall_hook(SG_BACKUP_GUARD_MAIN_FILE, 'uninstall_backup_guard');
 register_deactivation_hook(SG_BACKUP_GUARD_MAIN_FILE, 'deactivate_backup_guard');
+add_action('admin_footer', 'before_deactivate_backup_guard');
+
+function before_deactivate_backup_guard()
+{
+	wp_enqueue_style('before-deactivate-backup-guard-css', plugin_dir_url(__FILE__).'public/css/deactivationSurvey.css');
+	wp_enqueue_script('before-deactivate-backup-guard-js', plugin_dir_url(__FILE__).'public/js/deactivationSurvey.js', array('jquery'));
+
+	require_once(plugin_dir_path(__FILE__).'public/include/uninstallSurveyPopup.php');
+}
 
 // Register Admin Menus for single and multisite
 if (is_multisite()) {
@@ -72,19 +91,19 @@ else {
 
 function backup_guard_admin_menu()
 {
-	add_menu_page('Backups', 'BackupGuard', 'manage_options', 'backup_guard_backups', 'backup_guard_backups_page', 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz48IURPQ1RZUEUgc3ZnIFBVQkxJQyAiLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4iICJodHRwOi8vd3d3LnczLm9yZy9HcmFwaGljcy9TVkcvMS4xL0RURC9zdmcxMS5kdGQiPjxzdmcgdmVyc2lvbj0iMS4xIiBpZD0iTGF5ZXJfMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgeD0iMHB4IiB5PSIwcHgiIHZpZXdCb3g9IjAgMCA0NjIuOSA1MDEuNCIgZW5hYmxlLWJhY2tncm91bmQ9Im5ldyAwIDAgNDYyLjkgNTAxLjQiIHhtbDpzcGFjZT0icHJlc2VydmUiPjxwYXRoIGZpbGw9IiNhMGE1YWEiIGQ9Ik00MjYuOSwxOTkuNmgtMTk4bDAuNCwzNEgyNDZoMTYyLjdjLTAuNSwzLjMtMS4xLDYuNi0xLjcsOS45Yy02LjEsMzMtMTUuMyw2Mi4yLTI3LjcsODcuNkg3OS40Yy0xMi4zLTI1LjQtMjEuNi01NC42LTI3LjctODcuNkMzOS4zLDE3Ni4xLDQ0LDExMS41LDQ3LjIsODMuN0M2Ny43LDkwLjUsODguMyw5NCwxMDguNiw5NGM2MC43LDAsMTAzLjMtMzAuMiwxMjAuOC00NS4xQzI0Ni43LDYzLjgsMjg5LjQsOTQsMzUwLjEsOTRoMGMyMC4zLDAsNDAuOS0zLjUsNjEuNC0xMC4zYzEuNiwxMy45LDMuNSwzNy4xLDMuNiw2NS4xaDIzLjdjMC00Ny40LTUuNS04MS4xLTUuOC04My4zbC0yLjQtMTQuNmwtMTMuNyw1LjZjLTIyLjQsOS4yLTQ0LjgsMTMuOC02Ni43LDEzLjhjMCwwLDAsMCwwLDBjLTY4LjMsMC0xMTEuNy00NS4zLTExMi4xLTQ1LjdsLTguNi05LjJsLTguNyw5LjJjLTAuNCwwLjUtNDMuOCw0NS43LTExMi4xLDQ1LjdjLTIxLjksMC00NC40LTQuNi02Ni43LTEzLjhsLTEzLjctNS42bC0yLjQsMTQuNmMtMC42LDMuNi0xNC40LDg4LjcsMi42LDE4MS42QzM4LjUsMzAyLjQsNTcuNSwzNDguOCw4NC44LDM4NWMzNC42LDQ1LjgsODIuNCw3NS4zLDE0Mi4xLDg3LjdsMi40LDAuNWwyLjQtMC41YzU5LjctMTIuMywxMDcuNS00MS44LDE0Mi4xLTg3LjdjMjcuNC0zNi4zLDQ2LjQtODIuNyw1Ni41LTEzNy45YzMtMTYuMiw1LTMyLjIsNi4zLTQ3LjVMNDI2LjksMTk5LjZMNDI2LjksMTk5LjZ6Ii8+PC9zdmc+');
+	add_menu_page('Backups', 'BackupGuard', 'manage_options', 'backup_guard_backups', 'backup_guard_backups_page', 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz48IURPQ1RZUEUgc3ZnIFBVQkxJQyAiLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4iICJodHRwOi8vd3d3LnczLm9yZy9HcmFwaGljcy9TVkcvMS4xL0RURC9zdmcxMS5kdGQiPjxzdmcgdmVyc2lvbj0iMS4xIiBpZD0iTGF5ZXJfMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgeD0iMHB4IiB5PSIwcHgiIHZpZXdCb3g9IjAgMCA0NjIuOSA1MDEuNCIgZW5hYmxlLWJhY2tncm91bmQ9Im5ldyAwIDAgNDYyLjkgNTAxLjQiIHhtbDpzcGFjZT0icHJlc2VydmUiPjxwYXRoIGZpbGw9IiNhMGE1YWEiIGQ9Ik00MjYuOSwxOTkuNmgtMTk4bDAuNCwzNEgyNDZoMTYyLjdjLTAuNSwzLjMtMS4xLDYuNi0xLjcsOS45Yy02LjEsMzMtMTUuMyw2Mi4yLTI3LjcsODcuNkg3OS40Yy0xMi4zLTI1LjQtMjEuNi01NC42LTI3LjctODcuNkMzOS4zLDE3Ni4xLDQ0LDExMS41LDQ3LjIsODMuN0M2Ny43LDkwLjUsODguMyw5NCwxMDguNiw5NGM2MC43LDAsMTAzLjMtMzAuMiwxMjAuOC00NS4xQzI0Ni43LDYzLjgsMjg5LjQsOTQsMzUwLjEsOTRoMGMyMC4zLDAsNDAuOS0zLjUsNjEuNC0xMC4zYzEuNiwxMy45LDMuNSwzNy4xLDMuNiw2NS4xaDIzLjdjMC00Ny40LTUuNS04MS4xLTUuOC04My4zbC0yLjQtMTQuNmwtMTMuNyw1LjZjLTIyLjQsOS4yLTQ0LjgsMTMuOC02Ni43LDEzLjhjMCwwLDAsMCwwLDBjLTY4LjMsMC0xMTEuNy00NS4zLTExMi4xLTQ1LjdsLTguNi05LjJsLTguNyw5LjJjLTAuNCwwLjUtNDMuOCw0NS43LTExMi4xLDQ1LjdjLTIxLjksMC00NC40LTQuNi02Ni43LTEzLjhsLTEzLjctNS42bC0yLjQsMTQuNmMtMC42LDMuNi0xNC40LDg4LjcsMi42LDE4MS42QzM4LjUsMzAyLjQsNTcuNSwzNDguOCw4NC44LDM4NWMzNC42LDQ1LjgsODIuNCw3NS4zLDE0Mi4xLDg3LjdsMi40LDAuNWwyLjQtMC41YzU5LjctMTIuMywxMDcuNS00MS44LDE0Mi4xLTg3LjdjMjcuNC0zNi4zLDQ2LjQtODIuNyw1Ni41LTEzNy45YzMtMTYuMiw1LTMyLjIsNi4zLTQ3LjVMNDI2LjksMTk5LjZMNDI2LjksMTk5LjZ6Ii8+PC9zdmc+', 74);
 
-	add_submenu_page('backup_guard_backups', 'Backups', 'Backups', 'manage_options', 'backup_guard_backups', 'backup_guard_backups_page');
-	add_submenu_page('backup_guard_backups', 'Cloud', 'Cloud', 'manage_options', 'backup_guard_cloud', 'backup_guard_cloud_page');
-	add_submenu_page('backup_guard_backups', 'Schedule', 'Schedule', 'manage_options', 'backup_guard_schedule', 'backup_guard_schedule_page');
+	add_submenu_page('backup_guard_backups', _backupGuardT('Backups', true), _backupGuardT('Backups', true), 'manage_options', 'backup_guard_backups', 'backup_guard_backups_page');
+	add_submenu_page('backup_guard_backups', _backupGuardT('Cloud', true), _backupGuardT('Cloud', true), 'manage_options', 'backup_guard_cloud', 'backup_guard_cloud_page');
+	add_submenu_page('backup_guard_backups', _backupGuardT('Schedule', true), _backupGuardT('Schedule', true), 'manage_options', 'backup_guard_schedule', 'backup_guard_schedule_page');
 
-	add_submenu_page('backup_guard_backups', 'Settings', 'Settings', 'manage_options', 'backup_guard_settings', 'backup_guard_settings_page');
-	add_submenu_page('backup_guard_backups', 'Services', 'Services', 'manage_options', 'backup_guard_services', 'backup_guard_services_page');
-	add_submenu_page('backup_guard_backups', 'Support', 'Support', 'manage_options', 'backup_guard_support', 'backup_guard_support_page');
+	add_submenu_page('backup_guard_backups', _backupGuardT('Settings', true), _backupGuardT('Settings', true), 'manage_options', 'backup_guard_settings', 'backup_guard_settings_page');
+	add_submenu_page('backup_guard_backups', _backupGuardT('Services', true), _backupGuardT('Services', true), 'manage_options', 'backup_guard_services', 'backup_guard_services_page');
+	add_submenu_page('backup_guard_backups', _backupGuardT('Support', true), _backupGuardT('Support', true), 'manage_options', 'backup_guard_support', 'backup_guard_support_page');
 
 	//Check if should show upgrade page
 	if (SGBoot::isFeatureAvailable('SHOW_UPGRADE_PAGE')) {
-		add_submenu_page('backup_guard_backups', 'Why upgrade?', 'Why upgrade?', 'manage_options', 'backup_guard_pro_features', 'backup_guard_pro_features_page');
+		add_submenu_page('backup_guard_backups', _backupGuardT('Why upgrade?', true), _backupGuardT('Why upgrade?', true), 'manage_options', 'backup_guard_pro_features', 'backup_guard_pro_features_page');
 	}
 
 	// check if extensions should be installed
@@ -127,7 +146,8 @@ function backup_guard_support_page()
 }
 
 //Backups Page
-function backup_guard_backups_page(){
+function backup_guard_backups_page()
+{
 	if (backupGuardValidateLicense()) {
 		wp_enqueue_script('backup-guard-iframe-transport-js', plugin_dir_url(__FILE__).'public/js/jquery.iframe-transport.js', array('jquery'));
 		wp_enqueue_script('backup-guard-fileupload-js', plugin_dir_url(__FILE__).'public/js/jquery.fileupload.js', array('jquery'));
@@ -137,6 +157,22 @@ function backup_guard_backups_page(){
 		wp_enqueue_script('backup-guard-jstree-types-js', plugin_dir_url(__FILE__).'public/js/jstree.types.js', array('jquery'));
 		wp_enqueue_style('backup-guard-jstree-css', plugin_dir_url(__FILE__).'public/css/default/style.min.css');
 		wp_enqueue_script('backup-guard-backups-js', plugin_dir_url(__FILE__).'public/js/sgbackup.js', array('jquery', 'jquery-effects-core', 'jquery-effects-transfer', 'jquery-ui-widget'));
+
+		// Localize the script with new data
+		wp_localize_script('backup-guard-backups-js', 'BG_BACKUP_STRINGS', array(
+			'confirm'                  => _backupGuardT('Are you sure you want to cancel import?', true),
+			'invalidBackupOption'      => _backupGuardT('Please choose at least one option.', true),
+			'invalidDirectorySelected' => _backupGuardT('Please choose at least one directory.', true),
+			'invalidCloud'             => _backupGuardT('Please choose at least one cloud.', true),
+			'backupInProgress'         => _backupGuardT('Backing Up...', true),
+			'errorMessage'             => _backupGuardT('Something went wrong. Please try again.', true),
+			'noBackupsAvailable'       => _backupGuardT('No backups found.', true),
+			'invalidImportOption'      => _backupGuardT('Please select one off the options.', true),
+			'invalidDownloadFile'      => _backupGuardT('Please choose one of the files.', true),
+			'import'                   => _backupGuardT('Import', true),
+			'importInProgress'         => _backupGuardT('Importing please wait...', true),
+			'fileUploadFailed'         => _backupGuardT('File upload failed.', true)
+		));
 
 		require_once(plugin_dir_path( __FILE__ ).'public/backups.php');
 	}
@@ -150,6 +186,15 @@ function backup_guard_cloud_page()
 		wp_enqueue_script('backup-guard-switch-js', plugin_dir_url(__FILE__).'public/js/bootstrap-switch.min.js', array('jquery'), '1.0.0', true);
 		wp_enqueue_script('backup-guard-cloud-js', plugin_dir_url(__FILE__).'public/js/sgcloud.js', array('jquery'), '1.0.0', true);
 
+		// Localize the script with new data
+		wp_localize_script('backup-guard-cloud-js', 'BG_CLOUD_STRINGS', array(
+			'invalidImportFile'             => _backupGuardT('Please select a file.', true),
+			'invalidFileSize'               => _backupGuardT('File is too large.', true),
+			'connectionInProgress'          => _backupGuardT('Connecting...', true),
+			'invalidDestinationFolder'      => _backupGuardT('Destination folder is required.', true),
+			'successMessage'                => _backupGuardT('Successfully saved.', true)
+		));
+
 		require_once(plugin_dir_path(__FILE__).'public/cloud.php');
 	}
 }
@@ -162,6 +207,18 @@ function backup_guard_schedule_page()
 		wp_enqueue_script('backup-guard-switch-js', plugin_dir_url(__FILE__).'public/js/bootstrap-switch.min.js', array('jquery'), '1.0.0', true);
 		wp_enqueue_script('backup-guard-schedule-js', plugin_dir_url(__FILE__).'public/js/sgschedule.js', array('jquery'), '1.0.0', true);
 
+		// Localize the script with new data
+		wp_localize_script('backup-guard-schedule-js', 'BG_SCHEDULE_STRINGS', array(
+			'deletionError'            => _backupGuardT('Unable to delete schedule', true),
+			'confirm'                  => _backupGuardT('Are you sure?', true),
+			'invalidBackupOption'      => _backupGuardT('Please choose at least one option.', true),
+			'invalidDirectorySelected' => _backupGuardT('Please choose at least one directory.', true),
+			'invalidCloud'             => _backupGuardT('Please choose at least one cloud.', true),
+			'savingInProgress'         => _backupGuardT('Saving...', true),
+			'successMessage'           => _backupGuardT('You have successfully activated schedule.', true),
+			'saveButtonText'           => _backupGuardT('Save', true)
+		));
+
 		require_once(plugin_dir_path( __FILE__ ).'public/schedule.php');
 	}
 }
@@ -173,6 +230,18 @@ function backup_guard_settings_page()
 		wp_enqueue_style('backup-guard-switch-css', plugin_dir_url(__FILE__).'public/css/bootstrap-switch.min.css');
 		wp_enqueue_script('backup-guard-switch-js', plugin_dir_url(__FILE__).'public/js/bootstrap-switch.min.js', array('jquery'), '1.0.0', true);
 		wp_enqueue_script('backup-guard-settings-js', plugin_dir_url(__FILE__).'public/js/sgsettings.js', array('jquery'), '1.0.0', true );
+
+		// Localize the script with new data
+		wp_localize_script('backup-guard-settings-js', 'BG_SETTINGS_STRINGS', array(
+			'invalidEmailAddress'             => _backupGuardT('Please enter valid email.', true),
+			'invalidFileName'                 => _backupGuardT('Please enter valid file name.', true),
+			'invalidRetentionNumber'          => _backupGuardT('Please enter a valid retention number.', true),
+			'successMessage'                  => _backupGuardT('Successfully saved.', true),
+			'savingInProgress'                => _backupGuardT('Saving...', true),
+			'retentionConfirmationFirstPart'  => _backupGuardT('Are you sure you want to keep the latest', true),
+			'retentionConfirmationSecondPart' => _backupGuardT('backups? All older backups will be deleted.', true),
+			'saveButtonText'                  => _backupGuardT('Save', true)
+		));
 
 		require_once(plugin_dir_path(__FILE__).'public/settings.php');
 	}
@@ -188,6 +257,11 @@ function backup_guard_login_page()
 function backup_guard_link_license_page()
 {
 	wp_enqueue_script('backup-guard-license-js', plugin_dir_url(__FILE__).'public/js/sglicense.js', array('jquery'), '1.0.0', true);
+	// Localize the script with new data
+	wp_localize_script('backup-guard-license-js', 'BG_LICENSE_STRINGS', array(
+		'invalidLicense'    => _backupGuardT('Please choose a license first', true),
+		'availableLicenses' => _backupGuardT('There are no available licenses for using the selected product', true)
+	));
 
 	require_once(plugin_dir_path(__FILE__).'public/link_license.php');
 }
@@ -195,6 +269,8 @@ function backup_guard_link_license_page()
 add_action('admin_enqueue_scripts', 'enqueue_backup_guard_scripts');
 function enqueue_backup_guard_scripts($hook)
 {
+	wp_enqueue_script('backup-guard-discount-notice', plugin_dir_url(__FILE__).'public/js/sgNoticeDismiss.js', array('jquery'), '1.0', true);
+
 	if (!strpos($hook,'backup_guard')) {
 		if($hook == "index.php"){
 			wp_enqueue_script('backup-guard-chart-manager', plugin_dir_url(__FILE__).'public/js/Chart.bundle.min.js');
@@ -227,6 +303,11 @@ function enqueue_backup_guard_scripts($hook)
 	wp_enqueue_script('backup-guard-rateyo-js', plugin_dir_url(__FILE__).'public/js/jquery.rateyo.js');
 
 	wp_enqueue_script('backup-guard-main-js', plugin_dir_url(__FILE__).'public/js/main.js', array('jquery'), '1.0.0', true);
+
+	// Localize the script with new data
+	wp_localize_script('backup-guard-main-js', 'BG_MAIN_STRINGS', array(
+		'confirmCancel' => _backupGuardT('Are you sure you want to cancel?', true)
+	));
 }
 
 // adding actions to handle modal ajax requests
@@ -343,9 +424,32 @@ function backup_guard_register_ajax_callbacks()
 		add_action('wp_ajax_backup_guard_link_license', 'backup_guard_link_license');
 		add_action('wp_ajax_backup_guard_importKeyFile', 'backup_guard_import_key_file');
 		add_action('wp_ajax_backup_guard_isFeatureAvailable', 'backup_guard_is_feature_available');
-
+		add_action('wp_ajax_backup_guard_dismiss_discount_notice', 'backup_guard_dismiss_discount_notice');
 		add_action('wp_ajax_backup_guard_checkPHPVersionCompatibility', 'backup_guard_check_php_version_compatibility');
+		add_action('wp_ajax_backup_guard_setUserInfoVerificationPopupState', 'backup_guard_set_user_info_verification_popup_state');
+		add_action('wp_ajax_backup_guard_storeSubscriberInfo', 'backup_guard_store_subscriber_info');
+		add_action('wp_ajax_backup_guard_storeSurveyResult', 'backup_guard_store_survey_result');
 	}
+}
+
+function backup_guard_store_survey_result()
+{
+	require_once(SG_PUBLIC_AJAX_PATH.'storeSurveyResult.php');
+}
+
+function backup_guard_store_subscriber_info()
+{
+	require_once(SG_PUBLIC_AJAX_PATH.'storeSubscriberInfo.php');
+}
+
+function backup_guard_set_user_info_verification_popup_state()
+{
+	require_once(SG_PUBLIC_AJAX_PATH.'setUserInfoVerificationPopupState.php');
+}
+
+function backup_guard_dismiss_discount_notice()
+{
+	require_once(SG_PUBLIC_AJAX_PATH.'dismissDiscountNotice.php');
 }
 
 function backup_guard_is_feature_available()
@@ -566,6 +670,7 @@ function backup_guard_cron_add_yearly($schedules)
 function backup_guard_init()
 {
 	backup_guard_register_ajax_callbacks();
+	backupGuardPluginRedirect();
 
 	//check if database should be updated
 	if (backupGuardShouldUpdate()) {
@@ -639,4 +744,86 @@ function add_dashboard_widgets()
 
 	require_once(plugin_dir_path( __FILE__ ).'public/dashboardWidget.php');
 	wp_add_dashboard_widget('backupGuardWidget', 'Backup Guard', 'backup_guard_dashboard_widget_function');
+}
+
+if (backupGuardShouldShowDiscountNotice()) {
+	add_action('admin_notices', 'backup_guard_discount_notice');
+}
+
+function backup_guard_discount_notice()
+{
+	$capabilities = backupGuardGetCapabilities();
+	$upgradeUrl = BG_UPGRADE_URL;
+
+	if ($capabilities != BACKUP_GUARD_CAPABILITIES_FREE && $capabilities != BACKUP_GUARD_CAPABILITIES_PLATINUM) {
+		$auth = SGAuthClient::getInstance();
+		$merchantId = $auth->getMerchantOrderId(SG_PRODUCT_IDENTIFIER);
+
+		$upgradeUrl .= $merchantId;
+	}
+
+	?>
+	<div class="backup-guard-discount-notice updated notice is-dismissible">
+		<?php if ($capabilities == BACKUP_GUARD_CAPABILITIES_FREE): ?>
+			<h3>Christmas magic for your website security. Take advantage of our Christmas deal and <span style="color: red;">save 30%</span> when you subscribe to Backup Guard. The benefits include migration, cloud backups scheduling and not only.</h3>
+			<h3><a target="_blank" href="<?php echo $upgradeUrl ?>">Upgrade Now!</a></h3>
+			<h4>Enjoy these premium features:</h4>
+			<ul>
+				<li>Multiple Websites (Lifetime Usage)</li>
+				<li>Backup to Cloud Services <b>(Google Drive, One Drive, Amazon S3 etc.)</b></li>
+				<li>Backup <b>Retention</b></li>
+				<li><b>Restore</b> from all Supported <b>Clouds</b></li>
+				<li>Delete Local Copy after Upload</li>
+				<li>Customize Backup Name</li>
+				<li><b>Customer Priority Support (1 year)</b></li>
+				<li><b>Unlimited Updates (1 year)</b></li>
+			</ul>
+		<?php elseif ($capabilities == BACKUP_GUARD_CAPABILITIES_SILVER): ?>
+			<h3>Christmas magic for your website security. Take advantage of our Christmas deal and <span style="color: red;">save 30%</span> when you upgrade to the Gold plan. The benefits include migration, cloud backups scheduling and not only.</h3>
+			<h3><a target="_blank" href="<?php echo $upgradeUrl ?>">Upgrade Now!</a></h3>
+			<h4>Enjoy these Gold plan features:</h4>
+			<ul>
+				<li><b>Up to 5 Websites (Lifetime Usage)</b></li>
+				<li><b>All Silver Features +</b></li>
+				<li><b>Cloud Backup</b> to Google, Amazon S3 and One Drive</li>
+				<li>Backup <b>Retention</b></li>
+				<li><b>Restore</b> from all Supported <b>Clouds</b></li>
+				<li>Delete Local Copy after Upload</li>
+				<li>Customize Backup Name</li>
+				<li><b>Customer Priority Support (1 year)</b></li>
+			</ul>
+		<?php elseif ($capabilities == BACKUP_GUARD_CAPABILITIES_GOLD): ?>
+			<h3>Christmas magic for your website security. Take advantage of our Christmas deal and <span style="color: red;">save 30%</span> when you upgrade to the Platinum plan. The benefits include unlimited websites, automatic backups and not only.</h3>
+			<h3><a target="_blank" href="<?php echo $upgradeUrl ?>">Upgrade Now!</a></h3>
+			<h4>Enjoy these Platinum plan features:</h4>
+			<ul>
+				<li><b>Unlimited Websites (Lifetime Usage)</b></li>
+				<li><b>All Gold Features +</b></li>
+				<li><b>Automatic</b> Backups <b>(multiple profiles)</b></li>
+				<li>Set <b>Custom Cloud Destination Path</b></li>
+				<li>Customer <b>Emergency</b> Support (1 year)</li>
+				<li>Unlimited Updates (1 year)</li>
+			</ul>
+		<?php elseif ($capabilities == BACKUP_GUARD_CAPABILITIES_PLATINUM): ?>
+			<h3>Christmas magic for your website security. Take advantage of our Christmas deal and <span style="color: red;">save 50%</span> when you subscribe to <span style="color: red;">SECURITY</span> plugin by Backup Guard. The benefits include brute force protection, one-click scan, block unwanted IPs, etc.</h3>
+			<h3><a target="_blank" href="<?php echo $upgradeUrl ?>">Check Now!</a></h3>
+			<h4>Enjoy these security features:</h4>
+			<ul>
+				<li><b>Limit Login Attempts</b></li>
+				<li><b>Scanner:</b> infected frames, vulnerabilities, infected redirections</li>
+				<li><b>Firewall:</b> block bad bots, referrer spam, bad query strings, proxy ports and HTTP headers, etc.</li>
+				<li><b>Monitoring:</b> bandwidth, traffic</li>
+			</ul>
+
+			<h3><a target="_blank" href="<?php echo $upgradeUrl ?>">Check Now!</a></h3>
+		<?php endif; ?>
+
+		<?php if ($capabilities != BACKUP_GUARD_CAPABILITIES_PLATINUM): ?>
+			<h3><a target="_blank" href="<?php echo $upgradeUrl ?>">Upgrade Now!</a></h3>
+		<?php endif; ?>
+
+		<h4>Offer valid until December 26, 11:59 PM PST</h4>
+		<a target="_blank" href="<?php echo SG_BACKUP_SITE_PRICING_URL ?>"><img style="border: 0px; position: absolute; width: 100px; bottom: 9px; right: 9px;" src="<?php echo SG_IMAGE_URL.'bg_160.png' ?>"></a>
+	</div>
+	<?php
 }

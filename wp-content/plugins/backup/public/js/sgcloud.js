@@ -29,7 +29,7 @@ sgBackup.initSFTPKeyFileSelection = function() {
 sgBackup.importKeyFile =  function(isFileSelected){
     jQuery('.alert').remove();
     if(!isFileSelected){
-        var alert = sgBackup.alertGenerator('Please select a file.', 'alert-danger');
+        var alert = sgBackup.alertGenerator(BG_CLOUD_STRINGS.invalidImportFile, 'alert-danger');
         jQuery('#sg-modal .modal-header').prepend(alert);
         return false;
     }
@@ -40,7 +40,7 @@ sgBackup.importKeyFile =  function(isFileSelected){
     sgFile = jQuery('input[name=sg-ssh-key-file]')[0].files[0];
     sguploadFile.append('sg-ssh-key-file', sgFile);
     if(sgFile.size > sgAllowedFileSize){
-        var alert = sgBackup.alertGenerator('File is too large.', 'alert-danger');
+        var alert = sgBackup.alertGenerator(BG_CLOUD_STRINGS.invalidFileSize, 'alert-danger');
         jQuery('#sg-modal .modal-header').prepend(alert);
         return false;
     }
@@ -151,7 +151,7 @@ sgBackup.storeAmazonSettings = function(){
 
     //Before Ajax call
     jQuery('.modal-footer .btn-primary').attr('disabled','disabled');
-    jQuery('.modal-footer .btn-primary').html('Connecting...');
+    jQuery('.modal-footer .btn-primary').html(BG_CLOUD_STRINGS.connectionInProgress);
 
     //Get user credentials
     var amazonBucket = jQuery('#amazonBucket').val();
@@ -262,7 +262,7 @@ sgBackup.initCloudFolderSettings = function(){
         var cloudFolderName = jQuery('#cloudFolder').val(),
             cloundFolderRequest = new sgRequestHandler('saveCloudFolder',{cloudFolder: cloudFolderName}),
             saveBtn = jQuery(this);
-        var alert = sgBackup.alertGenerator('Destination folder is required.','alert-danger');
+        var alert = sgBackup.alertGenerator(BG_CLOUD_STRINGS.invalidDestinationFolder,'alert-danger');
         if(cloudFolderName.length<=0)
         {
             jQuery('.sg-cloud-container legend').after(alert);
@@ -272,7 +272,7 @@ sgBackup.initCloudFolderSettings = function(){
         saveBtn.html('Saving...');
         cloundFolderRequest.callback = function(response){
             if(typeof response.success !== 'undefined'){
-                var successAlert = sgBackup.alertGenerator('Successfully saved.','alert-success');
+                var successAlert = sgBackup.alertGenerator(BG_CLOUD_STRINGS.successMessage,'alert-success');
                 jQuery('.sg-cloud-container legend').after(successAlert);
                 saveBtn.fadeOut();
             }

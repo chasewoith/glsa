@@ -3,9 +3,9 @@ Plugin Name: WordPress Backup and Migrate Plugin - Backup Guard
 Contributors: Backup Guard, Backup Guard Support
 Author: Backup Guard
 Donate link: https://backup-guard.com/products/backup-wordpress
-Tags: backup, wordpress backup plugin, backup plugin, database backup, migrate
+Tags: backup, wordpress backup plugin, backup plugin, database backup, migrate, back up
 Requires at least: 3.8
-Tested up to: 4.9
+Tested up to: 5.0
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -16,9 +16,9 @@ Backup site, restore or migrate it wherever you need it. Backup to Dropbox, Goog
 
 Backup Guard is the most complete WordPress backup plugin. We offer the easiest way to <strong>Backup</strong>, <strong>Restore</strong> and <strong>Migrate</strong> your WordPress website. You can backup and restore your WordPress files, database or both.
 
-https://www.youtube.com/watch?v=HCz4mkMMXos
-
 <p>Download <strong>BackupGuard Pro</strong> here: <a  href="https://backup-guard.com/products/backup-wordpress">https://backup-guard.com/products/backup-wordpress</a></p>
+
+https://www.youtube.com/watch?v=HCz4mkMMXos
 
 <h4>Free backup features</h4>
 <ul>
@@ -157,6 +157,48 @@ When you are facing an issue of any kind with any of our products, the first thi
 6.  Site backup customization
 
 == Changelog ==
+
+= 1.1.79 =
+* Christmas campaign
+
+= 1.1.78 =
+* Previous update bug fix
+
+= 1.1.77 =
+* Minor bug fixes and improvements
+* Deactivation survey
+
+= 1.1.76 =
+* End Black Friday campaign
+
+= 1.1.75 =
+* Black Friday campaign
+
+= 1.1.74 =
+* Bug fixes & improvements
+
+= 1.1.73 =
+* Scheduling option added to free version
+* Other bug fixes & improvements
+
+= 1.1.72 =
+* Discount notice removed
+
+= 1.1.71 =
+* Bug fixes & improvements
+
+= 1.1.70 =
+* Now user will see alert about not saved settings.
+* Other bug fixes & improvements
+
+= 1.1.69 =
+* Issue with migration error notice solved
+
+= 1.1.68 =
+* Pro markers removed from plugin
+
+= 1.1.67 =
+* Bug fixes and improvements
 
 = 1.1.66 =
 * Minor bug fixes and improvements

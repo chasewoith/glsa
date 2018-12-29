@@ -1,7 +1,46 @@
+isDirty = false;
+
 jQuery(document).ready( function() {
     sgBackup.initGeneralSettingsSwitchButtons();
     AMOUNT_OF_BACKUPS_TO_KEEP = jQuery("#amount-of-backups-to-keep").val();
+    sgBackup.saveInitialState();
 });
+
+window.onbeforeunload = function(){
+    var msg = 'You haven\'t saved your changes.';
+    isDirty = false;
+
+    jQuery(':input').each(function () {
+
+        if (jQuery(this).attr('type') == 'checkbox') {
+            value = jQuery(this).prop('checked');
+        }
+        else {
+            value = jQuery(this).val();
+        }
+
+        if(jQuery(this).data('initialValue') != value){
+            isDirty = true;
+        }
+    });
+
+    if(isDirty == true){
+        return msg;
+    }
+};
+
+sgBackup.saveInitialState = function() {
+    jQuery(':input').each(function() {
+        if (jQuery(this).attr('type') == 'checkbox') {
+            value = jQuery(this).prop('checked');
+        }
+        else {
+            value = jQuery(this).val();
+        }
+
+        jQuery(this).data('initialValue', value);
+    });
+};
 
 sgBackup.initGeneralSettingsSwitchButtons = function() {
     jQuery('.sg-switch').bootstrapSwitch();
@@ -72,7 +111,7 @@ sgBackup.sgsettings = function(){
         $.each(emails, function( index, value ) {
             value = jQuery.trim(value);
             if(!isValidEmailAddress(value)){
-                error.push('Please enter valid email.');
+                error.push(BG_SETTINGS_STRINGS.invalidEmailAddress);
             }
         });
     }
@@ -80,18 +119,17 @@ sgBackup.sgsettings = function(){
     var backupFileName = jQuery('#backup-file-name').val();
 
     if (typeof amountOfBackups !== 'undefined' && !backupFileName) {
-        error.push('Please enter backup file name.');
+        error.push(BG_SETTINGS_STRINGS.invalidFileName);
     }
 
     var amountOfBackups = jQuery('#amount-of-backups-to-keep').val();
-    if (AMOUNT_OF_BACKUPS_TO_KEEP != amountOfBackups) {
-        if (!confirm('Are you sure you want to keep the latest '+amountOfBackups+' backups? All older backups will be deleted!')) {
+    if (typeof amountOfBackups !== 'undefined' && (!jQuery.isNumeric(amountOfBackups) || amountOfBackups <= 0)) {
+        error.push(BG_SETTINGS_STRINGS.invalidRetentionNumber);
+    }
+    else if (AMOUNT_OF_BACKUPS_TO_KEEP != amountOfBackups) {
+        if (!confirm(BG_SETTINGS_STRINGS.retentionConfirmationFirstPart+' '+amountOfBackups+' '+BG_SETTINGS_STRINGS.retentionConfirmationSecondPart)) {
             return false;
         }
-    }
-
-    if (typeof amountOfBackups !== 'undefined' && !jQuery.isNumeric(amountOfBackups)) {
-        error.push('Please enter a valid number of backups to keep on your server!');
     }
 
     //If any error show it and abort ajax
@@ -105,7 +143,7 @@ sgBackup.sgsettings = function(){
     //Before sending
     var userEmail = jQuery('#sg-email').val();
     jQuery('#sg-save-settings').attr('disabled','disabled');
-    jQuery('#sg-save-settings').html('Saving...');
+    jQuery('#sg-save-settings').html(BG_SETTINGS_STRINGS.savingInProgress);
 
     //On Success
     var ajaxHandler = new sgRequestHandler('settings', settingsForm.serialize());
@@ -113,11 +151,12 @@ sgBackup.sgsettings = function(){
     ajaxHandler.callback = function(response){
         jQuery('.alert').remove();
         if(typeof response.success !== 'undefined'){
-            var alert = sgBackup.alertGenerator('Successfully saved.', 'alert-success');
+            var alert = sgBackup.alertGenerator(BG_SETTINGS_STRINGS.successMessage, 'alert-success');
             jQuery('.sg-settings-container legend').after(alert);
             sgBackup.addUserInfo(userEmail);
             //jQuery('.sg-switch').bootstrapSwitch('state', true, true);
             jQuery('.sg-general-settings').fadeOut();
+            sgBackup.saveInitialState();
         }
         else{
             //if error
@@ -127,7 +166,7 @@ sgBackup.sgsettings = function(){
 
         //Always
         jQuery('#sg-save-settings').removeAttr('disabled','disabled');
-        jQuery('#sg-save-settings').html('Save');
+        jQuery('#sg-save-settings').html(BG_SETTINGS_STRINGS.saveButtonText);
         sgBackup.scrollToElement('.alert');
     };
     ajaxHandler.run();

@@ -18,15 +18,15 @@
  *
  * @package   SkyVerge/WooCommerce/Payment-Gateway/Classes
  * @author    SkyVerge
- * @copyright Copyright (c) 2013-2016, SkyVerge, Inc.
+ * @copyright Copyright (c) 2013-2018, SkyVerge, Inc.
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License v3.0
  */
 
-namespace SkyVerge\Plugin_Framework;
+namespace WC_Braintree\Plugin_Framework;
 
 defined( 'ABSPATH' ) or exit;
 
-if ( ! class_exists( '\SkyVerge\Plugin_Framework\SV_WC_Payment_Gateway_Integration_Pre_Orders' ) ) :
+if ( ! class_exists( '\\WC_Braintree\\Plugin_Framework\\SV_WC_Payment_Gateway_Integration_Pre_Orders' ) ) :
 
 /**
  * Pre-Orders Integration
@@ -40,9 +40,10 @@ class SV_WC_Payment_Gateway_Integration_Pre_Orders extends SV_WC_Payment_Gateway
 	 * Bootstrap class
 	 *
 	 * @since 4.1.0
-	 * @param \SV_WC_Payment_Gateway_Direct $gateway
+	 *
+	 * @param \SV_WC_Payment_Gateway $gateway gateway object
 	 */
-	public function __construct( SV_WC_Payment_Gateway_Direct $gateway ) {
+	public function __construct( SV_WC_Payment_Gateway $gateway ) {
 
 		parent::__construct( $gateway );
 
@@ -68,6 +69,9 @@ class SV_WC_Payment_Gateway_Integration_Pre_Orders extends SV_WC_Payment_Gateway
 
 		// process pre-order initial payment as needed
 		add_filter( 'wc_payment_gateway_' . $this->get_gateway()->get_id() . '_process_payment', array( $this, 'process_payment' ), 10, 2 );
+
+		// complete a successful pre-order initial payment
+		add_filter( 'wc_payment_gateway_' . $this->get_gateway()->get_id() . '_complete_payment', array( $this, 'complete_payment' ), 10, 2 );
 
 		// process batch pre-order payments
 		add_action( 'wc_pre_orders_process_pre_order_completion_payment_' . $this->get_gateway()->get_id(), array( $this, 'process_release_payment' ) );
@@ -124,10 +128,14 @@ class SV_WC_Payment_Gateway_Integration_Pre_Orders extends SV_WC_Payment_Gateway
 		if ( \WC_Pre_Orders_Order::order_requires_payment_tokenization( $order ) ) {
 
 			// normally a guest user wouldn't be assigned a customer id, but for a pre-order requiring tokenization, it might be
-			if ( 0 == $order->get_user_id() && false !== ( $customer_id = $this->get_gateway()->get_guest_customer_id( $order ) ) )
+			if ( 0 == $order->get_user_id() && false !== ( $customer_id = $this->get_gateway()->get_guest_customer_id( $order ) ) ) {
 				$order->customer_id = $customer_id;
+			}
 
-		} elseif ( \WC_Pre_Orders_Order::order_has_payment_token( $order ) ) {
+			// zero out the payment total since we're just tokenizing the payment method
+			$order->payment_total = '0.00';
+
+		} elseif ( \WC_Pre_Orders_Order::order_has_payment_token( $order ) && ! is_checkout_pay_page() ) {
 
 			// if this is a pre-order release payment with a tokenized payment method, get the payment token to complete the order
 
@@ -237,18 +245,35 @@ class SV_WC_Payment_Gateway_Integration_Pre_Orders extends SV_WC_Payment_Gateway
 						'redirect' => $this->get_gateway()->get_return_url( $order ),
 				);
 
-			} catch( SV_WC_Payment_Gateway_Exception $e ) {
+			} catch( SV_WC_Plugin_Exception $e ) {
 
 				$this->get_gateway()->mark_order_as_failed( $order, sprintf( __( 'Pre-Order Tokenization attempt failed (%s)', 'woocommerce-gateway-paypal-powered-by-braintree' ), $this->get_gateway()->get_method_title(), $e->getMessage() ) );
 
 				$result = array(
-						'result'  => 'failure',
-						'message' => $e->getMessage(),
+					'result'  => 'failure',
+					'message' => $e->getMessage(),
 				);
 			}
 		}
 
 		return $result;
+	}
+
+
+	/**
+	 * Completes a pre-order payment by marking the order as Pre-Ordered.
+	 *
+	 * @internal
+	 *
+	 * @since 5.0.0
+	 *
+	 * @param \WC_Order $order order object
+	 */
+	public function complete_payment( $order ) {
+
+		if ( \WC_Pre_Orders_Order::order_contains_pre_order( $order ) && \WC_Pre_Orders_Order::order_requires_payment_tokenization( $order ) ) {
+			\WC_Pre_Orders_Order::mark_order_as_pre_ordered( $order );
+		}
 	}
 
 
@@ -274,7 +299,7 @@ class SV_WC_Payment_Gateway_Integration_Pre_Orders extends SV_WC_Payment_Gateway
 			}
 
 			// perform the transaction
-			if ( $this->get_gateway()->is_credit_card_gateway() || $this->get_gateway()->is_paypal_gateway() ) {
+			if ( $this->get_gateway()->is_credit_card_gateway() ) {
 
 				if ( $this->get_gateway()->perform_credit_card_charge( $order ) ) {
 					$response = $this->get_gateway()->get_api()->credit_card_charge( $order );
@@ -308,9 +333,6 @@ class SV_WC_Payment_Gateway_Integration_Pre_Orders extends SV_WC_Payment_Gateway
 					// account type (checking/savings) may or may not be available, which is fine
 					$message = sprintf( __( '%s eCheck Pre-Order Release Payment Approved: %s ending in %s', 'woocommerce-gateway-paypal-powered-by-braintree' ), $this->get_gateway()->get_method_title(), SV_WC_Payment_Gateway_Helper::payment_type_to_name( ( ! empty( $order->payment->account_type ) ? $order->payment->account_type : 'bank' ) ), $last_four );
 
-				} else {
-
-					$message = sprintf( __( '%s Pre-Order Release Payment Approved', 'woocommerce-gateway-paypal-powered-by-braintree' ), $this->get_gateway()->get_method_title() );
 				}
 
 				// adds the transaction id (if any) to the order note
