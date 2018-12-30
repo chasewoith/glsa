@@ -1177,6 +1177,30 @@ ul.nav-menu li:hover > ul,
     clear: both;
 }
 
+input.wpcf7-form-control.wpcf7-text.long {
+    width: 100%;
+}
+
+canvas#wpcf7_signature-835_signature, canvas#wpcf7_signature-tuition_signature, canvas#wpcf7_signature-participate_signature, canvas#wpcf7_signature-firstaid_signature, canvas#wpcf7_signature-photography_signature, canvas#wpcf7_signature-history_signature {
+    border: black;
+    border-width: thick;
+    border-style: double;
+    width: 100% !important;
+}
+
+canvas#wpcf7_signature-ipayment_signature, canvas#wpcf7_signature-irefund_signature, canvas#wpcf7_signature-iclosing_signature{
+	border: black;
+    border-width: thick;
+    border-style: double;
+    width: 20%;
+    height: 45%;
+}
+
+.wpcf7-form-control-signature-wrap {
+    width: 100% !important;
+    margin-bottom: 10px;
+}
+
 footer.entry-meta {
 	margin-top: 24px;
 }
