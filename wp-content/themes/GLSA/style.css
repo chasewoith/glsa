@@ -1188,7 +1188,7 @@ canvas#wpcf7_signature-835_signature, canvas#wpcf7_signature-tuition_signature, 
     width: 100% !important;
 }
 
-canvas#wpcf7_signature-ipayment_signature, canvas#wpcf7_signature-irefund_signature, canvas#wpcf7_signature-iclosing_signature{
+canvas#wpcf7_signature-ipayment_signature, canvas#wpcf7_signature-irefund_signature, canvas#wpcf7_signature-iclosing_signature, canvas#wpcf7_signature-iresponsibility_signature {
 	border: black;
     border-width: thick;
     border-style: double;
